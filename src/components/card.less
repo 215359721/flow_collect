@@ -1,0 +1,118 @@
+.box {
+  width: 320px;
+  // height: 445px;
+  border: 1px solid rgb(186, 186, 186);
+  border-radius: 5px 5px 0px 0px;
+  box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+  //标题 （35）
+  .head {
+    height: 35px;
+    background-color: rgb(40, 154, 255);
+    border-radius: 4px 4px 0px 0px;
+    color: #fff;
+  }
+  //内容（405）
+  .content {
+    // height: 405px;
+    padding: 5px;
+    background-color: rgb(244, 255, 233);
+    // 摘要（50 + 5）
+    .main-part {
+      height: 50px;
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      .each-main-box {
+        width: 100px;
+        display: flex;
+        .left {
+          width: 45%;
+          // border: 1px solid #000;
+          img {
+            width: 40px;
+            height: 40px;
+          }
+        }
+        .right {
+          width: 55%;
+          // border: 1px solid #000;
+          .con {
+            height: 25px;
+            // border: 1px solid red;
+          }
+          .desc {
+            height: 25px;
+            // border: 1px solid red;
+            color: #9a9a9a;
+            font-size: 12px;
+          }
+        }
+      }
+    }
+    //详情（140 + 5）
+    .info-part{
+      height: 140px;
+      margin-top: 5px;
+      padding-left: 10px;
+      // border: 1px solid #000;
+      .each-item{
+        color: #9a9a9a;
+        font-size: 12px;
+        // border: 1px solid red;
+        line-height: 20px;
+      }
+    }
+    // 输入物（60 + 5）
+    .in-part{
+      height: 60px;
+      margin-top: 5px;
+      padding-left: 10px;
+      overflow: auto;
+      // border: 1px solid #000;
+    }
+    // 产出物（60 + 5）
+    .out-part{
+      height: 60px;
+      margin-top: 5px;
+      padding-left: 10px;
+      overflow: auto;
+      // border: 1px solid #000;
+    }
+    // 描述(60 + 5)
+    .desc-part{
+      height: 60px;
+      margin-top: 5px;
+      padding-left: 10px;
+      // border: 1px solid #000;
+      overflow: auto;
+      .content{
+        height: 40px;
+        color: #9a9a9a;
+        font-size: 12px;
+        padding-left: 0px !important;
+        // border: 1px solid red;
+      }
+    }
+  }
+}
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.title{
+  font-weight: bold;
+  line-height: 20px;
+}
+.mark{
+  padding: 0px 3px;
+  background-color: rgb(62, 62, 255);
+  color: #fff;
+  border-radius: 3px;
+}
+.file-item{
+  line-height: 20px;
+  font-size: 12px;
+  color: rgb(62, 62, 255);
+}
