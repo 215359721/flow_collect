@@ -43,12 +43,26 @@
           @click="goWeek('point')"
         >去指定周</el-button>
       </div>
+      <el-radio-group
+        v-model="dataType"
+        size="mini"
+        style="margin-top:5px;"
+        @change="changeDataType"
+      >
+        <el-radio-button label="mock">mock数据</el-radio-button>
+        <el-radio-button label="real">动态数据</el-radio-button>
+      </el-radio-group>
     </div>
+    <!-- 分辨率 -->
+    <div class="cur-num cur-resolving">
+      <div class="mr5">{{win.width}} * {{win.height}}</div>
+    </div>
+    <!-- 指示器 -->
     <div
       class="cur-num"
       v-if="graph"
     >
-      <div>zoom：{{graph.getZoom().toFixed(2)}}</div>
+      <div class="mr5">zoom：{{graph.getZoom().toFixed(2)}}</div>
       <div>当前周：{{curWeek}}</div>
     </div>
     <!-- 部门竖线 -->
@@ -99,6 +113,8 @@ import tooTipHTML from '../data/tooTip'
 import custNode from '../data/newNode/cust_node'
 import testData from '../mock/testData'
 import innerCss from '../data/insertCss'
+
+import { getMainData } from '../api/api'
 insertCss(innerCss)
 let _that = null
 
@@ -119,6 +135,7 @@ export default {
       minimap: null,//小地图
       rightMenu: null,//右键菜单
       //-------------------
+      dataType: 'real',//数据形式
       timeBar: null,//时间轴
       timeBarData: [],//时间轴数据
       dep_num: 7,//部门数量
@@ -131,10 +148,18 @@ export default {
   computed: {},
   mounted () {
     this.initWindow()
+    this.requestMainData()
     this.sourceData = this.initData(testData({ height: this.win.height, width: this.win.height, way: this.dep_num }))
     this.initG6()
   },
   methods: {
+    /**
+     * 请求全局数据
+     */
+    async requestMainData () {
+      const responseData = await getMainData()
+      console.log(responseData)
+    },
     /**
      * 初始化G6
      */
@@ -293,7 +318,7 @@ export default {
      */
     initToolBar () {
       this.toolBar = new G6.ToolBar({
-        position: { x: _that.win.width - 224, y: 10 },
+        position: { x: _that.win.width - 84, y: 10 },
       });
     },
     /**
@@ -382,6 +407,19 @@ export default {
       that.graph.setAutoPaint(true)
     },
     /**
+     * 数据形式改变
+     */
+    changeDataType (val) {
+      this.dataType = val
+      if (this.dataType === 'mock') {
+        this.sourceData = this.initData(testData({ height: this.win.height, width: this.win.height, way: this.dep_num }))
+        this.graph.changeData(this.sourceData)
+      } else {
+        this.requestMainData()
+      }
+    },
+
+    /**
      * 初始化节点
      */
     initData (data) {
@@ -469,15 +507,13 @@ export default {
             } else {
               this.moveTo(100 + 20 + (150 * ((this.curWeek - 1) * 4)) - 5)
             }
-            this.$message({ message: `第${this.curWeek}周;x:${100 + 20 + (150 * ((this.curWeek - 1) * 4))}`, })
+            this.$message({ message: `第${this.curWeek}周`, })
           }
           break
         case 'next'://下一周
-
           this.curWeek = this.curWeek + 1
           this.moveTo(100 + 20 + (150 * ((this.curWeek - 1) * 4)) - 2)
-          this.$message({ message: `第${this.curWeek}周;x:${100 + 20 + (150 * ((this.curWeek - 1) * 4))}` })
-
+          this.$message({ message: `第${this.curWeek}周` })
           break
         case 'start'://回起点
           this.moveTo(95)

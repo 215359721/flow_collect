@@ -34,7 +34,11 @@ const innerCss = `
   .g6-component-toolbar{
     li {
       list-style-type: none !important;
+      display:none !important;
     }
+     li:nth-child(0){
+       display:none !important;
+     }
   }
 `
 export default innerCss
