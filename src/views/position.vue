@@ -7,14 +7,14 @@
           type="primary"
           icon="el-icon-back"
           size="mini"
-          @click="moveCanvas('left')"
-        ></el-button>
+          @click="goWeek('prv')"
+        >上一周</el-button>
         <el-button
           type="primary"
           icon="el-icon-right"
           size="mini"
-          @click="moveCanvas('right')"
-        ></el-button>
+          @click="goWeek('next')"
+        >下一周</el-button>
         <el-button
           style="width:60px;"
           size="mini"
@@ -34,14 +34,14 @@
           type="primary"
           style="width:100px;margin-top:5px;"
           size="mini"
-          @click="moveCanvas('start')"
+          @click="goWeek('start')"
         >回起点</el-button>
         <el-button
           type="primary"
           style="width:100px;margin-top:5px;"
           size="mini"
-          @click="moveCanvas('point')"
-        >去指定点</el-button>
+          @click="goWeek('point')"
+        >去指定周</el-button>
       </div>
     </div>
     <div
@@ -49,6 +49,7 @@
       v-if="graph"
     >
       <div>zoom：{{graph.getZoom().toFixed(2)}}</div>
+      <div>当前周：{{curWeek}}</div>
     </div>
     <!-- 部门竖线 -->
     <div
@@ -117,12 +118,14 @@ export default {
       toolBar: null,//工具栏
       minimap: null,//小地图
       rightMenu: null,//右键菜单
+      //-------------------
       timeBar: null,//时间轴
       timeBarData: [],//时间轴数据
       dep_num: 7,//部门数量
       curTime: 10,//时间轴当前时间
       timeBarMarks: { 10: '', },//时间轴标注
       animSec: 1,//移动动画时长
+      curWeek: 1,//当前显示周
     }
   },
   computed: {},
@@ -199,6 +202,7 @@ export default {
         const item = e.item
         console.log(e)
         console.log('点击node:{' + item._cfg.model.id + ' , ' + item._cfg.model.label + '|' + item._cfg.model.x + ',' + item._cfg.model.y + '}')
+        if (item._cfg.model.method === 'line') { return }
         //---高亮---
         _that.graph.setAutoPaint(false)
         _that.graph.getNodes().forEach(function (node) {
@@ -307,10 +311,15 @@ export default {
           const outDiv = document.createElement('div')
           outDiv.style.width = 'fit-content'
           outDiv.style.height = 'fit-content'
-          // const model = e.item.getModel()
-          // const pos = e.item.getBBox()
+          const model = e.item.getModel()
           if (e.item.getType() === 'node') {
-            outDiv.innerHTML = tooTipHTML
+            if (model.method === 'line') {
+              //标示线节点
+              outDiv.innerHTML = model.label
+            } else {
+              //普通节点
+              outDiv.innerHTML = tooTipHTML
+            }
           } else {
             const source = e.item.getSource()
             const target = e.item.getTarget()
@@ -386,6 +395,9 @@ export default {
         if ((element.id > 25) && (element.id <= 30)) {
           element.type = 'custNode_mark'
         }
+        if (element.id >= 100) {
+          element.type = 'custNode_line'
+        }
       })
       console.log('【当前数据】', data)
       //初始化silder-mark
@@ -412,6 +424,9 @@ export default {
       G6.registerNode('custNode_mark', {
         jsx: custNode.mark_node,
       })
+      G6.registerNode('custNode_line', {
+        jsx: custNode.line_node,
+      })
     },
     /**
      * 部门点击过滤
@@ -435,35 +450,52 @@ export default {
      */
     changeSilder (val) {
       console.log(val)
-      const x_pos = 2550
-      this.graph.moveTo(0 - (x_pos - 170), 0, true, {
-        duration: (_that.animSec * 1000)
-      })
     },
     /**
-     * 左右移动
+     * 周移动
      */
-    moveCanvas (pos) {
-      const dx = 100
-      const dy = 0
+    goWeek (pos) {
       switch (pos) {
-        case 'left'://左移
-          this.graph.translate(dx, dy)
+        case 'prv'://上一周
+          if (this.curWeek === 1) {
+            this.$message({
+              message: '没有更多上周数据',
+              type: 'warning'
+            })
+          } else {
+            this.curWeek = this.curWeek - 1
+            if (this.curWeek === 1) {
+              this.moveTo(95)
+            } else {
+              this.moveTo(100 + 20 + (150 * ((this.curWeek - 1) * 4)) - 5)
+            }
+            this.$message({ message: `第${this.curWeek}周;x:${100 + 20 + (150 * ((this.curWeek - 1) * 4))}`, })
+          }
           break
-        case 'right'://右移
-          this.graph.translate(-dx, dy)
+        case 'next'://下一周
+
+          this.curWeek = this.curWeek + 1
+          this.moveTo(100 + 20 + (150 * ((this.curWeek - 1) * 4)) - 2)
+          this.$message({ message: `第${this.curWeek}周;x:${100 + 20 + (150 * ((this.curWeek - 1) * 4))}` })
+
           break
         case 'start'://回起点
-          this.graph.moveTo(0 - (100 - 170), 0, true, {
-            duration: (_that.animSec * 1000)
-          })
+          this.moveTo(95)
           break
-        case 'point'://去指定点
-          this.changeSilder(1)
+        case 'point'://去指定周
+          this.moveTo(2515)
           break
         default:
           break;
       }
+    },
+    /**
+     * 移动到指定点(横坐标)
+     */
+    moveTo (x) {
+      this.graph.moveTo(0 - (x - 170), 0, true, {
+        duration: (_that.animSec * 1000)
+      })
     },
     /**
      * 时间轴格式化提示

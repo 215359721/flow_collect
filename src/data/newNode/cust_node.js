@@ -149,5 +149,25 @@ const mark_node = (node) => {
     `
   return jsx
 }
-const custNode = { task_node, chat_node, mark_node }
+//标示线节点
+const line_node = (node) => {
+  const jsx = `
+    <group>
+      <rect style={{
+        width: ${node.width},
+        height:${node.height},
+      }}>
+      <path style={{
+        fill: ${node.color},
+        stroke: ${node.color},
+        path:'M 0,0 v${node.height}',
+        lineWidth:${node.width + 1},
+        ${node.dotline ? "lineDash:[2,2]," : ""}
+      }}></path>
+      </rect>
+    </group>
+    `
+  return jsx
+}
+const custNode = { task_node, chat_node, mark_node, line_node }
 export default custNode
