@@ -1,49 +1,88 @@
 <template>
   <div class="main-page">
     <div class="opt-div">
-      <!-- 布局切换 -->
-      <el-button
-        style="width:60px;"
-        size="mini"
-        type="danger"
-        @click="reloadPage"
-      >刷新</el-button>
+      <!-- 功能按钮 -->
+      <div class="move-group">
+        <el-button
+          type="primary"
+          icon="el-icon-back"
+          size="mini"
+          @click="moveCanvas('left')"
+        ></el-button>
+        <el-button
+          type="primary"
+          icon="el-icon-right"
+          size="mini"
+          @click="moveCanvas('right')"
+        ></el-button>
+        <el-button
+          style="width:60px;"
+          size="mini"
+          type="danger"
+          @click="reloadPage"
+        >刷新</el-button>
+      </div>
+      <div class="btn-group">
+        <el-input-number
+          v-model="animSec"
+          :min="1"
+          :max="99"
+          size="mini"
+          style="width:100px;"
+        ></el-input-number>
+        <el-button
+          type="primary"
+          style="width:100px;margin-top:5px;"
+          size="mini"
+          @click="moveCanvas('start')"
+        >回起点</el-button>
+        <el-button
+          type="primary"
+          style="width:100px;margin-top:5px;"
+          size="mini"
+          @click="moveCanvas('point')"
+        >去指定点</el-button>
+      </div>
     </div>
     <div
       class="cur-num"
       v-if="graph"
     >
       <div>zoom：{{graph.getZoom().toFixed(2)}}</div>
-      <div>layout：{{curLayout}}</div>
     </div>
+    <!-- 部门竖线 -->
     <div
       class="dep-line"
       :style="{height:win.height+'px'}"
     />
+    <!-- 泳道横线 -->
     <div
+      v-for="(item,index) in dep_num"
+      :key="'yd_'+index"
       class="line"
-      :style="{top:(win.height/7)+'px'}"
+      :style="{top:((win.height/dep_num)*(index+1))+'px'}"
     />
+    <!-- 部门名称 -->
     <div
-      class="line"
-      :style="{top:(win.height/7)*2+'px'}"
+      v-for="(item,index) in dep_num"
+      :key="index"
+      class="dep-name"
+      :style="{height:(win.height/dep_num)+'px',top:(win.height/dep_num * index)+'px'}"
+      @click="depClick(index+1)"
+    >部门:{{index+1}}</div>
+    <!-- 时间轴 -->
+    <el-slider
+      v-model="curTime"
+      :min="1"
+      :max="200"
+      :step="1"
+      :format-tooltip="formatTooltip"
+      :marks="timeBarMarks"
+      :show-stops="false"
+      class="time-bar"
+      @change="changeSilder"
     />
-    <div
-      class="line"
-      :style="{top:(win.height/7)*3+'px'}"
-    />
-    <div
-      class="line"
-      :style="{top:(win.height/7)*4+'px'}"
-    />
-    <div
-      class="line"
-      :style="{top:(win.height/7)*5+'px'}"
-    />
-    <div
-      class="line"
-      :style="{top:(win.height/7)*6+'px'}"
-    />
+    <!-- 画布 -->
     <div id="canvasDiv"></div>
   </div>
 </template>
@@ -68,16 +107,9 @@ export default {
   data () {
     return {
       //window对象
-      win: {
-        height: 0,
-        width: 0
-      },
+      win: { height: 0, width: 0 },
       sourceData: {},//数据源
       graph: null,//graph全局对象
-      showType: 'all',//显示模式
-      curDataSource: 'outer',//当前数据源
-      rankDir: 'LR',//当前布局方式
-      align: undefined,//当前对齐方式
       lineType: 'polyline',//线条样式(line,polyline,quadratic,cubic,arc)
       lineColor: '#bababa',//线条颜色
       lineThick: 2,//线条粗细
@@ -85,18 +117,18 @@ export default {
       toolBar: null,//工具栏
       minimap: null,//小地图
       rightMenu: null,//右键菜单
-      curLayout: 'dagre',//当前布局
+      timeBar: null,//时间轴
+      timeBarData: [],//时间轴数据
+      dep_num: 7,//部门数量
+      curTime: 10,//时间轴当前时间
+      timeBarMarks: { 10: '', },//时间轴标注
+      animSec: 1,//移动动画时长
     }
   },
   computed: {},
   mounted () {
     this.initWindow()
-    this.sourceData = this.initData(testData)
-    this.initMenu()
-    this.initToolBar()
-    this.initMiniMap()
-    this.initToolTip()
-    this.initJsxNode()
+    this.sourceData = this.initData(testData({ height: this.win.height, width: this.win.height, way: this.dep_num }))
     this.initG6()
   },
   methods: {
@@ -117,17 +149,9 @@ export default {
         animate: true,
         enabledStack: true,
         modes: {
-          default: ['drag-node', 'shortcuts-call', { type: 'drag-canvas', direction: 'x', }, { type: 'scroll-canvas', direction: 'x', }],//'drag-canvas', 'zoom-canvas', 'drag-node'
+          default: ['shortcuts-call', 'drag-node', 'create-edge', { type: 'drag-canvas', direction: 'x', }, { type: 'scroll-canvas', direction: 'x', }],//'drag-canvas', 'drag-node','zoom-canvas', 'drag-node'
         },
-        plugins: [this.toolTip, this.minimap, this.rightMenu, this.toolBar],
-        // layout: {
-        //   type: 'dagre', //dagre
-        //   rankdir: this.rankDir,
-        //   align: this.align,
-        //   sortByCombo: true,
-        //   nodesepFunc: () => 20,
-        //   ranksepFunc: () => 20,
-        // },
+        plugins: [this.toolTip, this.rightMenu, this.toolBar],
         //默认节点设置
         defaultNode: {
           size: [250, 310],
@@ -162,7 +186,7 @@ export default {
         },
         edgeStateStyles: {
           highlight: {
-            lineWidth: 6,
+            lineWidth: 3,
             stroke: '#999',
           },
         },
@@ -175,8 +199,6 @@ export default {
         const item = e.item
         console.log(e)
         console.log('点击node:{' + item._cfg.model.id + ' , ' + item._cfg.model.label + '|' + item._cfg.model.x + ',' + item._cfg.model.y + '}')
-        //聚焦item
-        _that.graph.focusItem(item)
         //---高亮---
         _that.graph.setAutoPaint(false)
         _that.graph.getNodes().forEach(function (node) {
@@ -195,12 +217,21 @@ export default {
       this.graph.on('canvas:click', () => {
         _that.clearAllStats()
       })
-      //监听：分组点击
-      this.graph.on('combo:click', (e) => {
-        _that.clearAllStats()
-        if (e.target.get('name') === 'combo-marker-shape') {
-          _that.graph.collapseExpandCombo(e.item)
+      //监听：增加连线
+      this.graph.on('aftercreateedge', (e) => {
+        const curEdge = {
+          source: e.edge._cfg.source._cfg.model.id,
+          target: e.edge._cfg.target._cfg.model.id
         }
+        console.log('增加连线:', curEdge)
+        const edges = _that.graph.save().edges;
+        G6.Util.processParallelEdges(edges, 80, 'quadratic', 'polyline', 'loop');
+        _that.graph.getEdges().forEach((edge, i) => {
+          _that.graph.updateItem(edge, {
+            curveOffset: edges[i].curveOffset,
+            curvePosition: edges[i].curvePosition,
+          });
+        });
       })
     },
     filtNodeAndEdge (graph, item) {
@@ -290,6 +321,28 @@ export default {
       })
     },
     /**
+     * 初始化时间轴
+     */
+    initTimeBar () {
+      for (let i = 0; i < 100; i++) {
+        _that.timeBarData.push({
+          date: `2020${i}`,
+          value: Math.round(Math.random() * 300),
+        });
+      }
+      this.timeBar = new G6.TimeBar({
+        x: 0,
+        y: 0,
+        width: 450,
+        height: 150,
+        padding: 10,
+        type: 'simple',
+        trend: {
+          data: _that.timeBarData,
+        },
+      });
+    },
+    /**
      * 初始化窗口
      */
     initWindow () {
@@ -297,6 +350,12 @@ export default {
       this.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10
       this.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 10
       console.log('winWid:' + this.win.width + ',winHei:' + this.win.height)
+      this.initMenu()
+      this.initToolBar()
+      // this.initTimeBar()
+      this.initMiniMap()
+      this.initToolTip()
+      this.initJsxNode()
     },
     /**
      * 清空焦点高亮
@@ -321,10 +380,21 @@ export default {
         if (element.id <= 20) {
           element.type = 'custNode_task'
         }
-        if ((element.id > 20) && (element.id <= 30)) {
+        if ((element.id > 20) && (element.id <= 25)) {
           element.type = 'custNode_chat'
         }
+        if ((element.id > 25) && (element.id <= 30)) {
+          element.type = 'custNode_mark'
+        }
       })
+      console.log('【当前数据】', data)
+      //初始化silder-mark
+      for (let i = 1; i <= 200; i++) {
+        if (i % 10 === 0) {
+          _that.timeBarMarks[i] = '2020-' + i
+        }
+      }
+      console.log('timeBarMarks:', _that.timeBarMarks)
       console.log('【当前数据】', data)
       return data
     },
@@ -339,8 +409,72 @@ export default {
       G6.registerNode('custNode_chat', {
         jsx: custNode.chat_node,
       })
+      G6.registerNode('custNode_mark', {
+        jsx: custNode.mark_node,
+      })
     },
-
+    /**
+     * 部门点击过滤
+     */
+    depClick (depId) {
+      this.graph.setAutoPaint(false)
+      this.graph.getNodes().forEach(function (node) {
+        _that.graph.clearItemStates(node)
+        _that.graph.setItemState(node, 'dark', true)
+        const depid = node._cfg.model.dep
+        if (depid === depId) {
+          //部门高亮
+          _that.graph.setItemState(node, 'highlight', true)
+        }
+      })
+      this.graph.paint()
+      this.graph.setAutoPaint(true)
+    },
+    /**
+     * 切换周
+     */
+    changeSilder (val) {
+      console.log(val)
+      const x_pos = 2550
+      this.graph.moveTo(0 - (x_pos - 170), 0, true, {
+        duration: (_that.animSec * 1000)
+      })
+    },
+    /**
+     * 左右移动
+     */
+    moveCanvas (pos) {
+      const dx = 100
+      const dy = 0
+      switch (pos) {
+        case 'left'://左移
+          this.graph.translate(dx, dy)
+          break
+        case 'right'://右移
+          this.graph.translate(-dx, dy)
+          break
+        case 'start'://回起点
+          this.graph.moveTo(0 - (100 - 170), 0, true, {
+            duration: (_that.animSec * 1000)
+          })
+          break
+        case 'point'://去指定点
+          this.changeSilder(1)
+          break
+        default:
+          break;
+      }
+    },
+    /**
+     * 时间轴格式化提示
+     */
+    formatTooltip (val) {
+      let str = ''
+      if (val) {
+        str = '2020年第' + val + '周'
+      }
+      return str
+    },
     /**
      * 刷新页面
      */

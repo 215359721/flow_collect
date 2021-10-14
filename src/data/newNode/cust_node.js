@@ -1,12 +1,15 @@
 /* eslint-disable no-unused-vars */
 // eslint-disable-next-line no-unused-vars
-const TASK_COLOR = '#1aad19'
-const CHAT_COLOR = '#1890ff'
-const WIDTH = 150 //总宽度
-const HEIGHT_HEAD = 25 //标题高度
-const MARGIN_LEFT = 5 //模块横向间距
-const HEIGHT_INFO = 20 //详情高度
-//详情
+const TASK_COLOR = '#1aad19'//任务主色
+const CHAT_COLOR = '#1890ff'//即时通讯主色
+const MARK_COLOR = '#ffcc00'//便签主色
+const WIDTH = 150 //节点总宽度
+const HEIGHT_HEAD = 25 //节点标题高度
+const MARGIN_LEFT = 5 //节点模块横向间距
+const HEIGHT_INFO = 20 //节点详情高度
+const MARK_WIDTH = 150 //便签宽度
+const MARK_HEIGHT = 70 //便签高度
+//节点-详情
 const info_part = (node) => `
   <rect style={{
     width: ${(WIDTH - (MARGIN_LEFT * 2))},
@@ -16,6 +19,21 @@ const info_part = (node) => `
   draggable="true"
  >
   <text style={{marginLeft: ${MARGIN_LEFT * 2} ,marginTop: ${(HEIGHT_INFO / 2) - 8},fill: '#666',fontSize:12,}}>执行人：赵竹林</text>
+  </rect>
+`
+//批注-详情
+const mark_part = (node) => `
+  <rect style={{
+    width: ${(MARK_WIDTH) - (MARGIN_LEFT * 2)},
+    height:${MARK_HEIGHT},
+    marginLeft: ${MARGIN_LEFT},
+  }}
+  draggable="true"
+ >
+  <text style={{marginLeft: ${MARGIN_LEFT * 2} ,marginTop: ${(HEIGHT_INFO / 2) - 8},fill: '#666',fontSize:10,}}>批注内容1</text>
+  <text style={{marginLeft: ${MARGIN_LEFT * 2} ,marginTop: ${(HEIGHT_INFO / 2) - 8},fill: '#666',fontSize:10,}}>批注内容2</text>
+  <text style={{marginLeft: ${MARGIN_LEFT * 2} ,marginTop: ${(HEIGHT_INFO / 2) - 8},fill: '#666',fontSize:10,}}>批注内容3</text>
+  <text style={{marginLeft: ${MARGIN_LEFT * 2} ,marginTop: ${(HEIGHT_INFO / 2) - 8},fill: '#666',fontSize:10,}}>批注内容4</text>
   </rect>
 `
 //任务节点
@@ -94,5 +112,42 @@ const chat_node = (node) => {
     `
   return jsx
 }
-const custNode = { task_node, chat_node }
+//便签节点
+const mark_node = (node) => {
+  const jsx = `
+    <group>
+      <rect style={{
+        width: ${MARK_WIDTH},
+        height:20,
+        fill: ${MARK_COLOR},
+        stroke: ${MARK_COLOR},
+        radius: [6, 6, 0, 0],
+      }}
+      draggable="true"
+      >
+        <text style={{
+          marginTop: 12,
+          marginLeft: ${(MARK_WIDTH / 2) - 18},
+          fontWeight: 'bold',
+          textAlign: 'center',
+          fontSize:11,
+          stroke: '#000',
+          fill: '#fff'}}draggable="true">
+          ${node.id}:批注
+        </text>
+      </rect>
+      <rect style={{
+      width: ${MARK_WIDTH},
+      height:${MARK_HEIGHT},
+      fill: '#F7F7F7',
+      stroke: ${MARK_COLOR},
+      lineWidth:1,
+      }}draggable="true">
+        ${mark_part(node)}
+      </rect>
+    </group>
+    `
+  return jsx
+}
+const custNode = { task_node, chat_node, mark_node }
 export default custNode
