@@ -242,6 +242,7 @@ export default {
         linkCenter: false,
         animate: true,
         enabledStack: true,
+        renderer: 'canvas',
         modes: {
           default: ['brush-select', 'shortcuts-call', 'drag-node',
             { type: 'create-edge', trigger: 'click', key: 'shift' },
@@ -362,10 +363,9 @@ export default {
         getContent () {
           return `
           <div class="left-menu">
-            <button class="menu-btn" fnname="addMark">添加批注</button>
-            <button class="menu-btn" fnname="method_2">功能2</button>
-            <button class="menu-btn" fnname="method_3">功能3</button>
-            <button class="menu-btn" fnname="method_4">功能4</button>
+            <button class="btn btn-small submit bounce-left" fnname="addMark">添加批注</button>
+            <button class="btn btn-small cancel bounce-left" fnname="method_2">功能2</button>
+            <button class="btn btn-small info bounce-left" fnname="method_3">功能3</button>
           </div>`;
         },
         handleMenuClick: (target, item) => {
@@ -389,7 +389,7 @@ export default {
         // 需要加上父级容器的 padding-left 16 与自身偏移量 10
         offsetX: 16 + 10,
         // 需要加上父级容器的 padding-top 24 、画布兄弟元素高度、与自身偏移量 10
-        offsetY: -10,
+        offsetY: -30,
         // 在哪些类型的元素上响应
         itemTypes: ['node'],
       })
@@ -442,28 +442,6 @@ export default {
           return outDiv
         },
       })
-    },
-    /**
-     * 初始化时间轴
-     */
-    initTimeBar () {
-      for (let i = 0; i < 100; i++) {
-        _that.timeBarData.push({
-          date: `2020${i}`,
-          value: Math.round(Math.random() * 300),
-        });
-      }
-      this.timeBar = new G6.TimeBar({
-        x: 0,
-        y: 0,
-        width: 450,
-        height: 150,
-        padding: 10,
-        type: 'simple',
-        trend: {
-          data: _that.timeBarData,
-        },
-      });
     },
     /**
      * 清空焦点高亮
@@ -646,7 +624,6 @@ export default {
       console.log('CanvasWid:' + this.canvas.width + ',CanvasHei:' + this.canvas.height)
       this.initMenu()
       this.initToolBar()
-      // this.initTimeBar()
       this.initMiniMap()
       this.initToolTip()
       this.initJsxNode()
@@ -660,4 +637,5 @@ export default {
 </script>
 <style lang='less'>
 @import "./main.less";
+@import "../assets/css/btn.css";
 </style>
