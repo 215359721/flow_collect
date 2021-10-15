@@ -86,17 +86,22 @@
       @click="depClick(index+1)"
     >部门:{{index+1}}</div>
     <!-- 时间轴 -->
-    <el-slider
-      v-model="curTime"
-      :min="1"
-      :max="200"
-      :step="1"
-      :format-tooltip="formatTooltip"
-      :marks="timeBarMarks"
-      :show-stops="false"
-      class="time-bar"
-      @change="changeSilder"
-    />
+    <div
+      class="timeBar-area"
+      :style="{height:timeBarHei+'px',top:(win.height-timeBarHei)+'px'}"
+    >
+      <el-slider
+        v-model="curTime"
+        :min="1"
+        :max="200"
+        :step="1"
+        :format-tooltip="formatTooltip"
+        :marks="timeBarMarks"
+        :show-stops="false"
+        class="time-bar"
+        @change="changeSilder"
+      />
+    </div>
     <!-- 画布 -->
     <div id="canvasDiv"></div>
     <!-- 弹框 -->
@@ -178,8 +183,8 @@ export default {
   components: {},
   data () {
     return {
-      //window对象
-      win: { height: 0, width: 0 },
+      win: { height: 0, width: 0 },//window对象
+      canvas: { height: 0, width: 0 },//画布对象
       sourceData: {},//数据源
       graph: null,//graph全局对象
       lineType: 'polyline',//线条样式(line,polyline,quadratic,cubic,arc)
@@ -193,9 +198,10 @@ export default {
       node_wid: 150,//单个节点宽度
       node_hei: 50,//单个节点高度
       curOptNode: null,//当前操作的节点
-      dataType: 'real',//数据形式
+      dataType: 'mock',//数据形式
       timeBar: null,//时间轴
       timeBarData: [],//时间轴数据
+      timeBarHei: 100,//时间轴高度
       dep_num: 7,//部门数量
       curTime: 10,//时间轴当前时间
       timeBarMarks: { 10: '', },//时间轴标注
@@ -208,7 +214,6 @@ export default {
   computed: {},
   mounted () {
     this.initWindow()
-    this.requestMainData()
     this.sourceData = this.initData(testData({ height: this.win.height, width: this.win.height, way: this.dep_num }))
     this.initG6()
   },
@@ -227,8 +232,8 @@ export default {
       G6.Util.processParallelEdges(this.sourceData.edges, 80, 'quadratic', 'polyline', 'loop')
       this.graph = new G6.Graph({
         container: 'canvasDiv',
-        width: this.win.width,
-        height: this.win.height,
+        width: this.canvas.width,
+        height: this.canvas.height,
         groupByTypes: true,
         fitView: false,
         fitViewPadding: 0,
@@ -452,21 +457,6 @@ export default {
       });
     },
     /**
-     * 初始化窗口
-     */
-    initWindow () {
-      _that = this
-      this.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10
-      this.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 10
-      console.log('winWid:' + this.win.width + ',winHei:' + this.win.height)
-      this.initMenu()
-      this.initToolBar()
-      // this.initTimeBar()
-      this.initMiniMap()
-      this.initToolTip()
-      this.initJsxNode()
-    },
-    /**
      * 清空焦点高亮
      */
     clearAllStats () {
@@ -635,11 +625,27 @@ export default {
       this.addMarkShow = false
     },
     /**
+     * 初始化窗口
+     */
+    initWindow () {
+      _that = this
+      this.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10
+      this.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 10
+      this.canvas.width = this.win.width
+      this.canvas.height = this.win.height - this.timeBarHei
+      console.log('winWid:' + this.win.width + ',winHei:' + this.win.height)
+      console.log('CanvasWid:' + this.canvas.width + ',CanvasHei:' + this.canvas.height)
+      this.initMenu()
+      this.initToolBar()
+      // this.initTimeBar()
+      this.initMiniMap()
+      this.initToolTip()
+      this.initJsxNode()
+    },
+    /**
      * 刷新页面
      */
-    reloadPage () {
-      location.reload()
-    }
+    reloadPage () { location.reload() }
   }
 }
 </script>
