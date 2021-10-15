@@ -68,21 +68,21 @@
     <!-- 部门竖线 -->
     <div
       class="dep-line"
-      :style="{height:canvas.height+'px'}"
+      :style="{height:win.height+'px'}"
     />
     <!-- 泳道横线 -->
     <div
       v-for="(item,index) in dep_num"
       :key="'yd_'+index"
       class="line"
-      :style="{top:((canvas.height/dep_num)*(index+1))+'px'}"
+      :style="{top:((win.height/dep_num)*(index+1))+'px'}"
     />
     <!-- 部门名称 -->
     <div
       v-for="(item,index) in dep_num"
       :key="index"
       class="dep-name"
-      :style="{height:(canvas.height/dep_num)+'px',top:(canvas.height/dep_num * index)+'px'}"
+      :style="{height:(win.height/dep_num)+'px',top:(win.height/dep_num * index)+'px'}"
       @click="depClick(index+1)"
     >部门:{{index+1}}</div>
     <!-- 时间轴 -->
@@ -201,7 +201,7 @@ export default {
       dataType: 'mock',//数据形式
       timeBar: null,//时间轴
       timeBarData: [],//时间轴数据
-      timeBarHei: 40,//时间轴高度
+      timeBarHei: 100,//时间轴高度
       dep_num: 7,//部门数量
       curTime: 10,//时间轴当前时间
       timeBarMarks: { 10: '', },//时间轴标注
@@ -214,7 +214,7 @@ export default {
   computed: {},
   mounted () {
     this.initWindow()
-    this.sourceData = this.initData(testData({ height: this.canvas.height, width: this.canvas.height, way: this.dep_num }))
+    this.sourceData = this.initData(testData({ height: this.win.height, width: this.win.height, way: this.dep_num }))
     this.initG6()
   },
   methods: {
@@ -229,7 +229,6 @@ export default {
      * 初始化G6
      */
     async initG6 () {
-      const snapLine = new G6.SnapLine()
       G6.Util.processParallelEdges(this.sourceData.edges, 80, 'quadratic', 'polyline', 'loop')
       this.graph = new G6.Graph({
         container: 'canvasDiv',
@@ -243,13 +242,9 @@ export default {
         animate: true,
         enabledStack: true,
         modes: {
-          default: ['brush-select', 'shortcuts-call', 'drag-node',
-            { type: 'create-edge', trigger: 'click', key: 'shift' },
-            { type: 'drag-canvas', direction: 'x', },
-            { type: 'scroll-canvas', direction: 'x', }
-          ],//'drag-canvas', 'drag-node','zoom-canvas', 'drag-node'
+          default: ['shortcuts-call', 'drag-node', 'create-edge', { type: 'drag-canvas', direction: 'x', }, { type: 'scroll-canvas', direction: 'x', }],//'drag-canvas', 'drag-node','zoom-canvas', 'drag-node'
         },
-        plugins: [this.toolTip, this.rightMenu, this.toolBar, snapLine],
+        plugins: [this.toolTip, this.rightMenu, this.toolBar],
         //默认节点设置
         defaultNode: {
           size: [150, 50],
@@ -310,15 +305,11 @@ export default {
         _that.filtNodeAndEdge(_that.graph, item)
         _that.graph.paint()
         _that.graph.setAutoPaint(true)
+
       })
       //监听：canvas点击
       this.graph.on('canvas:click', () => {
         _that.clearAllStats()
-      })
-      //监听：节点拖拽完成
-      this.graph.on('node:dragend', (e) => {
-        const item = e.item
-        console.log('node拖拽完成:{' + item._cfg.model.id + ' , ' + item._cfg.model.label + '【' + item._cfg.model.x + '，' + item._cfg.model.y + '】')
       })
       //监听：增加连线
       this.graph.on('aftercreateedge', (e) => {
@@ -486,7 +477,7 @@ export default {
     changeDataType (val) {
       this.dataType = val
       if (this.dataType === 'mock') {
-        this.sourceData = this.initData(testData({ height: this.canvas.height, width: this.canvas.height, way: this.dep_num }))
+        this.sourceData = this.initData(testData({ height: this.win.height, width: this.win.height, way: this.dep_num }))
         this.graph.changeData(this.sourceData)
       } else {
         this.requestMainData()
