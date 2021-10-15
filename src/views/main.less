@@ -45,11 +45,39 @@
     display: flex;
     justify-content: center;
   }
-  
+  .mark-main{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    // background-color: aqua;
+    .each-line{
+      display: flex;
+      width: 100%;
+      margin-bottom: 10px;
+      .title{
+        display: flex;
+        align-items: center;
+        width: 23%;
+        // background-color: pink;
+      }
+      .content{
+        display: flex;
+        align-items: center;
+        width: 77%;
+        // background-color: royalblue;
+      }
+    }
+  }
   #canvasDiv{
     // background-color: #deffff;
   }
 }
+
+.left-menu{
+  display: flex;
+  flex-direction: column;
+}
+
 .mt5{
   margin-top: 5px;
 }
@@ -103,9 +131,9 @@
   z-index: 4;
 }
 .g6-component-toolbar li:nth-child(3), li:nth-child(4), li:nth-child(5), li:nth-child(6){
-    background-color: red;
-    display: none !important;
-  }
+  background-color: red;
+  display: none !important;
+}
 
 // element-ui
 .el-slider__marks-text{

@@ -186,11 +186,11 @@ const resultData = function (posObj) {
         dep: 1,
       },
       {
-        id: '26',
-        label: '项目任务书4',
+        id: '901',
+        label: '批注',
+        method: 'mark',
         x: 100 + (add_x * 2),
         y: 0 + (add_y * 1),
-        dep: 1,
       },
       {
         id: '101',

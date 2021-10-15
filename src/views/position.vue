@@ -28,7 +28,7 @@
           :min="1"
           :max="99"
           size="mini"
-          style="width:100px;"
+          style="width:100px;margin-top:5px;"
         ></el-input-number>
         <el-button
           type="primary"
@@ -99,6 +99,61 @@
     />
     <!-- 画布 -->
     <div id="canvasDiv"></div>
+    <!-- 弹框 -->
+    <el-dialog
+      title="添加批注"
+      :visible.sync="addMarkShow"
+      width="30%"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+    >
+      <div class="mark-main">
+        <div class="each-line">
+          <div class="title">批注内容1：</div>
+          <div class="content">
+            <el-input
+              size="mini"
+              v-model="markObj.con1"
+              placeholder="请输入批注内容"
+            ></el-input>
+          </div>
+        </div>
+        <div class="each-line">
+          <div class="title">批注内容2：</div>
+          <div class="content">
+            <el-input
+              size="mini"
+              v-model="markObj.con2"
+              placeholder="请输入批注内容"
+            ></el-input>
+          </div>
+        </div>
+        <div class="each-line">
+          <div class="title">批注内容3：</div>
+          <div class="content">
+            <el-input
+              size="mini"
+              v-model="markObj.con3"
+              placeholder="请输入批注内容"
+            ></el-input>
+          </div>
+        </div>
+      </div>
+      <div
+        slot="footer"
+        class="dialog-footer"
+      >
+        <el-button
+          size="mini"
+          @click="addMarkShow = false"
+        >取消</el-button>
+        <el-button
+          type="primary"
+          size="mini"
+          @click="commitMark"
+        >确定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -135,6 +190,9 @@ export default {
       minimap: null,//小地图
       rightMenu: null,//右键菜单
       //-------------------
+      node_wid: 150,//单个节点宽度
+      node_hei: 50,//单个节点高度
+      curOptNode: null,//当前操作的节点
       dataType: 'real',//数据形式
       timeBar: null,//时间轴
       timeBarData: [],//时间轴数据
@@ -143,6 +201,8 @@ export default {
       timeBarMarks: { 10: '', },//时间轴标注
       animSec: 1,//移动动画时长
       curWeek: 1,//当前显示周
+      addMarkShow: false,//添加批注弹框显示标识
+      markObj: { con1: '', con2: '', con3: '' }
     }
   },
   computed: {},
@@ -154,7 +214,7 @@ export default {
   },
   methods: {
     /**
-     * 请求全局数据
+     * 请求全局数据yarn 
      */
     async requestMainData () {
       const responseData = await getMainData()
@@ -182,7 +242,7 @@ export default {
         plugins: [this.toolTip, this.rightMenu, this.toolBar],
         //默认节点设置
         defaultNode: {
-          size: [250, 310],
+          size: [150, 50],
           color: '#000',
           style: {
             cursor: 'pointer',
@@ -288,14 +348,29 @@ export default {
         getContent () {
           return `
           <div class="left-menu">
-            <button class="menu-btn">功能1</button>
-            <button class="menu-btn">功能2</button>
-            <button class="menu-btn">功能3</button>
-            <button class="menu-btn">功能4</button>
+            <button class="menu-btn" fnname="addMark">添加批注</button>
+            <button class="menu-btn" fnname="method_2">功能2</button>
+            <button class="menu-btn" fnname="method_3">功能3</button>
+            <button class="menu-btn" fnname="method_4">功能4</button>
           </div>`;
         },
         handleMenuClick: (target, item) => {
-          console.log(target, item);
+          // console.log(target, item)
+          _that.curOptNode = item
+          console.log('curOptNode:', _that.curOptNode)
+          switch (target.getAttribute('fnname')) {
+            case 'addMark': //添加批注
+              _that.addMarkShow = true
+              break
+            case 'method_2':
+              break
+            case 'method_3':
+              break
+            case 'method_4':
+              break
+            default:
+              break
+          }
         },
         // 需要加上父级容器的 padding-left 16 与自身偏移量 10
         offsetX: 16 + 10,
@@ -427,14 +502,14 @@ export default {
         if (element.id <= 20) {
           element.type = 'custNode_task'
         }
-        if ((element.id > 20) && (element.id <= 25)) {
+        if ((element.id > 20) && (element.id <= 99)) {
           element.type = 'custNode_chat'
         }
-        if ((element.id > 25) && (element.id <= 30)) {
-          element.type = 'custNode_mark'
-        }
-        if (element.id >= 100) {
+        if (element.method === 'line') {
           element.type = 'custNode_line'
+        }
+        if (element.method === 'mark') {
+          element.type = 'custNode_mark'
         }
       })
       console.log('【当前数据】', data)
@@ -542,6 +617,22 @@ export default {
         str = '2020年第' + val + '周'
       }
       return str
+    },
+    /**
+     * 添加批注提交
+     */
+    commitMark () {
+      const cur = this.curOptNode._cfg.model
+      const model = {
+        id: '902' + (Math.floor(Math.random() * (99999 - 1)) + 1),
+        label: '批注',
+        method: 'mark',
+        x: cur.x + this.node_wid + 5,
+        y: cur.y + this.node_hei / 2,
+        type: 'custNode_mark',
+      }
+      this.graph.addItem('node', model)
+      this.addMarkShow = false
     },
     /**
      * 刷新页面
