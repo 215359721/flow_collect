@@ -42,6 +42,13 @@
           size="mini"
           @click="goWeek('point')"
         >去指定周</el-button>
+        <el-button
+          type="primary"
+          style="width:100px;margin-top:5px;"
+          size="mini"
+          :disabled="saveDisabled"
+          @click="commitChanges"
+        >保存更改</el-button>
       </div>
       <el-radio-group
         v-model="dataType"
@@ -174,6 +181,7 @@ import custNode from '../data/newNode/cust_node'
 import testData from '../mock/testData'
 import innerCss from '../data/insertCss'
 
+import { getUpdateNodesPositionList, getNewEdgesList } from '../utils/common'
 import { getMainData } from '../api/api'
 insertCss(innerCss)
 let _that = null
@@ -199,16 +207,22 @@ export default {
       node_hei: 50,//单个节点高度
       curOptNode: null,//当前操作的节点
       dataType: 'mock',//数据形式
+      dep_num: 7,//部门数量
+      //时间轴
       timeBar: null,//时间轴
       timeBarData: [],//时间轴数据
       timeBarHei: 40,//时间轴高度
-      dep_num: 7,//部门数量
       curTime: 10,//时间轴当前时间
       timeBarMarks: { 10: '', },//时间轴标注
       animSec: 1,//移动动画时长
       curWeek: 1,//当前显示周
+      //批注
       addMarkShow: false,//添加批注弹框显示标识
-      markObj: { con1: '', con2: '', con3: '' }
+      markObj: { con1: '', con2: '', con3: '' },//批注内容对象
+      //节点移动、连线
+      saveDisabled: true,//保存标识
+      nodeMoveList: [],//节点移动数据集
+      addEdgesList: [],//新增连线数据集
     }
   },
   computed: {},
@@ -318,8 +332,14 @@ export default {
       })
       //监听：节点拖拽完成
       this.graph.on('node:dragend', (e) => {
-        const item = e.item
-        console.log('node拖拽完成:{' + item._cfg.model.id + ' , ' + item._cfg.model.label + '【' + item._cfg.model.x + '，' + item._cfg.model.y + '】')
+        const modelItem = {
+          id: e.item._cfg.model.id,
+          x: e.item._cfg.model.x,
+          y: e.item._cfg.model.y,
+        }
+        console.log('node拖拽完成:', modelItem)
+        _that.nodeMoveList = getUpdateNodesPositionList(_that.nodeMoveList, modelItem)
+        _that.saveDisabled = ((_that.addEdgesList.length === 0) && (_that.nodeMoveList.length === 0))
       })
       //监听：增加连线
       this.graph.on('aftercreateedge', (e) => {
@@ -328,14 +348,16 @@ export default {
           target: e.edge._cfg.target._cfg.model.id
         }
         console.log('增加连线:', curEdge)
+        _that.addEdgesList = getNewEdgesList(_that.addEdgesList, curEdge)
         const edges = _that.graph.save().edges;
         G6.Util.processParallelEdges(edges, 80, 'quadratic', 'polyline', 'loop');
         _that.graph.getEdges().forEach((edge, i) => {
           _that.graph.updateItem(edge, {
             curveOffset: edges[i].curveOffset,
             curvePosition: edges[i].curvePosition,
-          });
-        });
+          })
+        })
+        _that.saveDisabled = ((_that.addEdgesList.length === 0) && (_that.nodeMoveList.length === 0))
       })
     },
     filtNodeAndEdge (graph, item) {
@@ -610,6 +632,13 @@ export default {
       }
       this.graph.addItem('node', model)
       this.addMarkShow = false
+    },
+    /**
+     * 提交修改节点信息
+     */
+    commitChanges () {
+      console.log('节点移动数据集:', this.nodeMoveList)
+      console.log('新增连线数据集:', this.addEdgesList)
     },
     /**
      * 初始化窗口
