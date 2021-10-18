@@ -647,6 +647,9 @@ export default {
       _that = this
       this.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10
       this.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 10
+
+      // this.win.height = this.win.height + (this.win.height)
+
       this.canvas.width = this.win.width
       this.canvas.height = this.win.height - this.timeBarHei
       console.log('winWid:' + this.win.width + ',winHei:' + this.win.height)

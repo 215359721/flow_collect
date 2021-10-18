@@ -16,6 +16,10 @@
       type="primary"
       @click="jumpPage('/comp')"
     >组件</el-button>
+    <el-button
+      type="primary"
+      @click="jumpPage('/grapheme')"
+    >语义图</el-button>
   </div>
 </template>
 

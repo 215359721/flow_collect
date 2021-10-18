@@ -8,7 +8,8 @@ axios.defaults.withCredentials = true
 // 创建axios实例
 const service = axios.create({
   // axios中请求配置有baseURL选项，表示请求URL公共部分
-  baseURL: 'http://10.0.1.105/',
+  // baseURL: 'http://10.0.1.105/',
+  baseURL: 'http://192.168.1.48:2020/aspdev',
   // 超时
   timeout: 10000,
   loading: true,

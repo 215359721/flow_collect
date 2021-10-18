@@ -35,6 +35,11 @@ const routes = [
     name: 'comp',
     component: () => import('../views/comp.vue')
   },
+  {
+    path: '/grapheme',
+    name: 'grapheme',
+    component: () => import('../views/grapheme.vue')
+  },
 ]
 
 const router = new VueRouter({

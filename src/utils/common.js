@@ -24,6 +24,15 @@ const getNewEdgesList = function (edgeList, curEdge) {
   return edgeList
 }
 
+export function createUuid (length) {
+  let str = Math.random().toString(36).substr(2)
+  if (str.length >= length) {
+    return str.substr(0, length)
+  }
+  str += createUuid(length - str.length)
+  return str
+}
+
 export {
   getUpdateNodesPositionList,
   getNewEdgesList,
