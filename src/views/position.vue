@@ -577,7 +577,7 @@ export default {
       } else if ((val > 30) && (val <= 40)) {
         this.moveTo(1920)
       } else if ((val > 40) && (val <= 50)) {
-        this.moveTo(25220)
+        this.moveTo(2520)
       } else if ((val > 50) && (val <= 60)) {
         this.moveTo(3120)
       } else if ((val > 60) && (val <= 70)) {
