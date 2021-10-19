@@ -125,31 +125,13 @@
     >
       <div class="mark-main">
         <div class="each-line">
-          <div class="title">批注内容1：</div>
+          <div class="title">批注内容</div>
           <div class="content">
             <el-input
               size="mini"
-              v-model="markObj.con1"
-              placeholder="请输入批注内容"
-            ></el-input>
-          </div>
-        </div>
-        <div class="each-line">
-          <div class="title">批注内容2：</div>
-          <div class="content">
-            <el-input
-              size="mini"
-              v-model="markObj.con2"
-              placeholder="请输入批注内容"
-            ></el-input>
-          </div>
-        </div>
-        <div class="each-line">
-          <div class="title">批注内容3：</div>
-          <div class="content">
-            <el-input
-              size="mini"
-              v-model="markObj.con3"
+              type="textarea"
+              :rows="3"
+              v-model="markObj.content"
               placeholder="请输入批注内容"
             ></el-input>
           </div>
@@ -214,7 +196,7 @@ export default {
       node_eachLineNum: 4,//一行显示节点数量
       curOptNode: null,//当前操作的节点
       dataType: 'mock',//数据形式
-      dep_num: 7,//部门数量
+      dep_num: 5,//部门数量
       //网格
       gird: { width: 0, height: 0 },//网格基本信息
       //时间轴
@@ -227,7 +209,7 @@ export default {
       curWeek: 1,//当前显示周
       //批注
       addMarkShow: false,//添加批注弹框显示标识
-      markObj: { con1: '', con2: '', con3: '' },//批注内容对象
+      markObj: { content: '' },//批注内容对象
       //节点移动、连线
       saveDisabled: true,//保存标识
       nodeMoveList: [],//节点移动数据集
@@ -651,8 +633,8 @@ export default {
         id: '902' + (Math.floor(Math.random() * (99999 - 1)) + 1),
         label: '批注',
         method: 'mark',
-        x: cur.x + this.node_wid + 5,
-        y: cur.y + this.node_hei / 2,
+        x: cur.x + this.node_wid / 2,
+        y: cur.y - this.node_hei / 2,
         type: 'custNode_mark',
       }
       this.graph.addItem('node', model)

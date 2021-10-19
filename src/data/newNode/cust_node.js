@@ -8,7 +8,7 @@ const HEIGHT_HEAD = 25 //节点标题高度
 const MARGIN_LEFT = 5 //节点模块横向间距
 const HEIGHT_INFO = 20 //节点详情高度
 const MARK_WIDTH = 150 //便签宽度
-const MARK_HEIGHT = 70 //便签高度
+const MARK_HEIGHT = 30 //便签高度
 //节点-详情
 const info_part = (node) => `
   <rect style={{
@@ -18,7 +18,7 @@ const info_part = (node) => `
   }}
   draggable="true"
  >
-  <text style={{marginLeft: ${MARGIN_LEFT * 2} ,marginTop: ${(HEIGHT_INFO / 2) - 8},fill: '#666',fontSize:12,}}>执行人：赵竹林</text>
+  <text style={{marginLeft: ${MARGIN_LEFT * 2} ,marginTop: ${(HEIGHT_INFO / 2) - 8},${node.unfinish ? "fill: '#aaa'" : "fill: '#666'"},fontSize:12,}}>执行人：赵竹林</text>
   </rect>
 `
 //批注-详情
@@ -30,10 +30,7 @@ const mark_part = (node) => `
   }}
   draggable="true"
  >
-  <text style={{marginLeft: ${MARGIN_LEFT * 2} ,marginTop: ${(HEIGHT_INFO / 2) - 8},fill: '#666',fontSize:10,}}>批注内容1</text>
-  <text style={{marginLeft: ${MARGIN_LEFT * 2} ,marginTop: ${(HEIGHT_INFO / 2) - 8},fill: '#666',fontSize:10,}}>批注内容2</text>
-  <text style={{marginLeft: ${MARGIN_LEFT * 2} ,marginTop: ${(HEIGHT_INFO / 2) - 8},fill: '#666',fontSize:10,}}>批注内容3</text>
-  <text style={{marginLeft: ${MARGIN_LEFT * 2} ,marginTop: ${(HEIGHT_INFO / 2) - 8},fill: '#666',fontSize:10,}}>批注内容4</text>
+  <text style={{marginLeft: ${MARGIN_LEFT * 2} ,marginTop: ${(HEIGHT_INFO / 2) - 8},${node.unfinish ? "fill: '#aaa'" : "fill: '#666'"}, fontSize:10,}}>此处任务关联信息附件不明确</text>
   </rect>
 `
 //任务节点
@@ -47,6 +44,8 @@ const task_node = (node) => {
         fill: ${TASK_COLOR},
         stroke: ${TASK_COLOR},
         radius: [6, 6, 0, 0],
+        ${node.unfinish ? "fillOpacity:0.4," : ""}
+        ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
       >
@@ -67,6 +66,7 @@ const task_node = (node) => {
       fill: '#F7F7F7',
       stroke: ${TASK_COLOR},
       lineWidth:1,
+      ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}draggable="true">
         ${info_part(node)}
       </rect>
@@ -85,6 +85,8 @@ const chat_node = (node) => {
         fill: ${CHAT_COLOR},
         stroke: ${CHAT_COLOR},
         radius: [6, 6, 0, 0],
+        ${node.unfinish ? "fillOpacity:0.4," : ""}
+        ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
       >
@@ -105,6 +107,7 @@ const chat_node = (node) => {
       fill: '#F7F7F7',
       stroke: ${CHAT_COLOR},
       lineWidth:1,
+      ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}draggable="true">
         ${info_part(node)}
       </rect>

@@ -22,6 +22,7 @@ const resultData = function (posObj) {
         label: '即时通讯',
         x: 100,
         y: (hei / way) * 1 + offSet_y,
+        unfinish: true,
         dep: 2,
       },
       {
@@ -162,6 +163,7 @@ const resultData = function (posObj) {
         label: '项目任务书2',
         x: 100 + (add_x * 2),
         y: 0,
+        unfinish: true,
         dep: 1,
       },
       {
