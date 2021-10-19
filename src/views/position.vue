@@ -62,7 +62,11 @@
     </div>
     <!-- 分辨率 -->
     <div class="cur-num cur-resolving">
-      <div class="mr5">{{win.width}} * {{win.height}}</div>
+      <div class="mr5">screen：{{win.width}} * {{win.height}}</div>
+    </div>
+    <!-- 网格信息 -->
+    <div class="cur-num cur-grid">
+      <div class="mr5">gird：{{gird.width}} * {{Math.floor(gird.height)}}</div>
     </div>
     <!-- 指示器 -->
     <div
@@ -203,11 +207,16 @@ export default {
       minimap: null,//小地图
       rightMenu: null,//右键菜单
       //-------------------
+      start_x: 100,//起始点X
       node_wid: 150,//单个节点宽度
       node_hei: 50,//单个节点高度
+      node_pad: 5,//节点间隔
+      node_eachLineNum: 4,//一行显示节点数量
       curOptNode: null,//当前操作的节点
       dataType: 'mock',//数据形式
       dep_num: 7,//部门数量
+      //网格
+      gird: { width: 0, height: 0 },//网格基本信息
       //时间轴
       timeBar: null,//时间轴
       timeBarData: [],//时间轴数据
@@ -386,8 +395,8 @@ export default {
           return `
           <div class="left-menu">
             <button class="btn btn-small submit bounce-left" fnname="addMark">添加批注</button>
-            <button class="btn btn-small cancel bounce-left" fnname="method_2">功能2</button>
-            <button class="btn btn-small info bounce-left" fnname="method_3">功能3</button>
+            <button class="btn btn-small submit bounce-left" fnname="method_2">功能2</button>
+            <button class="btn btn-small submit bounce-left" fnname="method_3">功能3</button>
           </div>`;
         },
         handleMenuClick: (target, item) => {
@@ -561,7 +570,23 @@ export default {
      * 切换周
      */
     changeSilder (val) {
-      console.log(val)
+      if ((val > 10) && (val <= 20)) {
+        this.moveTo(720)
+      } else if ((val > 20) && (val <= 30)) {
+        this.moveTo(1320)
+      } else if ((val > 30) && (val <= 40)) {
+        this.moveTo(1920)
+      } else if ((val > 40) && (val <= 50)) {
+        this.moveTo(25220)
+      } else if ((val > 50) && (val <= 60)) {
+        this.moveTo(3120)
+      } else if ((val > 60) && (val <= 70)) {
+        this.moveTo(3720)
+      } else if ((val > 70) && (val <= 80)) {
+        this.moveTo(4320)
+      } else {
+        this.moveTo(4920)
+      }
     },
     /**
      * 周移动
@@ -659,6 +684,8 @@ export default {
       this.initMiniMap()
       this.initToolTip()
       this.initJsxNode()
+      this.gird.width = this.start_x + this.node_wid * this.node_eachLineNum + this.node_pad * (this.node_eachLineNum + 1)
+      this.gird.height = this.canvas.height / this.dep_num
     },
     /**
      * 刷新页面
