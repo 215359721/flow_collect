@@ -210,5 +210,51 @@ const task_jsx4Simple = (node) => {
     `
   return jsx
 }
-const custNode = { task_jsx4All, task_jsx4Normal, task_jsx4Simple }
+// 树图自定义节点
+const tree_node = (node) => {
+  let nodeName = ''
+  if (node.name.length > 6) {
+    nodeName = node.name.substring(0, 6) + "..."
+  } else {
+    nodeName = node.name
+  }
+  const treeNode =
+    `<group style={{}}>
+    <rect style={{
+      width: 120,
+      height: 40,
+      fill: '#ecf5ff',
+      stroke: '#c6e2ff',
+      radius: [4, 4, 4, 4],
+      cursor: pointer
+    }}
+    >
+      <rect style={{
+        width: 80,
+        height: 40,
+        cursor: pointer
+      }}
+      >
+        <image style={{
+          img: ${node.img},
+          width: 25,
+          height: 25,
+          marginTop: 8,
+          marginLeft: 5,
+          next: inline,
+          cursor: pointer
+        }}>
+        </image>
+        <text style={{
+          marginTop: 25,
+          marginLeft: 10,
+          fill: '#333',
+          fontWeight:bold}}>${nodeName}
+        </text>
+      </rect>
+    </rect>
+  </group>`
+  return treeNode
+}
+const custNode = { task_jsx4All, task_jsx4Normal, task_jsx4Simple, tree_node }
 export default custNode

@@ -60,7 +60,7 @@
         <el-radio-button label="real">动态数据</el-radio-button>
       </el-radio-group>
     </div>
-    <!-- 分辨率 -->
+    <!-- 分辨率信息 -->
     <div class="cur-num cur-resolving">
       <div class="mr5">screen：{{win.width}} * {{win.height}}</div>
     </div>
@@ -86,25 +86,26 @@
       v-for="(item,index) in dep_num"
       :key="'yd_'+index"
       class="line"
-      :style="{top:((canvas.height/dep_num)*(index+1))+'px'}"
+      :style="{top:(Math.floor((canvas.height/dep_num))*(index+1))+'px'}"
     />
     <!-- 部门名称 -->
     <div
-      v-for="(item,index) in dep_num"
+      v-for="(item,index) in depData"
       :key="index"
       class="dep-name"
-      :style="{height:(canvas.height/dep_num)+'px',top:(canvas.height/dep_num * index)+'px'}"
+      :style="{height:Math.floor(canvas.height/dep_num)+'px',top:(Math.floor(canvas.height/dep_num) * index)+'px'}"
       @click="depClick(index+1)"
-    >部门:{{index+1}}</div>
+    >{{item.name}}</div>
     <!-- 时间轴 -->
     <div
       class="timeBar-area"
+      v-if="timeBarData.length"
       :style="{height:timeBarHei+'px',top:(win.height-timeBarHei)+'px'}"
     >
       <el-slider
         v-model="curTime"
         :min="1"
-        :max="200"
+        :max="timeBarData.length"
         :step="1"
         :format-tooltip="formatTooltip"
         :marks="timeBarMarks"
@@ -162,13 +163,14 @@ import G6 from '@antv/g6'
 import insertCss from 'insert-css'
 // eslint-disable-next-line no-unused-vars
 import loading from '../utils/loading'
-import tooTipHTML from '../data/tooTip'
+import getTooTipHTML from '../data/tooTip'
 import custNode from '../data/newNode/cust_node'
+import lineNode from '../mock/line'
 import testData from '../mock/testData'
 import innerCss from '../data/insertCss'
 
 import { getUpdateNodesPositionList, getNewEdgesList } from '../utils/common'
-import { getMainData } from '../api/api'
+import { getXYdata, getMainData, modifyNodesPosition } from '../api/api'
 insertCss(innerCss)
 let _that = null
 
@@ -182,7 +184,7 @@ export default {
       sourceData: {},//数据源
       graph: null,//graph全局对象
       lineType: 'polyline',//线条样式(line,polyline,quadratic,cubic,arc)
-      lineColor: '#bababa',//线条颜色
+      lineColor: '#cccccc',//线条颜色
       lineThick: 2,//线条粗细
       toolTip: '',//提示框内容
       toolBar: null,//工具栏
@@ -196,15 +198,20 @@ export default {
       node_eachLineNum: 4,//一行显示节点数量
       curOptNode: null,//当前操作的节点
       dataType: 'mock',//数据形式
+      configId: 1,//配置id（1-内网台式机，2-会议室大屏）
+      //部门
+      depData: [{ name: '部门1' }, { name: '部门2' }, { name: '部门3' }, { name: '部门4' }, { name: '部门5' }],//部门数据
       dep_num: 5,//部门数量
       //网格
       gird: { width: 0, height: 0 },//网格基本信息
+      eachGirdWidth: 620,//单个网格宽度
+      eachGirdHeight: 149,//单个网格高度
       //时间轴
       timeBar: null,//时间轴
-      timeBarData: [],//时间轴数据
+      timeBarData: [{ "weekNo": 1, "end": "2021-01-01", "begin": "2021-01-11" }, { "weekNo": 2, "end": "2021-01-24", "begin": "2021-01-18" }, { "weekNo": 3, "end": "2021-01-31", "begin": "2021-01-25" }, { "weekNo": 4, "end": "2021-01-07", "begin": "2021-01-01" }, { "weekNo": 5, "end": "2021-01-14", "begin": "2021-01-08" }, { "weekNo": 6, "end": "2021-01-21", "begin": "2021-01-15" }, { "weekNo": 7, "end": "2021-01-28", "begin": "2021-01-22" }, { "weekNo": 8, "end": "2021-01-05", "begin": "2021-01-29" }, { "weekNo": 9, "end": "2021-01-12", "begin": "2021-01-06" }, { "weekNo": 10, "end": "2021-01-19", "begin": "2021-01-13" }],//时间轴数据
       timeBarHei: 40,//时间轴高度
-      curTime: 10,//时间轴当前时间
-      timeBarMarks: { 10: '', },//时间轴标注
+      curTime: 3,//时间轴当前时间
+      timeBarMarks: { 1: '', },//时间轴标注
       animSec: 1,//移动动画时长
       curWeek: 1,//当前显示周
       //批注
@@ -218,17 +225,39 @@ export default {
   },
   computed: {},
   mounted () {
-    this.initWindow()
-    this.sourceData = this.initData(testData({ height: this.canvas.height, width: this.canvas.height, way: this.dep_num }))
-    this.initG6()
+    if (this.dataType === 'mock') {
+      this.initWindow()
+      this.sourceData = this.initData(testData({ height: this.canvas.height, width: this.canvas.height, way: this.dep_num }))
+      this.initG6()
+      this.printGrid()
+    } else {
+      this.requestXYData()
+    }
   },
   methods: {
     /**
-     * 请求全局数据yarn 
+     * 请求部门记时间轴数据
+     */
+    async requestXYData () {
+      const responseData = await getXYdata()
+      this.depData = responseData.data.Y
+      this.timeBarData = responseData.data.X
+      this.dep_num = this.depData.length
+      console.log(`部门数据(${this.dep_num}):`, this.depData)
+      console.log(`时间轴数据(${this.timeBarData.length}):`, this.timeBarData)
+      this.requestMainData()
+    },
+    /**
+     * 请求全局节点数据
      */
     async requestMainData () {
-      const responseData = await getMainData()
-      console.log(responseData)
+      const responseData = await getMainData('1')
+      console.log('请求全局节点数据:', responseData.data)
+      //开始初始化
+      this.initWindow()
+      this.sourceData = this.initData(responseData.data)
+      this.initG6()
+      this.printGrid()
     },
     /**
      * 初始化G6
@@ -262,13 +291,14 @@ export default {
           color: '#000',
           style: {
             cursor: 'pointer',
-            lineWidth: 3,
+            lineWidth: 2,
           }
         },
         //默认连线设置
         defaultEdge: {
           color: this.lineColor,
           type: this.lineType,//（quadratic-二阶贝塞尔曲线；cubic-三阶贝塞尔曲线）
+          controlPoints: [],
           labelCfg: {
             autoRotate: true,
             refY: -10,
@@ -277,7 +307,9 @@ export default {
             cursor: 'pointer',
             lineWidth: this.lineThick,
             color: this.lineColor,
-            endArrow: true
+            endArrow: true,
+            radius: 5,
+            offset: 30,
           },
         },
         nodeStateStyles: {
@@ -291,7 +323,7 @@ export default {
         edgeStateStyles: {
           highlight: {
             lineWidth: 3,
-            stroke: '#999',
+            stroke: '#ff3300',
           },
         },
       })
@@ -324,12 +356,14 @@ export default {
       //监听：节点拖拽完成
       this.graph.on('node:dragend', (e) => {
         const modelItem = {
-          id: e.item._cfg.model.id,
-          x: e.item._cfg.model.x,
-          y: e.item._cfg.model.y,
+          configId: this.configId,
+          nodeId: e.item._cfg.model.id,
+          nodeX: e.item._cfg.model.x,
+          nodeY: e.item._cfg.model.y,
         }
         console.log('node拖拽完成:', modelItem)
         _that.nodeMoveList = getUpdateNodesPositionList(_that.nodeMoveList, modelItem)
+        console.log('nodeMoveList内容:', _that.nodeMoveList)
         _that.saveDisabled = ((_that.addEdgesList.length === 0) && (_that.nodeMoveList.length === 0))
       })
       //监听：增加连线
@@ -442,10 +476,10 @@ export default {
           if (e.item.getType() === 'node') {
             if (model.method === 'line') {
               //标示线节点
-              outDiv.innerHTML = model.label
+              outDiv.innerHTML = model.label + `(${model.x},${model.y})`
             } else {
               //普通节点
-              outDiv.innerHTML = tooTipHTML
+              outDiv.innerHTML = getTooTipHTML(model)
             }
           } else {
             const source = e.item.getSource()
@@ -474,25 +508,40 @@ export default {
     /**
      * 数据形式改变
      */
-    changeDataType (val) {
+    async changeDataType (val) {
       this.dataType = val
       if (this.dataType === 'mock') {
         this.sourceData = this.initData(testData({ height: this.canvas.height, width: this.canvas.height, way: this.dep_num }))
-        this.graph.changeData(this.sourceData)
       } else {
-        this.requestMainData()
+        const xyRsp = await getXYdata()
+        this.depData = xyRsp.data.Y
+        this.timeBarData = xyRsp.data.X
+        this.dep_num = this.depData.length
+        console.log(`部门数据(${this.dep_num}):`, this.depData)
+        console.log(`时间轴数据(${this.timeBarData.length}):`, this.timeBarData)
+        const mainRsp = await getMainData('1')
+        console.log('请求全局节点数据:', mainRsp.data)
+        this.sourceData = this.initData(mainRsp.data)
       }
+      this.graph.changeData(this.sourceData)
     },
 
     /**
      * 初始化节点
      */
     initData (data) {
+      //加入line节点
+      const lineData = lineNode({ height: this.canvas.height, width: this.canvas.height, way: this.dep_num })
+      console.log('lineData:', lineData)
+      lineData.nodes.forEach(element => {
+        data.nodes.push(element)
+      })
       data.nodes.forEach((element) => {
-        if (element.id <= 20) {
+        //节点样式
+        if ((element.id <= 20) || (element.icon === 'task')) {
           element.type = 'custNode_task'
         }
-        if ((element.id > 20) && (element.id <= 99)) {
+        if (((element.id > 20) && (element.id <= 99)) || (element.icon === 'MeetingInfo')) {
           element.type = 'custNode_chat'
         }
         if (element.method === 'line') {
@@ -501,15 +550,16 @@ export default {
         if (element.method === 'mark') {
           element.type = 'custNode_mark'
         }
+        //节点坐标微调
+        if (element.y > 0) { element.y += 0 }
+        //完成标识
+        // if (element.endDate === '') { element.unfinish = true } else { element.unfinish = false }
       })
-      console.log('【当前数据】', data)
       //初始化silder-mark
-      for (let i = 1; i <= 200; i++) {
-        if (i % 10 === 0) {
-          _that.timeBarMarks[i] = '2020-' + i
-        }
-      }
-      console.log('timeBarMarks:', _that.timeBarMarks)
+      _that.timeBarData.forEach((element, i) => {
+        _that.timeBarMarks[i + 1] = element.begin
+      })
+      // console.log('timeBarMarks:', _that.timeBarMarks)
       console.log('【当前数据】', data)
       return data
     },
@@ -551,24 +601,24 @@ export default {
     /**
      * 切换周
      */
-    changeSilder (val) {
-      if ((val > 10) && (val <= 20)) {
-        this.moveTo(720)
-      } else if ((val > 20) && (val <= 30)) {
-        this.moveTo(1320)
-      } else if ((val > 30) && (val <= 40)) {
-        this.moveTo(1920)
-      } else if ((val > 40) && (val <= 50)) {
-        this.moveTo(2520)
-      } else if ((val > 50) && (val <= 60)) {
-        this.moveTo(3120)
-      } else if ((val > 60) && (val <= 70)) {
-        this.moveTo(3720)
-      } else if ((val > 70) && (val <= 80)) {
-        this.moveTo(4320)
-      } else {
-        this.moveTo(4920)
-      }
+    changeSilder () {
+      // if ((val > 10) && (val <= 20)) {
+      //   this.moveTo(720)
+      // } else if ((val > 20) && (val <= 30)) {
+      //   this.moveTo(1320)
+      // } else if ((val > 30) && (val <= 40)) {
+      //   this.moveTo(1920)
+      // } else if ((val > 40) && (val <= 50)) {
+      //   this.moveTo(2520)
+      // } else if ((val > 50) && (val <= 60)) {
+      //   this.moveTo(3120)
+      // } else if ((val > 60) && (val <= 70)) {
+      //   this.moveTo(3720)
+      // } else if ((val > 70) && (val <= 80)) {
+      //   this.moveTo(4320)
+      // } else {
+      //   this.moveTo(4920)
+      // }
     },
     /**
      * 周移动
@@ -620,7 +670,7 @@ export default {
     formatTooltip (val) {
       let str = ''
       if (val) {
-        str = '2020年第' + val + '周'
+        str = this.timeBarData[val - 1].begin
       }
       return str
     },
@@ -643,22 +693,44 @@ export default {
     /**
      * 提交修改节点信息
      */
-    commitChanges () {
+    async commitChanges () {
       console.log('节点移动数据集:', this.nodeMoveList)
       console.log('新增连线数据集:', this.addEdgesList)
+      const rsp = await modifyNodesPosition(this.nodeMoveList)
+      console.log(rsp)
+      if (rsp.data.code === 200) {
+        this.$message({
+          message: `保存成功`,
+          type: 'success'
+        })
+        setTimeout(() => {
+          this.reloadPage()
+        }, 1000);
+      } else {
+        this.$message({
+          message: `保存失败`,
+          type: 'danger'
+        })
+      }
     },
     /**
      * 初始化窗口
      */
     initWindow () {
       _that = this
+      // console.log(`wid:${window.innerWidth - 10};hei:${window.innerHeight - 10}`)
+      // this.$message({
+      //   message: `wid:${window.innerWidth - 10};hei:${window.innerHeight - 10}`,
+      //   type: 'success'
+      // })
       this.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10
       this.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 10
 
       // this.win.height = this.win.height + (this.win.height)
 
       this.canvas.width = this.win.width
-      this.canvas.height = this.win.height - this.timeBarHei
+      // this.canvas.height = this.win.height - this.timeBarHei
+      this.canvas.height = this.dep_num * this.eachGirdHeight
       console.log('winWid:' + this.win.width + ',winHei:' + this.win.height)
       console.log('CanvasWid:' + this.canvas.width + ',CanvasHei:' + this.canvas.height)
       this.initMenu()
@@ -666,8 +738,19 @@ export default {
       this.initMiniMap()
       this.initToolTip()
       this.initJsxNode()
-      this.gird.width = this.start_x + this.node_wid * this.node_eachLineNum + this.node_pad * (this.node_eachLineNum + 1)
-      this.gird.height = this.canvas.height / this.dep_num
+      this.gird.width = this.node_wid * this.node_eachLineNum + this.node_pad * (this.node_eachLineNum)
+      this.gird.height = (this.win.height - this.timeBarHei) / this.dep_num
+    },
+    /**
+     * 打印网格信息
+     */
+    printGrid () {
+      const eachGridHei = Math.floor((this.canvas.height / this.dep_num))
+      console.log(`【eahc：${eachGridHei}】`)
+      for (let i = 0; i < this.dep_num; i++) {
+        const result = eachGridHei * (i + 1)
+        console.log(`泳道${i + 1}:(${this.canvas.height} / ${this.dep_num}) * ${i + 1} = ${result}`)
+      }
     },
     /**
      * 刷新页面

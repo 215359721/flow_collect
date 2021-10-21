@@ -18,7 +18,7 @@ const info_part = (node) => `
   }}
   draggable="true"
  >
-  <text style={{marginLeft: ${MARGIN_LEFT * 2} ,marginTop: ${(HEIGHT_INFO / 2) - 8},${node.unfinish ? "fill: '#aaa'" : "fill: '#666'"},fontSize:12,}}>执行人：赵竹林</text>
+  <text style={{marginLeft: ${MARGIN_LEFT * 2} ,marginTop: ${(HEIGHT_INFO / 2) - 8},${node.unfinish ? "fill: '#aaa'" : "fill: '#666'"},fontSize:12,}}>执行人：(${node.x},${node.y})</text>
   </rect>
 `
 //批注-详情
@@ -57,7 +57,7 @@ const task_node = (node) => {
           textAlign: 'center',
           stroke: '#000',
           fill: '#fff'}}draggable="true">
-          ${node.id}:${node.label}
+          ${node.id + ':' + node.label}
         </text>
       </rect>
       <rect style={{
@@ -98,7 +98,7 @@ const chat_node = (node) => {
           textAlign: 'center',
           stroke: '#000',
           fill: '#fff'}}draggable="true">
-          ${node.id}:${node.label}
+          ${node.id + ':' + node.label}
         </text>
       </rect>
       <rect style={{

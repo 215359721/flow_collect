@@ -1,77 +1,74 @@
 <template>
   <div class="main-page">
-    <div class="configuration">
-      <p class="title">配置项</p>
-      <div class="opt-level">
-        <el-form
-          :model="form"
-          ref="form"
-          label-position="top"
-          label-width="120px"
-        >
-          <el-form-item id="keyWord" label="设置关键词：" prop="keyWord">
-            <el-select
-              size="mini"
-              v-model="form.keyWord"
-              filterable
-              clearable
-              remote
-              reserve-keyword
-              placeholder="请输入关键词"
-              :remote-method="remoteMethod"
-              :loading="loading"
+    <div class="opt-level">
+      <el-form
+        :model="form"
+        ref="form"
+        inline
+        label-width="120px"
+      >
+        <el-form-item id="keyWord" prop="keyWord">
+          <el-select
+            size="mini"
+            v-model="form.keyWord"
+            filterable
+            clearable
+            remote
+            reserve-keyword
+            placeholder="请输入关键词"
+            :remote-method="remoteMethod"
+            :loading="loading"
+          >
+            <el-option
+              v-for="item in keyWordOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
             >
-              <el-option
-                v-for="item in keyWordOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              >
-              </el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item label="设置查询层级：" prop="level">
-            <el-select size="mini" v-model="form.level" placeholder="请选择">
-              <el-option
-                v-for="item in levelOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              >
-              </el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item label="设置布局：" prop="layout">
-            <el-select size="mini" v-model="form.layout" placeholder="请选择">
-              <el-option
-                v-for="item in layoutOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              >
-              </el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" size="mini" @click="handleSearch">查询</el-button>
-            <el-dropdown
-              size="mini"
-              split-button
-              type="primary"
-              @command="changeLayout"
-              :style="{marginLeft:'10px'}"
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item prop="level">
+          <el-select size="mini" v-model="form.level" placeholder="请选择">
+            <el-option
+              v-for="item in levelOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
             >
-              布局切换
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item command="radiation">语义网辐射树</el-dropdown-item>
-                <el-dropdown-item command="mind">语义网脑图树</el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown>
-          </el-form-item>
-        </el-form>
-      </div>
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item prop="layout">
+          <el-select size="mini" v-model="form.layout" placeholder="请选择">
+            <el-option
+              v-for="item in layoutOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            >
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" size="mini" @click="handleSearch">查询</el-button>
+          <el-dropdown
+            size="mini"
+            split-button
+            type="primary"
+            @command="changeLayout"
+            :style="{marginLeft:'10px'}"
+          >
+            布局切换
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="radiation">语义网辐射树</el-dropdown-item>
+              <el-dropdown-item command="mind">语义网脑图树</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </el-form-item>
+      </el-form>
     </div>
-    <div id="graphemeDiv" v-if="isShow"></div>
+    <div id="graphemeDiv" v-if="isShow" style="padding: 30px"></div>
     <div v-else class="el-empty">
       <img src="../assets/image/single.png">
       <label>暂无数据</label>
@@ -91,6 +88,8 @@
   import innerCss from "../data/insertCss";
   import { getTreeNode, getKeywordsList } from '../api/api.js'
   import { createUuid } from '../utils/common.js'
+  import custNode from '../data/task_node'
+  import baseUrl from '../config'
 
   insertCss(innerCss);
 
@@ -117,8 +116,8 @@
         selectNode: undefined,
         form: {
           level: 2,
-          keyWord: '',
-          layout: 'radiation'
+          keyWord: '功率继电器',
+          layout: 'mind'
         },
         levelOptions: [
           {
@@ -148,10 +147,13 @@
         keyWordOptions: [],
         list: [],
         loading: false,
+        firstLoading: true,
       };
     },
     computed: {},
-    created() {},
+    created() {
+      this.getParams()
+    },
     methods: {
       // 获取初始树节点
       async getTreeNode(){
@@ -170,7 +172,7 @@
           }
           const res = await getTreeNode(params)
           this.childNodes = res.data
-          if(this.childNodes && Object.keys(this.childNodes).length > 0){
+          if(this.childNodes && this.childNodes.children.length){
             await this.recursionConcat(this.sourceData)
           }
         }
@@ -197,26 +199,47 @@
           }
         });
       },
-      // node点击事件
-      async handleNodeClick(event) {
+      // 脑图树node点击事件
+      async handleMindNodeClick(event) {
         loading.show()
         this.isRender = false;
         this.selectNode = event.item;
-        if(this.selectNode.getModel().type === 'node' && !this.selectNode.getModel().children.length){
+        if(this.selectNode.getModel().type === 'custTree_node' && !this.selectNode.getModel().children.length){
           await this.getTreeNode(this.selectNode)
         }
         if (this.isRender && !this.selectNode.getModel().collapsed) {
-          this.graph.data(this.sourceData);
-          this.graph.render()
           this.graph.changeData(this.sourceData);
           this.graph.fitCenter();
-          // this.graph.layout(true);
           this.graph.zoom(1.2, {
             x: this.win.width / 2,
             y: this.win.height / 2,
           });
         }
-        this.graph.focusItem(this.selectNode._cfg.id);
+        this.graph.getNodes().forEach((node) => {
+          this.graph.clearItemStates(node);
+          this.graph.setItemState(node, "dark", true);
+        });
+        this.graph.setItemState(this.selectNode._cfg.id, "dark", false);
+        this.graph.setItemState(this.selectNode._cfg.id, "highlight", true);
+        loading.hide()
+      },
+      // 辐射树node点击事件
+      async handleRadiaNodeClick(event) {
+        loading.show()
+        this.isRender = false;
+        this.selectNode = event.item;
+        if(this.selectNode.getModel().type === 'custTree_node' && !this.selectNode.getModel().children.length){
+          await this.getTreeNode(this.selectNode)
+        }
+        if (this.isRender && !this.selectNode.getModel().collapsed) {
+          this.graph.changeData(this.sourceData);
+          this.graph.fitCenter();
+          this.graph.zoom(1.2, {
+            x: this.win.width / 2,
+            y: this.win.height / 2,
+          });
+        }
+        this.graph.focusItem(this.selectNode.getModel().id);
         this.graph.getNodes().forEach((node) => {
           this.graph.clearItemStates(node);
           this.graph.setItemState(node, "dark", true);
@@ -244,8 +267,8 @@
                 },
                 // 关系节点不发生折叠
                 // shouldBegin: (e) => {
-                //   // 若当前操作的节点 type 不为 'node'，则不发生 collapse-expand
-                //   if (e.item && e.item.getModel().type !== "node") return false;
+                //   // 若当前操作的节点 type 不为 'custTree_node'，则不发生 collapse-expand
+                //   if (e.item && e.item.getModel().type !== "custTree_node") return false;
                 //   return true;
                 // },
               },
@@ -284,7 +307,7 @@
           },
         });
         this.graph.node((node) => {
-          if (node.type === "node") {
+          if (node.type === "node" || node.type === 'custTree_node') {
             if (node.name.length > 10) {
               return {
                 label: node.name.substring(0, 10) + "...",
@@ -303,12 +326,11 @@
         this.graph.data(this.sourceData);
         this.graph.render();
         this.graph.fitCenter()
-        // this.graph.layout(true);
         this.graph.zoom(1.2, {
           x: this.win.width / 2,
           y: this.win.height / 2,
         });
-        this.graph.on("node:click", this.handleNodeClick);
+        this.graph.on("node:click", this.handleRadiaNodeClick);
         //监听：canvas点击
         this.graph.on("canvas:click", () => {
           this.clearAllStats();
@@ -332,8 +354,8 @@
                 },
                 // 关系节点不发生折叠
                 // shouldBegin: (e) => {
-                //   // 若当前操作的节点 type 不为 'node'，则不发生 collapse-expand
-                //   if (e.item && e.item.getModel().type !== "node") return false;
+                //   // 若当前操作的节点 type 不为 'custTree_node'，则不发生 collapse-expand
+                //   if (e.item && e.item.getModel().type !== "custTree_node") return false;
                 //   return true;
                 // },
               },
@@ -377,7 +399,10 @@
               return 10;
             },
             getHGap: () => {
-              return 50;
+              return 60;
+            },
+            getSide: () => {
+              return 'right';
             },
           },
         });
@@ -386,7 +411,7 @@
           if (node.id === this.centerNode.id) {
             centerX = node.x;
           }
-          if (node.type === "node") {
+          if (node.type === "node" || node.type === 'custTree_node') {
             let showLabel = "";
             if (node.name.length > 10) {
               showLabel = node.name.substring(0, 10) + "...";
@@ -398,7 +423,7 @@
               labelCfg: {
                 position:
                   node.children && node.children.length > 0
-                    ? "left"
+                    ? "right"
                     : node.x > centerX
                     ? "right"
                     : "left",
@@ -423,7 +448,7 @@
           x: this.win.width / 2,
           y: this.win.height / 2,
         });
-        this.graph.on("node:click", this.handleNodeClick);
+        this.graph.on("node:click", this.handleMindNodeClick);
         // 监听：canvas点击
         this.graph.on("canvas:click", () => {
           this.clearAllStats();
@@ -444,10 +469,10 @@
           } else {
             this.changeStyle(this.sourceData);
             this.initG6();
+            this.graph.focusItem(this.selectNode.getModel().id);
           }
           // 切换布局后保持选中节点高亮及位于中心位置
           if (this.selectNode && Object.keys(this.selectNode).length) {
-            this.graph.focusItem(this.selectNode._cfg.id);
             this.graph.getNodes().forEach((node) => {
               this.graph.clearItemStates(node);
               this.graph.setItemState(node, "dark", true);
@@ -488,11 +513,11 @@
       initWindow() {
         this.win.height =
           (document.documentElement.clientHeight ||
-            document.body.clientHeight) - 10;
+            document.body.clientHeight) - 70;
         this.win.width =
-          (document.documentElement.clientWidth || document.body.clientWidth) -
-          10;
+          (document.documentElement.clientWidth || document.body.clientWidth) - 70;
         this.canvasCenter = [this.win.width / 2, this.win.height / 2];
+        this.initJsxNode()
       },
       // 清空焦点高亮
       clearAllStats() {
@@ -519,18 +544,18 @@
           // 是否允许tooltip出现
           shouldBegin: (e) => {
             // 若当前操作的节点 type 不为 'node'，则不展示
-            if (e.item && e.item.getModel().type !== "node") return false;
+            if (e.item && e.item.getModel().type !== "custTree_node") return false;
             return true;
           },
           // 自定义 tooltip 内容
           getContent: (e) => {
-            if (e.item.getModel().type === "node") {
+            const item = e.item.getModel()
+            if (e.item.getModel().type === "custTree_node") {
               const outDiv = document.createElement("div");
               const data = {
-                name: "测试",
-                path: "logo.png",
-                desc:
-                  "中华人民共和国的航天事业起始于1956年。中国于1970年4月24日发射第一颗人造地球卫星，是继苏联、美国、法国、日本之后世界上第5个能独立发射人造卫星的国家。 ",
+                name: item.name,
+                path: item.img,
+                desc: item.explain,
               };
               outDiv.innerHTML = showTooltip(data);
               return outDiv;
@@ -545,21 +570,22 @@
         this.rightMenu = new G6.Menu({
           // 是否允许tooltip出现
           shouldBegin: (e) => {
-            // 若当前操作的节点 type 不为 'node'，则不展示
-            if (e.item && e.item.getModel().type !== "node") return false;
+            // 若当前操作的节点 type 不为 'custTree_node'，则不展示
+            if (e.item && e.item.getModel().type !== "custTree_node") return false;
             return true;
           },
           getContent() {
             return `
-              <ul class="tree-right-menu">
-                <li class="tree-menu-btn">功能1</li>
-                <li class="tree-menu-btn">功能2</li>
-                <li class="tree-menu-btn">功能3</li>
-                <li class="tree-menu-btn">功能4</li>
+              <ul id="rightMenu" class="tree-right-menu">
+                <li class="tree-menu-btn">置位关键词</li>
+                <li class="tree-menu-btn">搜索</li>
               </ul>`;
           },
           handleMenuClick: (target, item) => {
-            console.log(target, item);
+            if(target.innerHTML === '置位关键词') {
+              const url ='http://' + window.location.host + '/grapheme?keyWord=' + encodeURIComponent(item.getModel().name)
+              window.open(url)
+            }
           },
           // 需要加上父级容器的 padding-left 16 与自身偏移量 10
           offsetX: 16 + 10,
@@ -601,14 +627,12 @@
         processedData.forEach((item) => {
           if (item.type === "node") {
             item.id = createUuid(32)
-            item.size = 55;
-            item.icon = {
-              show: true,
-              img: require("../assets/image/logo.png"),
-              width: 55,
-              height: 55,
-              cursor: "pointer",
-            };
+            item.type = 'custTree_node'
+            if(!item.img){
+              item.img = require("../assets/image/logo.png")
+            }else {
+              item.img = baseUrl + item.img
+            }
           } else {
             item.id = createUuid(32)
             item.size = 40;
@@ -668,6 +692,13 @@
         });
         return data;
       },
+      // 初始化自定义节点
+       initJsxNode() {
+        //自定义节点
+        G6.registerNode('custTree_node', {
+          jsx: custNode.tree_node,
+        })
+      },
       // 搜索关键词
       async remoteMethod(query) {
         if (query !== "") {
@@ -725,8 +756,15 @@
           this.initMindG6()
         }
         loading.hide();
-        this.graph.focusItem(this.centerNode.id);
         this.graph.setItemState(this.centerNode.id, "highlight", true);
+      },
+      async getParams() {
+        const firstLoading = window.location.href.indexOf('?') === -1
+        if(!firstLoading){
+          let urlParams = window.location.search.substring(1)
+          this.form.keyWord = decodeURIComponent(urlParams).split('=')[1]
+          this.handleSearch()
+        }
       }
     },
   };
@@ -736,36 +774,23 @@
   .main-page{
     min-height: 600px
   }
-  .configuration {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    padding: 10px;
-    border: 1px dashed #ddd;
-    box-shadow: rgb(174, 174, 174) 0px 0px 10px;
-    .title {
-      font-size: 16px;
-      font-weight: bold;
-      margin: 0;
-      padding-bottom: 10px;
-      border-bottom: 1px dashed #ddd;
-    }
-  }
   .opt-level /deep/ {
-      padding-top: 10px;
-      .el-form {
-        .el-form-item {
-          margin-bottom: 0;
-          .el-form-item__label {
-            padding: 0;
-            line-height: 28px;
-          }
-          .el-select {
-            width: 170px;
-          }
+    position: absolute;
+    top: 10px;
+    left: 120px;
+    .el-form {
+      .el-form-item {
+        margin-bottom: 0;
+        .el-form-item__label {
+          padding: 0;
+          line-height: 28px;
+        }
+        .el-select {
+          width: 120px;
         }
       }
     }
+  }
   .opt-layout /deep/ {
     padding-top: 10px;
   }

@@ -1,6 +1,8 @@
 import axios from 'axios'
-import Vue from 'vue'
 import { Message } from 'element-ui'
+import loading from './loading'
+// eslint-disable-next-line no-unused-vars
+import baseUrl from '../config'
 axios.defaults.headers.common['Content-Type'] = 'application/json;charset=utf-8'
 axios.defaults.headers.common['x-requested-with'] = 'XMLHttpRequest'
 axios.defaults.withCredentials = true
@@ -8,8 +10,8 @@ axios.defaults.withCredentials = true
 // 创建axios实例
 const service = axios.create({
   // axios中请求配置有baseURL选项，表示请求URL公共部分
-  // baseURL: 'http://10.0.1.105/',
-  baseURL: 'http://192.168.1.48:2020/aspdev',
+  baseURL: 'http://192.168.1.55:2800/',
+  // baseURL: baseUrl,
   // 超时
   timeout: 10000,
   loading: true,
@@ -21,6 +23,7 @@ const service = axios.create({
 // request拦截器
 service.interceptors.request.use(
   config => {
+    loading.show()
     if (config.header && config.header.length) {
       config.header.forEach(element => {
         for (const key in element) {
@@ -34,7 +37,7 @@ service.interceptors.request.use(
     return config
   },
   error => {
-    Vue.logs(error, { title: 'request.js', type: 'error' })
+    console.log(error, { title: 'request.js', type: 'error' })
     Promise.reject(error)
   }
 )
@@ -42,16 +45,18 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use(res => {
+  loading.hide()
   try {
     // return res.data 
     return Promise.resolve(res)
   } catch (error) {
-    Vue.logs(error, { title: 'request.js', type: 'error' })
+    console.log(error, { title: 'request.js', type: 'error' })
   }
 },
   error => {
+    loading.hide()
     console.log('res:', error.response)
-    Vue.logs(error.message, { title: 'request.js', type: 'error' })
+    console.log(error.message, { title: 'request.js', type: 'error' })
     Message({
       message: error.message,
       type: 'error',
