@@ -1,64 +1,29 @@
 <template>
   <div class="main-page">
     <div class="opt-level">
-      <el-form
-        :model="form"
-        ref="form"
-        inline
-        label-width="120px"
-      >
+      <el-form :model="form" ref="form" inline label-width="120px">
         <el-form-item id="keyWord" prop="keyWord">
-          <el-select
-            size="mini"
-            v-model="form.keyWord"
-            filterable
-            clearable
-            remote
-            reserve-keyword
-            placeholder="请输入关键词"
-            :remote-method="remoteMethod"
-            :loading="loading"
-          >
-            <el-option
-              v-for="item in keyWordOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            >
+          <el-select size="mini" v-model="form.keyWord" filterable clearable remote reserve-keyword placeholder="请输入关键词"
+            :remote-method="remoteMethod" :loading="loading">
+            <el-option v-for="item in keyWordOptions" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
         </el-form-item>
         <el-form-item prop="level">
           <el-select size="mini" v-model="form.level" placeholder="请选择">
-            <el-option
-              v-for="item in levelOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            >
+            <el-option v-for="item in levelOptions" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
         </el-form-item>
         <el-form-item prop="layout">
           <el-select size="mini" v-model="form.layout" placeholder="请选择">
-            <el-option
-              v-for="item in layoutOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            >
+            <el-option v-for="item in layoutOptions" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" size="mini" @click="handleSearch">查询</el-button>
-          <el-dropdown
-            size="mini"
-            split-button
-            type="primary"
-            @command="changeLayout"
-            :style="{marginLeft:'10px'}"
-          >
+          <el-dropdown size="mini" split-button type="primary" @command="changeLayout" :style="{marginLeft:'10px'}">
             布局切换
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item command="radiation">语义网辐射树</el-dropdown-item>
@@ -156,8 +121,8 @@
     },
     methods: {
       // 获取初始树节点
-      async getTreeNode(){
-        if(!this.selectNode){
+      async getTreeNode() {
+        if (!this.selectNode) {
           const params = {
             layer: this.form.level,
             type: this.form.keyWord
@@ -165,14 +130,14 @@
           const res = await getTreeNode(params)
           this.sourceData = this.initData(res.data);
           this.centerNode = this.sourceData;
-        }else{
+        } else {
           const params = {
             layer: this.form.level,
-            type:this.selectNode.getModel().name
+            type: this.selectNode.getModel().name
           }
           const res = await getTreeNode(params)
           this.childNodes = res.data
-          if(this.childNodes && this.childNodes.children.length){
+          if (this.childNodes && this.childNodes.children.length) {
             await this.recursionConcat(this.sourceData)
           }
         }
@@ -204,7 +169,7 @@
         loading.show()
         this.isRender = false;
         this.selectNode = event.item;
-        if(this.selectNode.getModel().type === 'custTree_node' && !this.selectNode.getModel().children.length){
+        if (this.selectNode.getModel().type === 'custTree_node' && !this.selectNode.getModel().children.length) {
           await this.getTreeNode(this.selectNode)
         }
         if (this.isRender && !this.selectNode.getModel().collapsed) {
@@ -228,7 +193,7 @@
         loading.show()
         this.isRender = false;
         this.selectNode = event.item;
-        if(this.selectNode.getModel().type === 'custTree_node' && !this.selectNode.getModel().children.length){
+        if (this.selectNode.getModel().type === 'custTree_node' && !this.selectNode.getModel().children.length) {
           await this.getTreeNode(this.selectNode)
         }
         if (this.isRender && !this.selectNode.getModel().collapsed) {
@@ -425,8 +390,8 @@
                   node.children && node.children.length > 0
                     ? "right"
                     : node.x > centerX
-                    ? "right"
-                    : "left",
+                      ? "right"
+                      : "left",
                 offset: 5,
               },
             };
@@ -434,7 +399,7 @@
             return {
               label: "",
               labelCfg: {
-                position:'',
+                position: '',
                 offset: 5,
               },
             };
@@ -456,7 +421,7 @@
       },
       // 切换布局
       changeLayout(val) {
-        if(Object.keys(this.sourceData).length) {
+        if (Object.keys(this.sourceData).length) {
           loading.show();
           this.graph.clear();
           this.graph.destroy();
@@ -582,8 +547,8 @@
               </ul>`;
           },
           handleMenuClick: (target, item) => {
-            if(target.innerHTML === '置位关键词') {
-              const url ='http://' + window.location.host + '/grapheme?keyWord=' + encodeURIComponent(item.getModel().name)
+            if (target.innerHTML === '置位关键词') {
+              const url = 'http://' + window.location.host + '/grapheme?keyWord=' + encodeURIComponent(item.getModel().name)
               window.open(url)
             }
           },
@@ -628,15 +593,15 @@
           if (item.type === "node") {
             item.id = createUuid(32)
             item.type = 'custTree_node'
-            if(!item.img){
+            if (!item.img) {
               item.img = require("../assets/image/logo.png")
-            }else {
+            } else {
               item.img = baseUrl + item.img
             }
           } else {
             item.id = createUuid(32)
             item.size = 40;
-            if(item.name === "范畴"){
+            if (item.name === "范畴") {
               item.icon = {
                 show: true,
                 img: require("../assets/image/fc.png"),
@@ -644,7 +609,7 @@
                 height: 40,
                 cursor: "pointer",
               };
-            }else if(item.name === "F") {
+            } else if (item.name === "F") {
               item.icon = {
                 show: true,
                 img: require("../assets/image/F.png"),
@@ -652,7 +617,7 @@
                 height: 40,
                 cursor: "pointer",
               };
-            }else if(item.name === "D") {
+            } else if (item.name === "D") {
               item.icon = {
                 show: true,
                 img: require("../assets/image/D.png"),
@@ -660,7 +625,7 @@
                 height: 40,
                 cursor: "pointer",
               };
-            }else if(item.name === "Z") {
+            } else if (item.name === "Z") {
               item.icon = {
                 show: true,
                 img: require("../assets/image/Z.png"),
@@ -668,7 +633,7 @@
                 height: 40,
                 cursor: "pointer",
               };
-            }else if(item.name === "S") {
+            } else if (item.name === "S") {
               item.icon = {
                 show: true,
                 img: require("../assets/image/S.png"),
@@ -676,7 +641,7 @@
                 height: 40,
                 cursor: "pointer",
               };
-            }else if(item.name === "C") {
+            } else if (item.name === "C") {
               item.icon = {
                 show: true,
                 img: require("../assets/image/C.png"),
@@ -693,7 +658,7 @@
         return data;
       },
       // 初始化自定义节点
-       initJsxNode() {
+      initJsxNode() {
         //自定义节点
         G6.registerNode('custTree_node', {
           jsx: custNode.tree_node,
@@ -717,30 +682,30 @@
       // 模糊查询列表
       async getKeywordsList(val) {
         const params = {
-          nameLike : val
+          nameLike: val
         }
         const res = await getKeywordsList(params)
-        if(res.data.length){
+        if (res.data.length) {
           this.list = res.data.map((item) => {
             return { value: `${item}`, label: `${item}` };
           });
         }
       },
       // 查询按钮
-      async handleSearch(){
-        if(!this.form.keyWord){
+      async handleSearch() {
+        if (!this.form.keyWord) {
           this.$message({
-            message:'请设置关键词！',
+            message: '请设置关键词！',
             type: 'warning'
           })
           return
-        }else{
+        } else {
           this.isShow = true
           this.selectNode = undefined
           this.sourceData = {}
         }
         loading.show();
-        if(this.graph){
+        if (this.graph) {
           this.graph.clear();
           this.graph.destroy();
         }
@@ -750,9 +715,9 @@
         this.initToolBar();
         this.initMiniMap();
         this.initToolTip();
-        if(this.form.layout === 'radiation'){
+        if (this.form.layout === 'radiation') {
           this.initG6();
-        }else{
+        } else {
           this.initMindG6()
         }
         loading.hide();
@@ -760,7 +725,7 @@
       },
       async getParams() {
         const firstLoading = window.location.href.indexOf('?') === -1
-        if(!firstLoading){
+        if (!firstLoading) {
           let urlParams = window.location.search.substring(1)
           this.form.keyWord = decodeURIComponent(urlParams).split('=')[1]
           this.handleSearch()
@@ -771,32 +736,38 @@
 </script>
 <style lang="less">
   @import "./main.less";
-  .main-page{
+
+  .main-page {
     min-height: 600px
   }
+
   .opt-level /deep/ {
     position: absolute;
     top: 10px;
     left: 120px;
+
     .el-form {
       .el-form-item {
         margin-bottom: 0;
+
         .el-form-item__label {
           padding: 0;
           line-height: 28px;
         }
+
         .el-select {
           width: 120px;
         }
       }
     }
   }
+
   .opt-layout /deep/ {
     padding-top: 10px;
   }
-  
-  .main-page /deep/{
-    .el-empty{
+
+  .main-page /deep/ {
+    .el-empty {
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -806,15 +777,18 @@
       left: 50%;
       transform: translate(-50%, -50%)
     }
-    .tree-right-menu{
+
+    .tree-right-menu {
       display: flex;
       flex-direction: column;
       padding: 0;
       margin: 0;
+
       li {
         list-style-type: none;
       }
-      .tree-menu-btn{
+
+      .tree-menu-btn {
         min-width: 50px;
         text-align: center;
         margin: 5px 0;
@@ -824,7 +798,8 @@
         background-color: #409EFF;
         border: 1px solid #409EFF;
         border-radius: 4px;
-        &:hover{
+
+        &:hover {
           background-color: #66b1ff;
           border: 1px solid #66b1ff;
         }

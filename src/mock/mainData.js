@@ -4,19 +4,16 @@ const data = {
       id: '1',
       label: '项目任务书',
       icon: 'data',
-      comboId: 'comboA',
     },
     {
       id: '2',
       label: '即时通讯',
       icon: 'chat',
-      comboId: 'comboA',
     },
     {
       id: '3',
       label: '即时通讯中的项目任务书',
       icon: 'data',
-      comboId: 'comboA',
     },
     {
       id: '4',
@@ -60,25 +57,21 @@ const data = {
       id: '11',
       label: '章节编写任务',
       icon: 'task',
-      comboId: 'comboB',
     },
     {
       id: '12',
       label: '章节对象',
       icon: 'data',
-      comboId: 'comboB',
     },
     {
       id: '13',
       label: 'Word',
       icon: 'tool',
-      comboId: 'comboB',
     },
     {
       id: '14',
       label: '文档',
       icon: 'data',
-      comboId: 'comboB',
     },
     {
       id: '15',
@@ -86,49 +79,41 @@ const data = {
       icon: 'task',
       foldUp: true,
       children: ['16', '17', '18'],
-      comboId: 'comboB',
     },
     {
       id: '16',
       label: '章节对象',
       icon: 'data',
-      comboId: 'comboB',
     },
     {
       id: '17',
       label: 'EXCEL',
       icon: 'tool',
-      comboId: 'comboB',
     },
     {
       id: '18',
       label: '文档',
       icon: 'data',
-      comboId: 'comboB',
     },
     {
       id: '19',
       label: '章节编写任务',
       icon: 'task',
-      comboId: 'comboB',
     },
     {
       id: '20',
       label: '章节对象',
       icon: 'data',
-      comboId: 'comboB',
     },
     {
       id: '21',
       label: 'PPT',
       icon: 'tool',
-      comboId: 'comboB',
     },
     {
       id: '22',
       label: '文档',
       icon: 'data',
-      comboId: 'comboB',
     },
     {
       id: '23',
@@ -668,14 +653,14 @@ const data = {
     // },
   ],
   combos: [
-    {
-      id: 'comboA',
-      label: '这是1-3的分组',
-    },
-    {
-      id: 'comboB',
-      label: '这是11-22的分组',
-    },
+    // {
+    //   id: 'comboA',
+    //   label: '这是1-3的分组',
+    // },
+    // {
+    //   id: 'comboB',
+    //   label: '这是11-22的分组',
+    // },
   ],
 }
 

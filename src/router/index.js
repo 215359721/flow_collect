@@ -36,6 +36,11 @@ const routes = [
     component: () => import('../views/comp.vue')
   },
   {
+    path: '/auto',
+    name: 'auto',
+    component: () => import('../views/autoLayout.vue')
+  },
+  {
     path: '/grapheme',
     name: 'grapheme',
     component: () => import('../views/grapheme.vue')

@@ -103,7 +103,7 @@
       :style="{height:timeBarHei+'px',top:(win.height-timeBarHei)+'px'}"
     >
       <el-slider
-        v-model="curTime"
+        v-model="curWeek"
         :min="1"
         :max="timeBarData.length"
         :step="1"
@@ -165,7 +165,6 @@ import insertCss from 'insert-css'
 import loading from '../utils/loading'
 import getTooTipHTML from '../data/tooTip'
 import custNode from '../data/newNode/cust_node'
-import lineNode from '../mock/line'
 import testData from '../mock/testData'
 import innerCss from '../data/insertCss'
 
@@ -197,20 +196,21 @@ export default {
       node_pad: 5,//节点间隔
       node_eachLineNum: 4,//一行显示节点数量
       curOptNode: null,//当前操作的节点
-      dataType: 'mock',//数据形式
+      dataType: 'real',//数据形式
       configId: 1,//配置id（1-内网台式机，2-会议室大屏）
       //部门
       depData: [{ name: '部门1' }, { name: '部门2' }, { name: '部门3' }, { name: '部门4' }, { name: '部门5' }],//部门数据
       dep_num: 5,//部门数量
       //网格
-      gird: { width: 0, height: 0 },//网格基本信息
+      gird: { width: 0, height: 0, gap: 5 },//网格基本信息
       eachGirdWidth: 620,//单个网格宽度
-      eachGirdHeight: 149,//单个网格高度
+      eachGirdHeight: 177,//单个网格高度
+      //配置
+      config: { type: 1, },
       //时间轴
       timeBar: null,//时间轴
       timeBarData: [{ "weekNo": 1, "end": "2021-01-01", "begin": "2021-01-11" }, { "weekNo": 2, "end": "2021-01-24", "begin": "2021-01-18" }, { "weekNo": 3, "end": "2021-01-31", "begin": "2021-01-25" }, { "weekNo": 4, "end": "2021-01-07", "begin": "2021-01-01" }, { "weekNo": 5, "end": "2021-01-14", "begin": "2021-01-08" }, { "weekNo": 6, "end": "2021-01-21", "begin": "2021-01-15" }, { "weekNo": 7, "end": "2021-01-28", "begin": "2021-01-22" }, { "weekNo": 8, "end": "2021-01-05", "begin": "2021-01-29" }, { "weekNo": 9, "end": "2021-01-12", "begin": "2021-01-06" }, { "weekNo": 10, "end": "2021-01-19", "begin": "2021-01-13" }],//时间轴数据
       timeBarHei: 40,//时间轴高度
-      curTime: 3,//时间轴当前时间
       timeBarMarks: { 1: '', },//时间轴标注
       animSec: 1,//移动动画时长
       curWeek: 1,//当前显示周
@@ -251,7 +251,7 @@ export default {
      * 请求全局节点数据
      */
     async requestMainData () {
-      const responseData = await getMainData('1')
+      const responseData = await getMainData(this.config.type)
       console.log('请求全局节点数据:', responseData.data)
       //开始初始化
       this.initWindow()
@@ -284,7 +284,7 @@ export default {
             { type: 'scroll-canvas', direction: 'x', }
           ],//'drag-canvas', 'drag-node','zoom-canvas', 'drag-node'
         },
-        plugins: [this.toolTip, this.rightMenu, this.toolBar, snapLine],
+        plugins: [this.toolTip, this.rightMenu, snapLine],
         //默认节点设置
         defaultNode: {
           size: [150, 50],
@@ -304,12 +304,11 @@ export default {
             refY: -10,
           },
           style: {
-            cursor: 'pointer',
             lineWidth: this.lineThick,
             color: this.lineColor,
             endArrow: true,
-            radius: 5,
-            offset: 30,
+            radius: 3,
+            offset: 10,
           },
         },
         nodeStateStyles: {
@@ -530,12 +529,24 @@ export default {
      * 初始化节点
      */
     initData (data) {
-      //加入line节点
-      const lineData = lineNode({ height: this.canvas.height, width: this.canvas.height, way: this.dep_num })
-      console.log('lineData:', lineData)
-      lineData.nodes.forEach(element => {
-        data.nodes.push(element)
+      //加入周节点
+      this.timeBarData.forEach((element, index) => {
+        const weekObj = {
+          id: 'week_' + element.weekNo,
+          label: '第' + element.weekNo + '周，' + element.begin + '至' + element.end,
+          method: 'line',
+          begin: element.begin,
+          end: element.end,
+          x: 100 + (_that.gird.gap * (4 * (index))) + (_that.node_wid * (4 * (index))),
+          y: 0,
+          width: 1,
+          height: _that.canvas.height,
+          color: (this.timeBarData.length === (index + 1)) ? 'red' : '#f2f2f2',
+          dotline: (this.timeBarData.length !== (index + 1)),
+        }
+        data.nodes.push(weekObj)
       })
+      //遍历节点
       data.nodes.forEach((element) => {
         //节点样式
         if ((element.id <= 20) || (element.icon === 'task')) {
@@ -553,7 +564,7 @@ export default {
         //节点坐标微调
         if (element.y > 0) { element.y += 0 }
         //完成标识
-        // if (element.endDate === '') { element.unfinish = true } else { element.unfinish = false }
+        if (element.endDate !== '') { element.unfinish = true } else { element.unfinish = false }
       })
       //初始化silder-mark
       _that.timeBarData.forEach((element, i) => {
@@ -601,24 +612,16 @@ export default {
     /**
      * 切换周
      */
-    changeSilder () {
-      // if ((val > 10) && (val <= 20)) {
-      //   this.moveTo(720)
-      // } else if ((val > 20) && (val <= 30)) {
-      //   this.moveTo(1320)
-      // } else if ((val > 30) && (val <= 40)) {
-      //   this.moveTo(1920)
-      // } else if ((val > 40) && (val <= 50)) {
-      //   this.moveTo(2520)
-      // } else if ((val > 50) && (val <= 60)) {
-      //   this.moveTo(3120)
-      // } else if ((val > 60) && (val <= 70)) {
-      //   this.moveTo(3720)
-      // } else if ((val > 70) && (val <= 80)) {
-      //   this.moveTo(4320)
-      // } else {
-      //   this.moveTo(4920)
-      // }
+    changeSilder (val) {
+      const descNode = this.graph.findById('week_' + val)
+      const nodeInfo = descNode._cfg.model
+      console.log(nodeInfo)
+      if (nodeInfo) {
+        this.$message({ message: `第${val}周，${nodeInfo.begin} 至 ${nodeInfo.end}` })
+        this.moveTo(nodeInfo.x)
+      } else {
+        console.log('err:没有相关节点信息！')
+      }
     },
     /**
      * 周移动
@@ -631,36 +634,30 @@ export default {
               message: '没有更多上周数据',
               type: 'warning'
             })
+            return
           } else {
             this.curWeek = this.curWeek - 1
-            if (this.curWeek === 1) {
-              this.moveTo(95)
-            } else {
-              this.moveTo(100 + 20 + (150 * ((this.curWeek - 1) * 4)) - 5)
-            }
-            this.$message({ message: `第${this.curWeek}周`, })
           }
           break
         case 'next'://下一周
           this.curWeek = this.curWeek + 1
-          this.moveTo(100 + 20 + (150 * ((this.curWeek - 1) * 4)) - 2)
-          this.$message({ message: `第${this.curWeek}周` })
           break
         case 'start'://回起点
-          this.moveTo(95)
+          this.curWeek = 1
           break
         case 'point'://去指定周
-          this.moveTo(2515)
+          this.curWeek = this.timeBarData.length
           break
         default:
           break;
       }
+      this.changeSilder(this.curWeek)
     },
     /**
      * 移动到指定点(横坐标)
      */
     moveTo (x) {
-      this.graph.moveTo(0 - (x - 170), 0, true, {
+      this.graph.moveTo(0 - (x - 197), 0, true, {
         duration: (_that.animSec * 1000)
       })
     },
@@ -668,11 +665,8 @@ export default {
      * 时间轴格式化提示
      */
     formatTooltip (val) {
-      let str = ''
-      if (val) {
-        str = this.timeBarData[val - 1].begin
-      }
-      return str
+      if (val) { return this.timeBarData[val - 1].begin }
+      return ''
     },
     /**
      * 添加批注提交

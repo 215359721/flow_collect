@@ -1,7 +1,6 @@
 import axios from 'axios'
 import { Message } from 'element-ui'
 import loading from './loading'
-// eslint-disable-next-line no-unused-vars
 import baseUrl from '../config'
 axios.defaults.headers.common['Content-Type'] = 'application/json;charset=utf-8'
 axios.defaults.headers.common['x-requested-with'] = 'XMLHttpRequest'
@@ -10,12 +9,13 @@ axios.defaults.withCredentials = true
 // 创建axios实例
 const service = axios.create({
   // axios中请求配置有baseURL选项，表示请求URL公共部分
-  baseURL: 'http://192.168.1.55:2800/',
-  // baseURL: baseUrl,
+  // baseURL: 'http://192.168.1.55:2800/',
+  baseURL: baseUrl,
   // 超时
   timeout: 10000,
   loading: true,
   validateStatus: function (status) {
+
     return status >= 200 && status < 300 || status === 403 // 403 后端认为 session 过期了
   },
   withCredentials: true // send cookies when cross-domain requests
