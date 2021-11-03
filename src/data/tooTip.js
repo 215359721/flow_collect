@@ -1,6 +1,6 @@
 function getTooTipHTML(node) {
   return `
-  <div class="content" style="padding: 0px;background-color: rgb(255, 255, 255);">
+  <div class="content" style="padding: 0px;background-color: rgb(255, 255, 255);z-index:7;">
           <div class="main-part" style="height: 50px;margin-bottom: 5px;display: flex;justify-content: space-between;align-items: center;">
             <div class="each-main-box" style="width: 100px;display: flex;">
               <div class="left flex-center" style="display: flex;justify-content: center;align-items: center;width: 45%;">
@@ -33,7 +33,7 @@ function getTooTipHTML(node) {
           <div class="info-part" style="height: 140px;margin-top: 5px;padding-left: 10px;">
             <div class="title" style="font-weight: bold;line-height: 20px;">任务详情</div>
             <div class="each-item" style="color: #9a9a9a;font-size: 12px;line-height: 20px;">
-              创建人：赵竹林
+              ${node.id}
             </div>
             <div class="each-item" style="color: #9a9a9a;font-size: 12px;line-height: 20px;">
               截止时间：2021-10-31 17:00

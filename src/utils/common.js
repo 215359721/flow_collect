@@ -1,6 +1,3 @@
-// const winHei = document.documentElement.clientHeight || document.body.clientHeight
-// const winWid = document.documentElement.clientWidth || document.body.clientWidth
-
 //获得已更新节点集合
 const getUpdateNodesPositionList = function (moveList, curMoveNode) {
   if (moveList.length) {
@@ -20,6 +17,11 @@ const getNewEdgesList = function (edgeList, curEdge) {
   return edgeList
 }
 
+//截取指定长度字符串+...
+const splitStr = function (sourceStr, len) {
+  return sourceStr.substr(0, len) + '···'
+}
+
 export function createUuid(length) {
   let str = Math.random().toString(36).substr(2)
   if (str.length >= length) {
@@ -32,4 +34,5 @@ export function createUuid(length) {
 export {
   getUpdateNodesPositionList,
   getNewEdgesList,
+  splitStr,
 }

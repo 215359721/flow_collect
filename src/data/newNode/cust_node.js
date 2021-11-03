@@ -2,7 +2,9 @@
 // eslint-disable-next-line no-unused-vars
 const TASK_COLOR = '#1aad19'//任务主色
 const CHAT_COLOR = '#1890ff'//即时通讯主色
-const MARK_COLOR = '#ffcc00'//便签主色
+const MEET_COLOR = '#cc6600'//会议主色
+const MARK_COLOR = '#ffcc00'//便签背景色
+const POINT_COLOR = '#ffff00'//便签标签色
 const WIDTH = 150 //节点总宽度
 const HEIGHT_HEAD = 25 //节点标题高度
 const MARGIN_LEFT = 5 //节点模块横向间距
@@ -30,9 +32,33 @@ const mark_part = (node) => `
   }}
   draggable="true"
  >
-  <text style={{marginLeft: ${MARGIN_LEFT * 2} ,marginTop: ${(HEIGHT_INFO / 2) - 8},${node.unfinish ? "fill: '#aaa'" : "fill: '#666'"}, fontSize:10,}}>此处任务关联信息附件不明确</text>
+  <text style={{marginLeft: ${MARGIN_LEFT * 2} ,marginTop: ${(HEIGHT_INFO / 2) - 8},${node.unfinish ? "fill: '#aaa'" : "fill: '#666'"}, fontSize:10,}}>${node.content}</text>
   </rect>
 `
+//批注-圆点
+const mark_point = (node) => {
+  let content = ''
+  const offset_x = 13
+  if (node.notes) {
+    content = `
+      <circle style={{
+        r:8,
+        fill:${POINT_COLOR},
+        stroke:'#5a5a5a',
+        marginTop:-3,
+        marginLeft:${WIDTH - offset_x},
+      }}>
+        <text style={{fill:'#5a5a5a',textAlign: 'center',fontSize:12,marginTop:-8,marginLeft:${WIDTH - offset_x},}}>${node.notes.length}</text>
+      </circle>
+    `
+  }
+  return content
+}
+//阴影
+const shadow = (node) => {
+  // return `shadowColor:'#999',shadowBlur:10,shadowOffsetX:5,shadowOffsetY:5,`
+  return ``
+}
 //任务节点
 const task_node = (node) => {
   let currentHei = 25
@@ -41,11 +67,12 @@ const task_node = (node) => {
        <rect style={{
         width: ${WIDTH},
         height:${HEIGHT_HEAD},
-        fill: ${TASK_COLOR},
+        fill: 'l(90) 0:${TASK_COLOR} 1:#44bb44',
         stroke: ${TASK_COLOR},
         radius: [6, 6, 0, 0],
         ${node.unfinish ? "fillOpacity:0.4," : ""}
         ${node.unfinish ? "lineDash:[2,2]," : ""}
+        ${shadow(node)}
       }}
       draggable="true"
       >
@@ -57,8 +84,9 @@ const task_node = (node) => {
           textAlign: 'center',
           stroke: '#000',
           fill: '#fff'}}draggable="true">
-          ${node.id + ':' + node.label}
+          ${node.label}
         </text>
+        ${mark_point(node)}
       </rect>
       <rect style={{
       width: ${WIDTH},
@@ -66,6 +94,7 @@ const task_node = (node) => {
       fill: '#F7F7F7',
       stroke: ${TASK_COLOR},
       lineWidth:1,
+      ${shadow(node)}
       ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}draggable="true">
         ${info_part(node)}
@@ -82,11 +111,12 @@ const chat_node = (node) => {
       <rect style={{
         width: ${WIDTH},
         height:${HEIGHT_HEAD},
-        fill: ${CHAT_COLOR},
+        fill: 'l(90) 0:#1a73e8 1:${CHAT_COLOR}',
         stroke: ${CHAT_COLOR},
         radius: [6, 6, 0, 0],
         ${node.unfinish ? "fillOpacity:0.4," : ""}
         ${node.unfinish ? "lineDash:[2,2]," : ""}
+        ${shadow(node)}
       }}
       draggable="true"
       >
@@ -98,8 +128,9 @@ const chat_node = (node) => {
           textAlign: 'center',
           stroke: '#000',
           fill: '#fff'}}draggable="true">
-          ${node.id + ':' + node.label}
+          ${node.label}
         </text>
+        ${mark_point(node)}
       </rect>
       <rect style={{
       width: ${WIDTH},
@@ -107,6 +138,51 @@ const chat_node = (node) => {
       fill: '#F7F7F7',
       stroke: ${CHAT_COLOR},
       lineWidth:1,
+      ${shadow(node)}
+      ${node.unfinish ? "lineDash:[2,2]," : ""}
+      }}draggable="true">
+        ${info_part(node)}
+      </rect>
+    </group>
+    `
+  return jsx
+}
+//会议节点
+const meet_node = (node) => {
+  let currentHei = 25
+  const jsx = `
+    <group>
+      <rect style={{
+        width: ${WIDTH},
+        height:${HEIGHT_HEAD},
+        fill: 'l(90) 0:#cc3300 1:${MEET_COLOR}',
+        stroke: ${MEET_COLOR},
+        radius: [6, 6, 0, 0],
+        ${node.unfinish ? "fillOpacity:0.4," : ""}
+        ${node.unfinish ? "lineDash:[2,2]," : ""}
+        ${shadow(node)}
+      }}
+      draggable="true"
+      >
+        <text style={{
+          marginTop: ${(HEIGHT_HEAD - 8)},
+          marginLeft: ${(WIDTH / 2) - 15},
+          fontWeight: 'bold',
+          fontSize:11,
+          textAlign: 'center',
+          stroke: '#000',
+          fill: '#fff'}}draggable="true">
+          ${node.label}
+        </text>
+        ${mark_point(node)}
+      </rect>
+      <rect style={{
+      width: ${WIDTH},
+      height:${currentHei},
+      fill: '#F7F7F7',
+      stroke: ${MEET_COLOR},
+      lineWidth:1,
+      ${shadow(node)}
       ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}draggable="true">
         ${info_part(node)}
@@ -136,7 +212,7 @@ const mark_node = (node) => {
           fontSize:11,
           stroke: '#000',
           fill: '#fff'}}draggable="true">
-          ${node.id}:批注
+          批注
         </text>
       </rect>
       <rect style={{
@@ -172,5 +248,20 @@ const line_node = (node) => {
     `
   return jsx
 }
-const custNode = { task_node, chat_node, mark_node, line_node }
+//块节点
+//fill: ${(node.index % 2 === 0) ? '#FFFFEE' : '#EEFFFF'},
+const block_node = (node) => {
+  const jsx = `
+    <group>
+      <rect style={{
+        width: ${node.width},
+        height:${node.height},
+        fill: ${(node.index % 2 === 0) ? '#FFFFEE' : '#EEFFFF'},
+      }}draggable="true">
+      </rect>
+    </group>
+    `
+  return jsx
+}
+const custNode = { task_node, chat_node, meet_node, mark_node, line_node, block_node }
 export default custNode

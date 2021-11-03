@@ -86,7 +86,8 @@
       v-for="(item,index) in dep_num"
       :key="'yd_'+index"
       class="line"
-      :style="{top:(Math.floor((canvas.height/dep_num))*(index+1))+'px'}"
+      :hei="Math.floor((canvas.height/dep_num))*(index+1)"
+      :style="{top:(Math.floor((canvas.height/dep_num))*(index+1)-2)+'px'}"
     />
     <!-- 部门名称 -->
     <div
@@ -94,7 +95,7 @@
       :key="index"
       class="dep-name"
       :style="{height:Math.floor(canvas.height/dep_num)+'px',top:(Math.floor(canvas.height/dep_num) * index)+'px'}"
-      @click="depClick(index+1)"
+      @click="depClick(item.name)"
     >{{item.name}}</div>
     <!-- 时间轴 -->
     <div
@@ -103,20 +104,21 @@
       :style="{height:timeBarHei+'px',top:(win.height-timeBarHei)+'px'}"
     >
       <el-slider
-        v-model="curWeek"
+        v-model="weekRange"
         :min="1"
         :max="timeBarData.length"
         :step="1"
         :format-tooltip="formatTooltip"
         :marks="timeBarMarks"
         :show-stops="false"
+        :range="false"
         class="time-bar"
         @change="changeSilder"
       />
     </div>
     <!-- 画布 -->
     <div id="canvasDiv"></div>
-    <!-- 弹框 -->
+    <!-- 添加批注弹框 -->
     <el-dialog
       title="添加批注"
       :visible.sync="addMarkShow"
@@ -153,85 +155,166 @@
         >确定</el-button>
       </div>
     </el-dialog>
+    <!-- 查看批注 -->
+    <el-drawer
+      title="查看批注"
+      :visible.sync="showMarkVisiable"
+      direction="rtl"
+    >
+      <div
+        class="show-mark-div"
+        :style="{height:canvas.height-150+'px'}"
+        v-if="curOptNode"
+      >
+        <div
+          class="each"
+          v-for="(item,index) in curOptNode._cfg.model.notes"
+          :key="index"
+        >
+          <div style="display:flex;">
+            <div class="time">{{item.createDate}}</div>
+            <div class="creator">（{{item.creatorId}}）提到 ：</div>
+          </div>
+          <div class="note">{{item.note}}</div>
+        </div>
+      </div>
+      <div class="add-mark-div">
+        <el-input
+          size="mini"
+          type="textarea"
+          :rows="3"
+          v-model="markObj.content"
+          placeholder="请输入批注内容"
+        ></el-input>
+        <el-button
+          type="primary"
+          class="mt5"
+          size="mini"
+          @click="commitMark"
+        >追加批注</el-button>
+      </div>
+    </el-drawer>
   </div>
 </template>
 
 <script>
 // eslint-disable-next-line no-unused-vars
-import _ from 'lodash'
-import G6 from '@antv/g6'
-import insertCss from 'insert-css'
+import _ from "lodash";
+import G6 from "@antv/g6";
+import insertCss from "insert-css";
 // eslint-disable-next-line no-unused-vars
-import loading from '../utils/loading'
-import getTooTipHTML from '../data/tooTip'
-import custNode from '../data/newNode/cust_node'
-import testData from '../mock/testData'
-import innerCss from '../data/insertCss'
+import loading from "../utils/loading";
+import getTooTipHTML from "../data/tooTip";
+import custNode from "../data/newNode/cust_node";
+import testData from "../mock/testData";
+import innerCss from "../data/insertCss";
+import mock_mainData from "../mock/FinishData/mainData";
+import mock_xyData from "../mock/FinishData/xyData";
 
-import { getUpdateNodesPositionList, getNewEdgesList } from '../utils/common'
-import { getXYdata, getMainData, modifyNodesPosition } from '../api/api'
-insertCss(innerCss)
-let _that = null
+import { useMockData } from "../config/index";
+import {
+  getUpdateNodesPositionList,
+  getNewEdgesList,
+  splitStr
+} from "../utils/common";
+import {
+  getXYdata,
+  getMainData,
+  modifyNodesPosition,
+  addMark,
+  addLink,
+} from "../api/api";
+insertCss(innerCss);
+let _that = null;
 
 export default {
   // eslint-disable-next-line vue/no-unused-components
   components: {},
   data () {
     return {
-      win: { height: 0, width: 0 },//window对象
-      canvas: { height: 0, width: 0 },//画布对象
-      sourceData: {},//数据源
-      graph: null,//graph全局对象
-      lineType: 'polyline',//线条样式(line,polyline,quadratic,cubic,arc)
-      lineColor: '#cccccc',//线条颜色
-      lineThick: 2,//线条粗细
-      toolTip: '',//提示框内容
-      toolBar: null,//工具栏
-      minimap: null,//小地图
-      rightMenu: null,//右键菜单
+      win: { height: 0, width: 0 }, //window对象
+      canvas: { height: 0, width: 0 }, //画布对象
+      sourceData: {}, //数据源
+      graph: null, //graph全局对象
+      lineType: "polyline", //线条样式(line,polyline,quadratic,cubic,arc)
+      lineColor: "#cccccc", //线条颜色
+      lineThick: 2, //线条粗细
+      toolTip: "", //提示框内容
+      toolBar: null, //工具栏
+      minimap: null, //小地图
+      rightMenu: null, //右键菜单
       //-------------------
-      start_x: 100,//起始点X
-      node_wid: 150,//单个节点宽度
-      node_hei: 50,//单个节点高度
-      node_pad: 5,//节点间隔
-      node_eachLineNum: 4,//一行显示节点数量
-      curOptNode: null,//当前操作的节点
-      dataType: 'real',//数据形式
-      configId: 1,//配置id（1-内网台式机，2-会议室大屏）
+      start_x: 100, //起始点X
+      node_wid: 150, //单个节点宽度
+      node_hei: 50, //单个节点高度
+      node_pad: 5, //节点间隔
+      node_eachLineNum: 4, //一行显示节点数量
+      curOptNode: null, //当前操作的节点
+      dataType: "real", //数据形式
+      configId: 1, //配置id（1-内网台式机，2-会议室大屏）
       //部门
-      depData: [{ name: '部门1' }, { name: '部门2' }, { name: '部门3' }, { name: '部门4' }, { name: '部门5' }],//部门数据
-      dep_num: 5,//部门数量
+      depData: [
+        { name: "部门1" },
+        { name: "部门2" },
+        { name: "部门3" },
+        { name: "部门4" },
+        { name: "部门5" }
+      ], //部门数据
+      dep_num: 5, //部门数量
       //网格
-      gird: { width: 0, height: 0, gap: 5 },//网格基本信息
-      eachGirdWidth: 620,//单个网格宽度
-      eachGirdHeight: 177,//单个网格高度
+      gird: { width: 0, height: 0, gap: 5 }, //网格基本信息
+      eachGirdWidth: 620, //单个网格宽度
+      eachGirdHeight: 180, //单个网格高度
       //配置
-      config: { type: 1, },
+      config: { type: 1, exColor: false, lineBrokenOffset: 32 },
       //时间轴
-      timeBar: null,//时间轴
-      timeBarData: [{ "weekNo": 1, "end": "2021-01-01", "begin": "2021-01-11" }, { "weekNo": 2, "end": "2021-01-24", "begin": "2021-01-18" }, { "weekNo": 3, "end": "2021-01-31", "begin": "2021-01-25" }, { "weekNo": 4, "end": "2021-01-07", "begin": "2021-01-01" }, { "weekNo": 5, "end": "2021-01-14", "begin": "2021-01-08" }, { "weekNo": 6, "end": "2021-01-21", "begin": "2021-01-15" }, { "weekNo": 7, "end": "2021-01-28", "begin": "2021-01-22" }, { "weekNo": 8, "end": "2021-01-05", "begin": "2021-01-29" }, { "weekNo": 9, "end": "2021-01-12", "begin": "2021-01-06" }, { "weekNo": 10, "end": "2021-01-19", "begin": "2021-01-13" }],//时间轴数据
-      timeBarHei: 40,//时间轴高度
-      timeBarMarks: { 1: '', },//时间轴标注
-      animSec: 1,//移动动画时长
-      curWeek: 1,//当前显示周
+      timeBar: null, //时间轴
+      timeBarData: [
+        { weekNo: 1, end: "2021-01-01", begin: "2021-01-11" },
+        { weekNo: 2, end: "2021-01-24", begin: "2021-01-18" },
+        { weekNo: 3, end: "2021-01-31", begin: "2021-01-25" },
+        { weekNo: 4, end: "2021-01-07", begin: "2021-01-01" },
+        { weekNo: 5, end: "2021-01-14", begin: "2021-01-08" },
+        { weekNo: 6, end: "2021-01-21", begin: "2021-01-15" },
+        { weekNo: 7, end: "2021-01-28", begin: "2021-01-22" },
+        { weekNo: 8, end: "2021-01-05", begin: "2021-01-29" },
+        { weekNo: 9, end: "2021-01-12", begin: "2021-01-06" },
+        { weekNo: 10, end: "2021-01-19", begin: "2021-01-13" }
+      ], //时间轴数据
+      timeBarHei: 40, //时间轴高度
+      timeBarMarks: { 1: "" }, //时间轴标注
+      animSec: 1, //移动动画时长
+      curWeek: 1, //当前显示周
+      weekRange: [1, 3],
+      curRange: [1, 3],
       //批注
-      addMarkShow: false,//添加批注弹框显示标识
-      markObj: { content: '' },//批注内容对象
+      showSingleMark: false, //是否单独显示批注节点
+      markNodes: [], //批注节点集合
+      addMarkShow: false, //添加批注弹框显示标识
+      markObj: { content: "" }, //批注内容对象
+      showMarkVisiable: false, //查看批注弹框显示标识
       //节点移动、连线
-      saveDisabled: true,//保存标识
-      nodeMoveList: [],//节点移动数据集
-      addEdgesList: [],//新增连线数据集
-    }
+      img: require("../assets/image/logo.png"),
+      saveDisabled: true, //保存标识
+      nodeMoveList: [], //节点移动数据集
+      addEdgesList: [] //新增连线数据集
+    };
   },
   computed: {},
   mounted () {
-    if (this.dataType === 'mock') {
-      this.initWindow()
-      this.sourceData = this.initData(testData({ height: this.canvas.height, width: this.canvas.height, way: this.dep_num }))
-      this.initG6()
-      this.printGrid()
+    if (this.dataType === "mock") {
+      this.initWindow();
+      this.sourceData = this.initData(
+        testData({
+          height: this.canvas.height,
+          width: this.canvas.height,
+          way: this.dep_num
+        })
+      );
+      this.initG6();
+      this.printGrid();
     } else {
-      this.requestXYData()
+      this.requestXYData();
     }
   },
   methods: {
@@ -239,197 +322,313 @@ export default {
      * 请求部门记时间轴数据
      */
     async requestXYData () {
-      const responseData = await getXYdata()
-      this.depData = responseData.data.Y
-      this.timeBarData = responseData.data.X
-      this.dep_num = this.depData.length
-      console.log(`部门数据(${this.dep_num}):`, this.depData)
-      console.log(`时间轴数据(${this.timeBarData.length}):`, this.timeBarData)
-      this.requestMainData()
+      let responseData = {};
+      console.log("useMockData", useMockData);
+      if (useMockData) {
+        responseData = mock_xyData;
+      } else {
+        responseData = await getXYdata();
+      }
+      this.depData = responseData.data.Y;
+      this.timeBarData = responseData.data.X;
+      this.dep_num = this.depData.length;
+      console.log(`部门数据(${this.dep_num}):`, this.depData);
+      console.log(`时间轴数据(${this.timeBarData.length}):`, this.timeBarData);
+      this.requestMainData();
     },
     /**
      * 请求全局节点数据
      */
     async requestMainData () {
-      const responseData = await getMainData(this.config.type)
-      console.log('请求全局节点数据:', responseData.data)
+      let responseData = {};
+      if (useMockData) {
+        responseData = mock_mainData;
+      } else {
+        responseData = await getMainData(this.config.type);
+      }
+
+      console.log("请求全局节点数据:", responseData);
       //开始初始化
-      this.initWindow()
-      this.sourceData = this.initData(responseData.data)
-      this.initG6()
-      this.printGrid()
+      this.initWindow();
+      this.sourceData = this.initData(responseData.data);
+      this.initG6();
+      this.printGrid();
     },
     /**
      * 初始化G6
      */
     async initG6 () {
-      const snapLine = new G6.SnapLine()
-      G6.Util.processParallelEdges(this.sourceData.edges, 80, 'quadratic', 'polyline', 'loop')
+      // const snapLine = new G6.SnapLine();
+      // const gird = new G6.Grid({
+      //   img: this.img
+      // });
+      G6.Util.processParallelEdges(
+        this.sourceData.edges,
+        80,
+        "quadratic",
+        "polyline",
+        "loop"
+      );
       this.graph = new G6.Graph({
-        container: 'canvasDiv',
+        container: "canvasDiv",
         width: this.canvas.width,
         height: this.canvas.height,
-        groupByTypes: true,
+        groupByTypes: false,
         fitView: false,
         fitViewPadding: 0,
         fitCenter: false,
         linkCenter: false,
         animate: true,
         enabledStack: true,
-        renderer: 'canvas',
+        renderer: "canvas",
         modes: {
-          default: ['brush-select', 'shortcuts-call', 'drag-node',
-            { type: 'create-edge', trigger: 'click', key: 'shift' },
-            { type: 'drag-canvas', direction: 'x', },
-            { type: 'scroll-canvas', direction: 'x', }
-          ],//'drag-canvas', 'drag-node','zoom-canvas', 'drag-node'
+          default: [
+            "brush-select",
+            "shortcuts-call",
+            {
+              type: "drag-node",
+              shouldBegin: e => {
+                const model = e.item.getModel();
+                if (model.method === "block" || model.method === "line") {
+                  return false;
+                }
+                return true;
+              }
+            },
+            { type: "create-edge", trigger: "click", key: "shift" },
+            {
+              type: "drag-canvas",
+              direction: "x",
+              allowDragOnItem: true
+            },
+            { type: "scroll-canvas", direction: "x" }
+          ] //'drag-canvas', 'drag-node','zoom-canvas', 'drag-node'
         },
-        plugins: [this.toolTip, this.rightMenu, snapLine],
+        plugins: [this.toolTip, this.rightMenu],
         //默认节点设置
         defaultNode: {
           size: [150, 50],
-          color: '#000',
+          color: "#000",
           style: {
-            cursor: 'pointer',
-            lineWidth: 2,
+            cursor: "pointer",
+            lineWidth: 2
           }
         },
         //默认连线设置
         defaultEdge: {
           color: this.lineColor,
-          type: this.lineType,//（quadratic-二阶贝塞尔曲线；cubic-三阶贝塞尔曲线）
+          type: this.lineType, //（quadratic-二阶贝塞尔曲线；cubic-三阶贝塞尔曲线）
           controlPoints: [],
           labelCfg: {
             autoRotate: true,
-            refY: -10,
+            refY: -10
           },
           style: {
             lineWidth: this.lineThick,
             color: this.lineColor,
             endArrow: true,
             radius: 3,
-            offset: 10,
-          },
+            offset: this.config.lineBrokenOffset
+          }
         },
         nodeStateStyles: {
           highlight: {
-            opacity: 1.0,
+            opacity: 1.0
           },
           dark: {
-            opacity: 0.2,
-          },
+            opacity: 0.2
+          }
         },
         edgeStateStyles: {
           highlight: {
             lineWidth: 3,
-            stroke: '#ff3300',
-          },
-        },
-      })
-      this.graph.data(this.sourceData)
-      this.graph.render()
-      this.graph.zoomTo(1.0)
+            stroke: "#ff3300"
+          }
+        }
+      });
+      this.graph.data(this.sourceData);
+      this.graph.render();
+      this.graph.zoomTo(1.0);
+
+      this.graph.getNodes().forEach(node => {
+        if (node._cfg.model.method === "block") {
+          node.toBack();
+        }
+      });
+
       //监听：节点单击
-      this.graph.on('node:click', function (e) {
-        const item = e.item
-        console.log(e)
-        console.log('点击node:{' + item._cfg.model.id + ' , ' + item._cfg.model.label + '|' + item._cfg.model.x + ',' + item._cfg.model.y + '}')
-        if (item._cfg.model.method === 'line') { return }
+      this.graph.on("node:click", function (e) {
+        const item = e.item;
+        console.log(e);
+        console.log(
+          "点击node:{" +
+          item._cfg.model.id +
+          " , " +
+          item._cfg.model.label +
+          "|" +
+          item._cfg.model.x +
+          "," +
+          item._cfg.model.y +
+          "}"
+        );
+        if (
+          item._cfg.model.method === "line" ||
+          item._cfg.model.method === "block"
+        ) {
+          _that.clearAllStats();
+          return;
+        }
         //---高亮---
-        _that.graph.setAutoPaint(false)
+        _that.graph.setAutoPaint(false);
         _that.graph.getNodes().forEach(function (node) {
-          _that.graph.clearItemStates(node)
-          _that.graph.setItemState(node, 'dark', true)
-        })
-        _that.graph.setItemState(item, 'dark', false)
-        _that.graph.setItemState(item, 'highlight', true)
+          _that.graph.clearItemStates(node);
+          if (!node._cfg.model.method) {
+            _that.graph.setItemState(node, "dark", true);
+          }
+        });
+        _that.graph.setItemState(item, "dark", false);
+        _that.graph.setItemState(item, "highlight", true);
         //递归节点
-        _that.filtNodeAndEdge(_that.graph, item)
-        _that.graph.paint()
-        _that.graph.setAutoPaint(true)
-      })
+        _that.filtNodeAndEdge(_that.graph, item);
+        _that.graph.paint();
+        _that.graph.setAutoPaint(true);
+      });
       //监听：canvas点击
-      this.graph.on('canvas:click', () => {
-        _that.clearAllStats()
-      })
+      this.graph.on("canvas:click", () => {
+        _that.clearAllStats();
+      });
+      //监听：节点拖拽
+      this.graph.on("node:drag", e => {
+        if (!e.item._cfg.model.method) {
+          _that.graph.updateBehavior(
+            "drag-canvas",
+            { allowDragOnItem: false },
+            "default"
+          );
+        }
+        if (e.item._cfg.model.method === "block") {
+          _that.graph.updateBehavior(
+            "drag-canvas",
+            { allowDragOnItem: true },
+            "default"
+          );
+        }
+      });
       //监听：节点拖拽完成
-      this.graph.on('node:dragend', (e) => {
+      this.graph.on("node:dragend", e => {
         const modelItem = {
           configId: this.configId,
           nodeId: e.item._cfg.model.id,
           nodeX: e.item._cfg.model.x,
-          nodeY: e.item._cfg.model.y,
-        }
-        console.log('node拖拽完成:', modelItem)
-        _that.nodeMoveList = getUpdateNodesPositionList(_that.nodeMoveList, modelItem)
-        console.log('nodeMoveList内容:', _that.nodeMoveList)
-        _that.saveDisabled = ((_that.addEdgesList.length === 0) && (_that.nodeMoveList.length === 0))
-      })
+          nodeY: e.item._cfg.model.y
+        };
+        console.log("node拖拽完成:", modelItem);
+        _that.graph.updateBehavior(
+          "drag-canvas",
+          { allowDragOnItem: true },
+          "default"
+        );
+        _that.nodeMoveList = getUpdateNodesPositionList(
+          _that.nodeMoveList,
+          modelItem
+        );
+        console.log("nodeMoveList内容:", _that.nodeMoveList);
+        _that.saveDisabled =
+          _that.addEdgesList.length === 0 && _that.nodeMoveList.length === 0;
+      });
       //监听：增加连线
-      this.graph.on('aftercreateedge', (e) => {
+      this.graph.on("aftercreateedge", e => {
         const curEdge = {
-          source: e.edge._cfg.source._cfg.model.id,
-          target: e.edge._cfg.target._cfg.model.id
-        }
-        console.log('增加连线:', curEdge)
-        _that.addEdgesList = getNewEdgesList(_that.addEdgesList, curEdge)
+          fromNodeClassId: e.edge._cfg.source._cfg.model.icon,
+          fromNodeId: e.edge._cfg.source._cfg.model.id,
+          toNodeClassId: e.edge._cfg.target._cfg.model.icon,
+          toNodeId: e.edge._cfg.target._cfg.model.id
+        };
+        console.log("增加连线:", curEdge);
+        _that.addEdgesList = getNewEdgesList(_that.addEdgesList, curEdge);
         const edges = _that.graph.save().edges;
-        G6.Util.processParallelEdges(edges, 80, 'quadratic', 'polyline', 'loop');
+        G6.Util.processParallelEdges(
+          edges,
+          80,
+          "quadratic",
+          "polyline",
+          "loop"
+        );
         _that.graph.getEdges().forEach((edge, i) => {
           _that.graph.updateItem(edge, {
             curveOffset: edges[i].curveOffset,
-            curvePosition: edges[i].curvePosition,
-          })
-        })
-        _that.saveDisabled = ((_that.addEdgesList.length === 0) && (_that.nodeMoveList.length === 0))
-      })
+            curvePosition: edges[i].curvePosition
+          });
+        });
+        _that.saveDisabled =
+          _that.addEdgesList.length === 0 && _that.nodeMoveList.length === 0;
+      });
     },
     filtNodeAndEdge (graph, item) {
       graph.getEdges().forEach(function (edge) {
         if (edge.getSource() === item) {
-          graph.setItemState(edge.getTarget(), 'dark', false)
-          graph.setItemState(edge.getTarget(), 'highlight', true)
-          graph.setItemState(edge, 'highlight', true)
-          edge.toFront()
+          graph.setItemState(edge.getTarget(), "dark", false);
+          graph.setItemState(edge.getTarget(), "highlight", true);
+          graph.setItemState(edge, "highlight", true);
+          edge.toFront();
         } else if (edge.getTarget() === item) {
-          graph.setItemState(edge.getSource(), 'dark', false)
-          graph.setItemState(edge.getSource(), 'highlight', true)
-          graph.setItemState(edge, 'highlight', true)
-          edge.toFront()
+          graph.setItemState(edge.getSource(), "dark", false);
+          graph.setItemState(edge.getSource(), "highlight", true);
+          graph.setItemState(edge, "highlight", true);
+          edge.toFront();
         } else {
-          graph.setItemState(edge, 'highlight', false)
+          graph.setItemState(edge, "highlight", false);
         }
-      })
+      });
     },
     /**
      * 初始化右键菜单
      */
     initMenu () {
       this.rightMenu = new G6.Menu({
-        getContent () {
-          return `
-          <div class="left-menu">
-            <button class="btn btn-small submit bounce-left" fnname="addMark">添加批注</button>
-            <button class="btn btn-small submit bounce-left" fnname="method_2">功能2</button>
-            <button class="btn btn-small submit bounce-left" fnname="method_3">功能3</button>
-          </div>`;
+        getContent (e) {
+          const item = e.item.getModel();
+          let con = ``;
+          if (item.type === "custNode_mark") {
+            //批注节点无右键菜单
+            con = ``;
+          } else if (item.notes !== "") {
+            con = `
+            <div class="left-menu">
+              <button class="btn btn-small submit bounce-left" fnname="showMark">查看批注</button>
+              <button class="btn btn-small submit bounce-left" fnname="showNodeRelation">查看关系详情</button>
+            </div>`;
+          } else {
+            con = `
+            <div class="left-menu">
+              <button class="btn btn-small submit bounce-left" fnname="addMark">添加批注</button>
+              <button class="btn btn-small submit bounce-left" fnname="showNodeRelation">查看关系详情</button>
+            </div>`;
+          }
+          return con;
         },
         handleMenuClick: (target, item) => {
           // console.log(target, item)
-          _that.curOptNode = item
-          console.log('curOptNode:', _that.curOptNode)
-          switch (target.getAttribute('fnname')) {
-            case 'addMark': //添加批注
-              _that.addMarkShow = true
-              break
-            case 'method_2':
-              break
-            case 'method_3':
-              break
-            case 'method_4':
-              break
+          _that.curOptNode = item;
+          const cur = this.curOptNode._cfg.model;
+          const page = _that.$router.resolve({
+            path: "/auto",
+            query: { nodeId: cur.id }
+          });
+          console.log("curOptNode:", _that.curOptNode);
+          switch (target.getAttribute("fnname")) {
+            case "addMark":
+              _that.addMarkShow = true;
+              break;
+            case "showMark":
+              _that.showMarkVisiable = true;
+              _that.markObj.content = "";
+              break;
+            case "showNodeRelation":
+              window.open(page.href, "_blank");
+              break;
             default:
-              break
+              break;
           }
         },
         // 需要加上父级容器的 padding-left 16 与自身偏移量 10
@@ -437,15 +636,15 @@ export default {
         // 需要加上父级容器的 padding-top 24 、画布兄弟元素高度、与自身偏移量 10
         offsetY: -30,
         // 在哪些类型的元素上响应
-        itemTypes: ['node'],
-      })
+        itemTypes: ["node"]
+      });
     },
     /**
      * 初始化小地图
      */
     initMiniMap () {
       this.minimap = new G6.Minimap({
-        size: [250, 150],
+        size: [250, 150]
       });
     },
     /**
@@ -453,7 +652,7 @@ export default {
      */
     initToolBar () {
       this.toolBar = new G6.ToolBar({
-        position: { x: _that.win.width - 84, y: 10 },
+        position: { x: _that.win.width - 84, y: 10 }
       });
     },
     /**
@@ -464,65 +663,97 @@ export default {
         offsetX: 0,
         offsetY: 0,
         fixToNode: [1, 0.5],
+        // trigger: "click",
         // 允许出现 tooltip 的 item 类型
-        itemTypes: ['node', 'edge'],
+        itemTypes: ["node", "edge"],
+        shouldBegin: e => {
+          const model = e.item.getModel();
+          if (model.method === "block" || model.method === "line") {
+            return false;
+          }
+          return true;
+        },
         // 自定义 tooltip 内容
-        getContent: (e) => {
-          const outDiv = document.createElement('div')
-          outDiv.style.width = 'fit-content'
-          outDiv.style.height = 'fit-content'
-          const model = e.item.getModel()
-          if (e.item.getType() === 'node') {
-            if (model.method === 'line') {
+        getContent: e => {
+          const outDiv = document.createElement("div");
+          outDiv.style.width = "fit-content";
+          outDiv.style.height = "fit-content";
+          const model = e.item.getModel();
+          if (e.item.getType() === "node") {
+            if (model.method === "line") {
               //标示线节点
-              outDiv.innerHTML = model.label + `(${model.x},${model.y})`
+              outDiv.innerHTML = model.label + `(${model.x},${model.y})`;
             } else {
               //普通节点
-              outDiv.innerHTML = getTooTipHTML(model)
+              outDiv.innerHTML = getTooTipHTML(model);
             }
           } else {
-            const source = e.item.getSource()
-            const target = e.item.getTarget()
-            outDiv.innerHTML = `来源：${source.getModel().label}<br/>去向：${target.getModel().label}`
+            const source = e.item.getSource();
+            const target = e.item.getTarget();
+            outDiv.innerHTML = `来源：${source.getModel().label}<br/>去向：${target.getModel().label
+              }`;
           }
-          return outDiv
-        },
-      })
+          return outDiv;
+        }
+      });
     },
     /**
      * 清空焦点高亮
      */
     clearAllStats () {
-      const that = this
-      that.graph.setAutoPaint(false)
-      that.graph.getNodes().forEach(function (node) {
-        that.graph.clearItemStates(node)
-      })
+      const that = this;
+      that.graph.setAutoPaint(false);
       that.graph.getEdges().forEach(function (edge) {
-        that.graph.clearItemStates(edge)
-      })
-      that.graph.paint()
-      that.graph.setAutoPaint(true)
+        that.graph.clearItemStates(edge);
+        edge.toBack();
+      });
+      that.graph.getNodes().forEach(function (node) {
+        that.graph.clearItemStates(node);
+        if (node._cfg.model.method === "block") {
+          node.toBack();
+        }
+      });
+      that.graph.paint();
+      that.graph.setAutoPaint(true);
     },
     /**
      * 数据形式改变
      */
     async changeDataType (val) {
-      this.dataType = val
-      if (this.dataType === 'mock') {
-        this.sourceData = this.initData(testData({ height: this.canvas.height, width: this.canvas.height, way: this.dep_num }))
+      this.dataType = val;
+      if (this.dataType === "mock") {
+        this.sourceData = this.initData(
+          testData({
+            height: this.canvas.height,
+            width: this.canvas.height,
+            way: this.dep_num
+          })
+        );
       } else {
-        const xyRsp = await getXYdata()
-        this.depData = xyRsp.data.Y
-        this.timeBarData = xyRsp.data.X
-        this.dep_num = this.depData.length
-        console.log(`部门数据(${this.dep_num}):`, this.depData)
-        console.log(`时间轴数据(${this.timeBarData.length}):`, this.timeBarData)
-        const mainRsp = await getMainData('1')
-        console.log('请求全局节点数据:', mainRsp.data)
-        this.sourceData = this.initData(mainRsp.data)
+        let xyRsp = {};
+        if (useMockData) {
+          xyRsp = mock_xyData;
+        } else {
+          xyRsp = await getXYdata();
+        }
+        this.depData = xyRsp.data.Y;
+        this.timeBarData = xyRsp.data.X;
+        this.dep_num = this.depData.length;
+        console.log(`部门数据(${this.dep_num}):`, this.depData);
+        console.log(
+          `时间轴数据(${this.timeBarData.length}):`,
+          this.timeBarData
+        );
+        let mainRsp = {};
+        if (useMockData) {
+          mainRsp = mock_mainData;
+        } else {
+          mainRsp = await getMainData(this.config.type);
+        }
+        console.log("请求全局节点数据:", mainRsp.data);
+        this.sourceData = this.initData(mainRsp.data);
       }
-      this.graph.changeData(this.sourceData)
+      this.graph.changeData(this.sourceData);
     },
 
     /**
@@ -530,97 +761,176 @@ export default {
      */
     initData (data) {
       //加入周节点
+      // const lineData = lineNode({ height: this.canvas.height, width: this.canvas.height, way: this.dep_num })
+      // console.log('lineData:', lineData)
+      // lineData.nodes.forEach(element => {
+      //   data.nodes.push(element)
+      // })
       this.timeBarData.forEach((element, index) => {
         const weekObj = {
-          id: 'week_' + element.weekNo,
-          label: '第' + element.weekNo + '周，' + element.begin + '至' + element.end,
-          method: 'line',
+          id: "week_" + element.weekNo,
+          label:
+            "第" + element.weekNo + "周，" + element.begin + "至" + element.end,
+          method: "line",
           begin: element.begin,
           end: element.end,
-          x: 100 + (_that.gird.gap * (4 * (index))) + (_that.node_wid * (4 * (index))),
+          x: 100 + _that.gird.gap * (4 * index) + _that.node_wid * (4 * index),
           y: 0,
           width: 1,
           height: _that.canvas.height,
-          color: (this.timeBarData.length === (index + 1)) ? 'red' : '#f2f2f2',
-          dotline: (this.timeBarData.length !== (index + 1)),
+          color: this.timeBarData.length === index + 1 ? "red" : "#f2f2f2",
+          dotline: this.timeBarData.length !== index + 1
+        };
+        const blockObj = {
+          id: "block_" + element.weekNo,
+          index: index,
+          label: "",
+          method: "block",
+          begin: element.begin,
+          end: element.end,
+          x: 100 + _that.gird.gap * (4 * index) + _that.node_wid * (4 * index),
+          y: 0,
+          width: 620,
+          height: _that.canvas.height
+        };
+        data.nodes.push(weekObj);
+        if (this.config.exColor) {
+          data.nodes.unshift(blockObj);
         }
-        data.nodes.push(weekObj)
-      })
+      });
       //遍历节点
-      data.nodes.forEach((element) => {
+      this.markNodes = [];
+      data.nodes.forEach(element => {
         //节点样式
-        if ((element.id <= 20) || (element.icon === 'task')) {
-          element.type = 'custNode_task'
-        }
-        if (((element.id > 20) && (element.id <= 99)) || (element.icon === 'MeetingInfo')) {
-          element.type = 'custNode_chat'
-        }
-        if (element.method === 'line') {
-          element.type = 'custNode_line'
-        }
-        if (element.method === 'mark') {
-          element.type = 'custNode_mark'
+        if (element.id <= 20 || element.icon === "task") {
+          element.type = "custNode_task";
+        } else if (
+          (element.id > 20 && element.id <= 99) ||
+          element.icon === "MeetingInfo"
+        ) {
+          element.type = "custNode_meet";
+        } else if (element.icon === "im") {
+          element.type = "custNode_chat";
+        } else if (element.method === "line") {
+          element.type = "custNode_line";
+        } else if (element.method === "block") {
+          element.type = "custNode_block";
+        } else if (element.method === "mark") {
+          element.type = "custNode_mark";
+        } else {
+          element.type = "custNode_chat";
         }
         //节点坐标微调
-        if (element.y > 0) { element.y += 0 }
+        if (element.y > 0) {
+          element.y += 0;
+        }
         //完成标识
-        if (element.endDate !== '') { element.unfinish = true } else { element.unfinish = false }
-      })
+        if (element.endDate !== "") {
+          element.unfinish = true;
+        } else {
+          element.unfinish = false;
+        }
+        //批注节点收集
+        if (element.notes) {
+          const markItem = element.notes[0];
+          let content = "";
+          element.notes.forEach(each => {
+            content += `${each.note}，`;
+          });
+          const mark_node = {
+            id: markItem.innerId,
+            label: "批注",
+            method: "mark",
+            x: markItem.noteX,
+            y: markItem.noteY,
+            content: splitStr(content, 13),
+            type: "custNode_mark"
+          };
+          this.markNodes.push(mark_node);
+        }
+      });
+      if (this.showSingleMark) {
+        this.markNodes.forEach(item => {
+          data.nodes.push(item);
+        });
+      }
       //初始化silder-mark
       _that.timeBarData.forEach((element, i) => {
-        _that.timeBarMarks[i + 1] = element.begin
-      })
-      // console.log('timeBarMarks:', _that.timeBarMarks)
-      console.log('【当前数据】', data)
-      return data
+        _that.timeBarMarks[i + 1] = element.begin;
+      });
+      console.log("【批注数据】", this.markNodes);
+      console.log("【all节点数据】", data);
+      return data;
     },
     /**
      * 初始化自定义节点
      */
     initJsxNode () {
       //自定义节点
-      G6.registerNode('custNode_task', {
-        jsx: custNode.task_node,
-      })
-      G6.registerNode('custNode_chat', {
-        jsx: custNode.chat_node,
-      })
-      G6.registerNode('custNode_mark', {
-        jsx: custNode.mark_node,
-      })
-      G6.registerNode('custNode_line', {
-        jsx: custNode.line_node,
-      })
+      G6.registerNode("custNode_task", {
+        jsx: custNode.task_node
+      });
+      G6.registerNode("custNode_chat", {
+        jsx: custNode.chat_node
+      });
+      G6.registerNode("custNode_meet", {
+        jsx: custNode.meet_node
+      });
+      G6.registerNode("custNode_mark", {
+        jsx: custNode.mark_node
+      });
+      G6.registerNode("custNode_line", {
+        jsx: custNode.line_node
+      });
+      G6.registerNode("custNode_block", {
+        jsx: custNode.block_node
+      });
     },
     /**
      * 部门点击过滤
      */
-    depClick (depId) {
-      this.graph.setAutoPaint(false)
+    depClick (depName) {
+      this.graph.setAutoPaint(false);
       this.graph.getNodes().forEach(function (node) {
-        _that.graph.clearItemStates(node)
-        _that.graph.setItemState(node, 'dark', true)
-        const depid = node._cfg.model.dep
-        if (depid === depId) {
+        _that.graph.clearItemStates(node);
+        _that.graph.setItemState(node, "dark", true);
+        const name = node._cfg.model.deptName;
+        if (name === depName) {
           //部门高亮
-          _that.graph.setItemState(node, 'highlight', true)
+          _that.graph.setItemState(node, "highlight", true);
         }
-      })
-      this.graph.paint()
-      this.graph.setAutoPaint(true)
+      });
+      this.graph.paint();
+      this.graph.setAutoPaint(true);
     },
     /**
      * 切换周
      */
     changeSilder (val) {
-      const descNode = this.graph.findById('week_' + val)
-      const nodeInfo = descNode._cfg.model
-      console.log(nodeInfo)
+      // console.log("切换周weekRange:", this.weekRange);
+      // if (this.weekRange[0] === this.curRange[0]) {
+      //   //移动的右边游标
+      //   console.log("移动的右边游标");
+      //   this.weekRange[0] = this.weekRange[1] - 2;
+      // }
+      // if (this.weekRange[1] === this.curRange[1]) {
+      //   //移动的左边游标
+      //   console.log("移动的左边游标");
+      //   this.weekRange[1] = this.weekRange[0] + 2;
+      // }
+      // this.curRange = this.weekRange;
+      // console.log("curRange:", this.curRange);
+
+      const descNode = this.graph.findById("week_" + val);
+      const nodeInfo = descNode._cfg.model;
+      console.log(nodeInfo);
       if (nodeInfo) {
-        this.$message({ message: `第${val}周，${nodeInfo.begin} 至 ${nodeInfo.end}` })
-        this.moveTo(nodeInfo.x)
+        this.$message({
+          message: `第${val}周，${nodeInfo.begin} 至 ${nodeInfo.end}`
+        });
+        this.moveTo(nodeInfo.x);
       } else {
-        console.log('err:没有相关节点信息！')
+        console.log("err:没有相关节点信息！");
       }
     },
     /**
@@ -628,130 +938,181 @@ export default {
      */
     goWeek (pos) {
       switch (pos) {
-        case 'prv'://上一周
+        case "prv": //上一周
           if (this.curWeek === 1) {
             this.$message({
-              message: '没有更多上周数据',
-              type: 'warning'
-            })
-            return
+              message: "没有更多上周数据",
+              type: "warning"
+            });
+            return;
           } else {
-            this.curWeek = this.curWeek - 1
+            this.curWeek = this.curWeek - 1;
           }
-          break
-        case 'next'://下一周
-          this.curWeek = this.curWeek + 1
-          break
-        case 'start'://回起点
-          this.curWeek = 1
-          break
-        case 'point'://去指定周
-          this.curWeek = this.timeBarData.length
-          break
+          break;
+        case "next": //下一周
+          this.curWeek = this.curWeek + 1;
+          break;
+        case "start": //回起点
+          this.curWeek = 1;
+          break;
+        case "point": //去指定周
+          this.curWeek = this.timeBarData.length;
+          break;
         default:
           break;
       }
-      this.changeSilder(this.curWeek)
+      this.changeSilder(this.curWeek);
     },
     /**
      * 移动到指定点(横坐标)
      */
     moveTo (x) {
       this.graph.moveTo(0 - (x - 197), 0, true, {
-        duration: (_that.animSec * 1000)
-      })
+        duration: _that.animSec * 1000
+      });
     },
     /**
      * 时间轴格式化提示
      */
     formatTooltip (val) {
-      if (val) { return this.timeBarData[val - 1].begin }
-      return ''
+      if (val) {
+        return this.timeBarData[val - 1].begin;
+      }
+      return "";
     },
     /**
      * 添加批注提交
      */
-    commitMark () {
-      const cur = this.curOptNode._cfg.model
-      const model = {
-        id: '902' + (Math.floor(Math.random() * (99999 - 1)) + 1),
-        label: '批注',
-        method: 'mark',
-        x: cur.x + this.node_wid / 2,
-        y: cur.y - this.node_hei / 2,
-        type: 'custNode_mark',
+    async commitMark () {
+      if (this.markObj.content === "") {
+        this.$message({
+          message: `请输入批注内容`,
+          type: "warning"
+        });
+        return;
       }
-      this.graph.addItem('node', model)
-      this.addMarkShow = false
+      const cur = this.curOptNode._cfg.model;
+      const requestData = {
+        configId: this.config.type,
+        creatorId: "creatorId",
+        departmentName: cur.deptName || "",
+        nodeId: cur.id || "",
+        note: this.markObj.content,
+        noteX: cur.x + this.node_wid / 2,
+        noteY: cur.y - this.node_hei / 2
+      };
+      const responseData = await addMark(requestData);
+      if (responseData.data.code === 200) {
+        this.$message({
+          message: `批注添加成功`,
+          type: "success"
+        });
+        const addData = responseData.data.data;
+        if (this.curOptNode._cfg.model.notes === "") {
+          this.curOptNode._cfg.model.notes = [];
+        }
+        this.curOptNode._cfg.model.notes.push(addData);
+        console.log(this.curOptNode);
+        this.addMarkShow = false;
+        this.graph.refreshItem(cur.id);
+        // this.reloadPage();
+      } else {
+        this.$message.error("批注添加失败");
+      }
     },
     /**
      * 提交修改节点信息
      */
     async commitChanges () {
-      console.log('节点移动数据集:', this.nodeMoveList)
-      console.log('新增连线数据集:', this.addEdgesList)
-      const rsp = await modifyNodesPosition(this.nodeMoveList)
-      console.log(rsp)
-      if (rsp.data.code === 200) {
-        this.$message({
-          message: `保存成功`,
-          type: 'success'
-        })
-        setTimeout(() => {
-          this.reloadPage()
-        }, 1000);
-      } else {
-        this.$message({
-          message: `保存失败`,
-          type: 'danger'
-        })
+      console.log("节点移动数据集:", this.nodeMoveList);
+      console.log("新增连线数据集:", this.addEdgesList);
+      if (this.nodeMoveList.length) {
+        const rsp_node = await modifyNodesPosition(this.nodeMoveList);
+        console.log(rsp_node);
+        if (rsp_node.data.code === 200) {
+          this.$message({
+            message: `节点信息保存成功`,
+            type: "success"
+          });
+          // this.reloadPage();
+        } else {
+          this.$message.error("`节点信息保存失败");
+        }
+      }
+      if (this.addEdgesList.length) {
+        const rsp_edge = await addLink(this.addEdgesList);
+        console.log(rsp_edge);
+        if (rsp_edge.data.code === 200) {
+          this.$message({
+            message: `关系保存成功`,
+            type: "success"
+          });
+          // this.reloadPage();
+        } else {
+          this.$message.error("关系保存失败");
+        }
       }
     },
     /**
      * 初始化窗口
      */
     initWindow () {
-      _that = this
+      _that = this;
       // console.log(`wid:${window.innerWidth - 10};hei:${window.innerHeight - 10}`)
       // this.$message({
       //   message: `wid:${window.innerWidth - 10};hei:${window.innerHeight - 10}`,
       //   type: 'success'
       // })
-      this.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10
-      this.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 10
+      this.win.height =
+        (document.documentElement.clientHeight || document.body.clientHeight) -
+        10;
+      this.win.width =
+        (document.documentElement.clientWidth || document.body.clientWidth) -
+        10;
 
       // this.win.height = this.win.height + (this.win.height)
 
-      this.canvas.width = this.win.width
+      this.canvas.width = this.win.width;
       // this.canvas.height = this.win.height - this.timeBarHei
-      this.canvas.height = this.dep_num * this.eachGirdHeight
-      console.log('winWid:' + this.win.width + ',winHei:' + this.win.height)
-      console.log('CanvasWid:' + this.canvas.width + ',CanvasHei:' + this.canvas.height)
-      this.initMenu()
-      this.initToolBar()
-      this.initMiniMap()
-      this.initToolTip()
-      this.initJsxNode()
-      this.gird.width = this.node_wid * this.node_eachLineNum + this.node_pad * (this.node_eachLineNum)
-      this.gird.height = (this.win.height - this.timeBarHei) / this.dep_num
+      this.canvas.height = this.dep_num * this.eachGirdHeight;
+      console.log("winWid:" + this.win.width + ",winHei:" + this.win.height);
+      console.log(
+        "CanvasWid:" + this.canvas.width + ",CanvasHei:" + this.canvas.height
+      );
+      this.initMenu();
+      this.initToolBar();
+      this.initMiniMap();
+      this.initToolTip();
+      this.initJsxNode();
+      this.gird.width =
+        this.node_wid * this.node_eachLineNum +
+        this.node_pad * this.node_eachLineNum;
+      this.gird.height = (this.win.height - this.timeBarHei) / this.dep_num;
     },
     /**
      * 打印网格信息
      */
     printGrid () {
-      const eachGridHei = Math.floor((this.canvas.height / this.dep_num))
-      console.log(`【eahc：${eachGridHei}】`)
+      const eachGridHei = Math.floor(this.canvas.height / this.dep_num);
+      console.log(`【eahc：${eachGridHei}】`);
       for (let i = 0; i < this.dep_num; i++) {
-        const result = eachGridHei * (i + 1)
-        console.log(`泳道${i + 1}:(${this.canvas.height} / ${this.dep_num}) * ${i + 1} = ${result}`)
+        const result = eachGridHei * (i + 1);
+        console.log(
+          `泳道${i + 1}:(${this.canvas.height} / ${this.dep_num}) * ${i +
+          1} = ${result}`
+        );
       }
     },
     /**
      * 刷新页面
      */
-    reloadPage () { location.reload() }
+    reloadPage () {
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    }
   }
-}
+};
 </script>
 <style lang='less'>
 @import "./main.less";
