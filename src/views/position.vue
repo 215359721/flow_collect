@@ -203,15 +203,15 @@ import _ from "lodash";
 import G6 from "@antv/g6";
 import insertCss from "insert-css";
 // eslint-disable-next-line no-unused-vars
-import loading from "../utils/loading";
 import getTooTipHTML from "../data/tooTip";
+import nodeNewUI from '../data/newNode/cust_node_newUI'
 import custNode from "../data/newNode/cust_node";
 import testData from "../mock/testData";
 import innerCss from "../data/insertCss";
 import mock_mainData from "../mock/FinishData/mainData";
 import mock_xyData from "../mock/FinishData/xyData";
 
-import { useMockData } from "../config/index";
+import { useMockData, isNewUI } from "../config/index";
 import {
   getUpdateNodesPositionList,
   getNewEdgesList,
@@ -266,7 +266,7 @@ export default {
       eachGirdWidth: 620, //单个网格宽度
       eachGirdHeight: 180, //单个网格高度
       //配置
-      config: { type: 1, exColor: false, lineBrokenOffset: 32 },
+      config: { type: 1, exColor: false, lineBrokenOffset: 20 },
       //时间轴
       timeBar: null, //时间轴
       timeBarData: [
@@ -426,8 +426,8 @@ export default {
           style: {
             lineWidth: this.lineThick,
             color: this.lineColor,
-            endArrow: true,
-            radius: 3,
+            endArrow: false,
+            radius: 0,
             offset: this.config.lineBrokenOffset
           }
         },
@@ -803,14 +803,14 @@ export default {
       data.nodes.forEach(element => {
         //节点样式
         if (element.id <= 20 || element.icon === "task") {
-          element.type = "custNode_task";
+          element.type = isNewUI ? "custNode_task_new" : "custNode_task";
         } else if (
           (element.id > 20 && element.id <= 99) ||
           element.icon === "MeetingInfo"
         ) {
-          element.type = "custNode_meet";
+          element.type = isNewUI ? "custNode_meet_new" : "custNode_meet";
         } else if (element.icon === "im") {
-          element.type = "custNode_chat";
+          element.type = isNewUI ? "custNode_chat_new" : "custNode_chat";
         } else if (element.method === "line") {
           element.type = "custNode_line";
         } else if (element.method === "block") {
@@ -818,7 +818,7 @@ export default {
         } else if (element.method === "mark") {
           element.type = "custNode_mark";
         } else {
-          element.type = "custNode_chat";
+          element.type = isNewUI ? "custNode_tool_new" : "custNode_chat";
         }
         //节点坐标微调
         if (element.y > 0) {
@@ -884,6 +884,19 @@ export default {
       });
       G6.registerNode("custNode_block", {
         jsx: custNode.block_node
+      });
+      //新UI节点
+      G6.registerNode("custNode_task_new", {
+        jsx: nodeNewUI.task_node
+      });
+      G6.registerNode("custNode_meet_new", {
+        jsx: nodeNewUI.meet_node
+      });
+      G6.registerNode("custNode_chat_new", {
+        jsx: nodeNewUI.chat_node
+      });
+      G6.registerNode("custNode_tool_new", {
+        jsx: nodeNewUI.tool_node
       });
     },
     /**

@@ -1,37 +1,62 @@
 <template>
-    <div class="main-page">
-        <div class="opt-div">
-            <!-- 布局切换 -->
-            <el-button style="width:60px;" size="mini" type="danger" @click="reloadPage">刷新</el-button>
-            <el-dropdown size="mini" split-button type="primary" class="mt5" @command="changeLayout">
-                布局切换
-                <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item command="dagre">dagre层次</el-dropdown-item>
-                    <el-dropdown-item command="force">force力导向</el-dropdown-item>
-                    <el-dropdown-item command="fruchterman">fruchterman</el-dropdown-item>
-                    <el-dropdown-item command="grid">grid网格</el-dropdown-item>
-                    <el-dropdown-item command="circular">circular环形</el-dropdown-item>
-                    <el-dropdown-item command="concentric">concentric同心圆</el-dropdown-item>
-                </el-dropdown-menu>
-            </el-dropdown>
-            <!-- 精简模式切换 -->
-            <el-radio-group v-model="showType" size="mini" class="mt5" @change="showTypeChange">
-                <el-radio-button label="all">详细</el-radio-button>
-                <el-radio-button label="normal">概要</el-radio-button>
-                <el-radio-button label="simple">精简</el-radio-button>
-            </el-radio-group>
-            <!-- 数据源切换 -->
-            <el-radio-group v-model="curDataSource" size="mini" class="mt5" @change="dataSourceChange">
-                <el-radio-button label="outer">测试数据</el-radio-button>
-                <el-radio-button label="real">真实数据</el-radio-button>
-            </el-radio-group>
-        </div>
-        <div class="cur-num" style="width:200px;" v-if="graph">
-            <div class="mr5">zoom：{{curZoom}}</div>
-            <div>layout：{{curLayout}}</div>
-        </div>
-        <div id="canvasDiv"></div>
+  <div class="main-page">
+    <div class="opt-div">
+      <!-- 布局切换 -->
+      <el-button
+        style="width:60px;"
+        size="mini"
+        type="danger"
+        @click="reloadPage"
+      >刷新</el-button>
+      <el-dropdown
+        size="mini"
+        split-button
+        type="primary"
+        class="mt5"
+        @command="changeLayout"
+      >
+        布局切换
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item command="dagre">dagre层次</el-dropdown-item>
+          <el-dropdown-item command="force">force力导向</el-dropdown-item>
+          <el-dropdown-item command="fruchterman">fruchterman</el-dropdown-item>
+          <el-dropdown-item command="grid">grid网格</el-dropdown-item>
+          <el-dropdown-item command="circular">circular环形</el-dropdown-item>
+          <el-dropdown-item command="concentric">concentric同心圆</el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
+      <!-- 精简模式切换 -->
+      <el-radio-group
+        v-model="showType"
+        size="mini"
+        class="mt5"
+        @change="showTypeChange"
+      >
+        <el-radio-button label="all">详细</el-radio-button>
+        <el-radio-button label="normal">概要</el-radio-button>
+        <el-radio-button label="simple">精简</el-radio-button>
+      </el-radio-group>
+      <!-- 数据源切换 -->
+      <el-radio-group
+        v-model="curDataSource"
+        size="mini"
+        class="mt5"
+        @change="dataSourceChange"
+      >
+        <el-radio-button label="mock">测试数据</el-radio-button>
+        <el-radio-button label="real">真实数据</el-radio-button>
+      </el-radio-group>
     </div>
+    <div
+      class="cur-num"
+      style="width:200px;"
+      v-if="graph"
+    >
+      <div class="mr5">zoom：{{curZoom}}</div>
+      <div>layout：{{curLayout}}</div>
+    </div>
+    <div id="canvasDiv"></div>
+  </div>
 </template>
 
 <script>
@@ -62,7 +87,7 @@ let _that = null;
 
 export default {
   components: {},
-  data() {
+  data () {
     return {
       //window对象
       win: {
@@ -72,7 +97,7 @@ export default {
       sourceData: {}, //数据源
       graph: null, //graph全局对象
       showType: "simple", //显示模式
-      curDataSource: "real", //当前数据源
+      curDataSource: "mock", //当前数据源
       rankDir: "LR", //当前布局方式（LR-从左至右；TB-从上到下）
       canvasCenter: [0, 0], //画布中心
       align: undefined, //当前对齐方式
@@ -88,16 +113,16 @@ export default {
     };
   },
   computed: {},
-  mounted() {
+  mounted () {
     this.getMainData();
   },
   methods: {
     /**
      * 获得数据
      */
-    async getMainData() {
+    async getMainData () {
       this.initWindow();
-      if (this.curDataSource === "outer") {
+      if (this.curDataSource === "mock") {
         //mock数据
         this.sourceData = this.initData(outerData);
       } else {
@@ -120,7 +145,7 @@ export default {
     /**
      * 初始化G6
      */
-    async initG6() {
+    async initG6 () {
       loading.show();
       G6.Util.processParallelEdges(
         this.sourceData.edges,
@@ -241,25 +266,25 @@ export default {
       loading.hide();
 
       //监听：节点单击
-      this.graph.on("node:click", function(e) {
+      this.graph.on("node:click", function (e) {
         const item = e.item;
         console.log(e);
         console.log(
           "点击node:{" +
-            item._cfg.model.id +
-            " , " +
-            item._cfg.model.label +
-            "|" +
-            item._cfg.model.x +
-            "," +
-            item._cfg.model.y +
-            "}"
+          item._cfg.model.id +
+          " , " +
+          item._cfg.model.label +
+          "|" +
+          item._cfg.model.x +
+          "," +
+          item._cfg.model.y +
+          "}"
         );
         //聚焦item
         _that.graph.focusItem(item);
         //---高亮---
         _that.graph.setAutoPaint(false);
-        _that.graph.getNodes().forEach(function(node) {
+        _that.graph.getNodes().forEach(function (node) {
           _that.graph.clearItemStates(node);
           _that.graph.setItemState(node, "dark", true);
         });
@@ -282,8 +307,8 @@ export default {
         }
       });
     },
-    filtNodeAndEdge(graph, item) {
-      graph.getEdges().forEach(function(edge) {
+    filtNodeAndEdge (graph, item) {
+      graph.getEdges().forEach(function (edge) {
         if (edge.getSource() === item) {
           graph.setItemState(edge.getTarget(), "dark", false);
           graph.setItemState(edge.getTarget(), "highlight", true);
@@ -302,7 +327,7 @@ export default {
     /**
      * 切换布局
      */
-    changeLayout(type) {
+    changeLayout (type) {
       loading.show();
       this.curLayout = type;
       const option = {
@@ -318,7 +343,7 @@ export default {
         loading.hide();
       }, 1000);
     },
-    initCombo() {
+    initCombo () {
       const collapseIcon = (x, y, r) => {
         return [
           ["M", x - r, y],
@@ -342,7 +367,7 @@ export default {
       G6.registerCombo(
         "cRect",
         {
-          drawShape: function drawShape(cfg, group) {
+          drawShape: function drawShape (cfg, group) {
             const self = this;
             cfg.padding = cfg.padding || [20, 50, 20, 50];
             const style = self.getShapeStyle(cfg);
@@ -376,7 +401,7 @@ export default {
             });
             return rect;
           },
-          afterUpdate: function afterUpdate(cfg, combo) {
+          afterUpdate: function afterUpdate (cfg, combo) {
             const group = combo.get("group");
             const marker = group.find(
               ele => ele.get("name") === "combo-marker-shape"
@@ -395,9 +420,9 @@ export default {
     /**
      * 初始化右键菜单
      */
-    initMenu() {
+    initMenu () {
       this.rightMenu = new G6.Menu({
-        getContent() {
+        getContent () {
           return `
           <div class="left-menu">
             <button class="menu-btn">功能1</button>
@@ -421,7 +446,7 @@ export default {
     /**
      * 初始化小地图
      */
-    initMiniMap() {
+    initMiniMap () {
       this.minimap = new G6.Minimap({
         size: [250, 150]
       });
@@ -429,7 +454,7 @@ export default {
     /**
      * 初始化工具栏
      */
-    initToolBar() {
+    initToolBar () {
       this.toolBar = new G6.ToolBar({
         position: { x: 10, y: 10 }
       });
@@ -437,7 +462,7 @@ export default {
     /**
      * 初始化tooltip
      */
-    initToolTip() {
+    initToolTip () {
       this.toolTip = new G6.Tooltip({
         offsetX: 0,
         offsetY: 0,
@@ -456,9 +481,8 @@ export default {
           } else {
             const source = e.item.getSource();
             const target = e.item.getTarget();
-            outDiv.innerHTML = `来源：${source.getModel().label}<br/>去向：${
-              target.getModel().label
-            }`;
+            outDiv.innerHTML = `来源：${source.getModel().label}<br/>去向：${target.getModel().label
+              }`;
           }
           return outDiv;
         }
@@ -467,7 +491,7 @@ export default {
     /**
      * 初始化窗口
      */
-    initWindow() {
+    initWindow () {
       _that = this;
       this.win.height =
         (document.documentElement.clientHeight || document.body.clientHeight) -
@@ -481,13 +505,13 @@ export default {
     /**
      * 清空焦点高亮
      */
-    clearAllStats() {
+    clearAllStats () {
       const that = this;
       that.graph.setAutoPaint(false);
-      that.graph.getNodes().forEach(function(node) {
+      that.graph.getNodes().forEach(function (node) {
         that.graph.clearItemStates(node);
       });
-      that.graph.getEdges().forEach(function(edge) {
+      that.graph.getEdges().forEach(function (edge) {
         that.graph.clearItemStates(edge);
       });
       that.graph.paint();
@@ -496,7 +520,7 @@ export default {
     /**
      * 初始化节点
      */
-    initData(data) {
+    initData (data) {
       data.nodes.forEach(element => {
         // element.type = 'image'
         element.img = require("../assets/icon/" +
@@ -552,7 +576,7 @@ export default {
     /**
      * 初始化自定义节点
      */
-    initJsxNode() {
+    initJsxNode () {
       //任务自定义节点
       G6.registerNode("task_node_all", {
         jsx: taskNode.task_jsx4All
@@ -594,7 +618,7 @@ export default {
     /**
      * 显示模式切换
      */
-    showTypeChange(val) {
+    showTypeChange (val) {
       this.showType = val;
       if (this.graph) {
         this.graph.clear();
@@ -606,7 +630,7 @@ export default {
     /**
      * 数据源切换
      */
-    dataSourceChange(val) {
+    dataSourceChange (val) {
       this.curDataSource = val;
       if (this.graph) {
         this.graph.clear();
@@ -618,7 +642,7 @@ export default {
     /**
      * 刷新页面
      */
-    reloadPage() {
+    reloadPage () {
       location.reload();
     }
   }
