@@ -1,29 +1,79 @@
 <template>
   <div class="main-page">
     <div class="opt-level">
-      <el-form :model="form" ref="form" inline label-width="120px">
-        <el-form-item id="keyWord" prop="keyWord">
-          <el-select size="mini" v-model="form.keyWord" filterable clearable remote reserve-keyword placeholder="请输入关键词"
-            :remote-method="remoteMethod" :loading="loading">
-            <el-option v-for="item in keyWordOptions" :key="item.value" :label="item.label" :value="item.value">
+      <el-form
+        :model="form"
+        ref="form"
+        inline
+        label-width="120px"
+      >
+        <el-form-item
+          id="keyWord"
+          prop="keyWord"
+        >
+          <el-select
+            size="mini"
+            v-model="form.keyWord"
+            filterable
+            clearable
+            remote
+            reserve-keyword
+            placeholder="请输入关键词"
+            :remote-method="remoteMethod"
+            :loading="loading"
+          >
+            <el-option
+              v-for="item in keyWordOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            >
             </el-option>
           </el-select>
         </el-form-item>
         <el-form-item prop="level">
-          <el-select size="mini" v-model="form.level" placeholder="请选择">
-            <el-option v-for="item in levelOptions" :key="item.value" :label="item.label" :value="item.value">
+          <el-select
+            size="mini"
+            v-model="form.level"
+            placeholder="请选择"
+          >
+            <el-option
+              v-for="item in levelOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            >
             </el-option>
           </el-select>
         </el-form-item>
         <el-form-item prop="layout">
-          <el-select size="mini" v-model="form.layout" placeholder="请选择">
-            <el-option v-for="item in layoutOptions" :key="item.value" :label="item.label" :value="item.value">
+          <el-select
+            size="mini"
+            v-model="form.layout"
+            placeholder="请选择"
+          >
+            <el-option
+              v-for="item in layoutOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            >
             </el-option>
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" size="mini" @click="handleSearch">查询</el-button>
-          <el-dropdown size="mini" split-button type="primary" @command="changeLayout" :style="{marginLeft:'10px'}">
+          <el-button
+            type="primary"
+            size="mini"
+            @click="handleSearch"
+          >查询</el-button>
+          <el-dropdown
+            size="mini"
+            split-button
+            type="primary"
+            @command="changeLayout"
+            :style="{marginLeft:'10px'}"
+          >
             布局切换
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item command="radiation">语义网辐射树</el-dropdown-item>
@@ -33,8 +83,15 @@
         </el-form-item>
       </el-form>
     </div>
-    <div id="graphemeDiv" v-if="isShow" style="padding: 30px"></div>
-    <div v-else class="el-empty">
+    <div
+      id="graphemeDiv"
+      v-if="isShow"
+      style="padding: 30px"
+    ></div>
+    <div
+      v-else
+      class="el-empty"
+    >
       <img src="../assets/image/single.png">
       <label>暂无数据</label>
     </div>
@@ -55,12 +112,12 @@ import { getTreeNode, getKeywordsList } from "../api/api.js";
 import { createUuid } from "../utils/common.js";
 import custNode from "../data/task_node";
 import { baseUrl } from "../config";
-
+import { debounce } from "../utils/common";
 insertCss(innerCss);
 
 export default {
   components: {},
-  data() {
+  data () {
     return {
       //window对象
       win: {
@@ -116,12 +173,12 @@ export default {
     };
   },
   computed: {},
-  created() {
+  created () {
     this.getParams();
   },
   methods: {
     // 获取初始树节点
-    async getTreeNode() {
+    async getTreeNode () {
       if (!this.selectNode) {
         console.log("获取初始树节点-搜索节点");
         const params = {
@@ -145,7 +202,7 @@ export default {
       }
     },
     // 递归拼接children
-    recursionConcat(data) {
+    recursionConcat (data) {
       let processedData;
       if (Object.prototype.toString.call(data).slice(8, -1) === "Object") {
         processedData = [data];
@@ -167,7 +224,7 @@ export default {
       });
     },
     // 脑图树node点击事件
-    async handleMindNodeClick(event) {
+    async handleMindNodeClick (event) {
       loading.show();
       this.isRender = false;
       this.selectNode = event.item;
@@ -198,7 +255,7 @@ export default {
       loading.hide();
     },
     // 辐射树node点击事件
-    async handleRadiaNodeClick(event) {
+    async handleRadiaNodeClick (event) {
       loading.show();
       this.isRender = false;
       this.selectNode = event.item;
@@ -226,7 +283,7 @@ export default {
       loading.hide();
     },
     // 初始化辐射树G6
-    async initG6() {
+    async initG6 () {
       const container = document.getElementById("graphemeDiv");
       this.graph = new G6.TreeGraph({
         container: container,
@@ -237,7 +294,7 @@ export default {
           default: [
             {
               type: "collapse-expand",
-              onChange: function onChange(item, collapsed) {
+              onChange: function onChange (item, collapsed) {
                 const data = item.get("model");
                 data.collapsed = collapsed;
                 return true;
@@ -314,7 +371,7 @@ export default {
       });
     },
     // 初始化脑图树G6
-    initMindG6() {
+    initMindG6 () {
       const container = document.getElementById("graphemeDiv");
       this.graph = new G6.TreeGraph({
         container: container,
@@ -324,7 +381,7 @@ export default {
           default: [
             {
               type: "collapse-expand",
-              onChange: function onChange(item, collapsed) {
+              onChange: function onChange (item, collapsed) {
                 const data = item.get("model");
                 data.collapsed = collapsed;
                 return true;
@@ -440,7 +497,7 @@ export default {
       });
     },
     // 切换布局
-    changeLayout(val) {
+    changeLayout (val) {
       if (Object.keys(this.sourceData).length) {
         loading.show();
         this.graph.clear();
@@ -470,13 +527,13 @@ export default {
       }
     },
     // 初始化小地图
-    initMiniMap() {
+    initMiniMap () {
       this.minimap = new G6.Minimap({
         size: [250, 150]
       });
     },
     // 初始化工具栏
-    initToolBar() {
+    initToolBar () {
       this.toolBar = new G6.ToolBar({
         position: { x: 10, y: 10 }
       });
@@ -495,18 +552,23 @@ export default {
       });
     },
     // 初始化窗口
-    initWindow() {
-      this.win.height =
-        (document.documentElement.clientHeight || document.body.clientHeight) -
-        70;
-      this.win.width =
-        (document.documentElement.clientWidth || document.body.clientWidth) -
-        70;
+    initWindow () {
+      console.log('初始化窗口')
+      this.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 70;
+      this.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 70;
       this.canvasCenter = [this.win.width / 2, this.win.height / 2];
       this.initJsxNode();
+      const _that = this
+      //监听窗口改变
+      window.addEventListener('resize', debounce(() => {
+        _that.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 70;
+        _that.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 70;
+        console.log('窗口大小改变:' + _that.win.width + '*' + _that.win.height)
+        _that.graph.changeSize(_that.win.width, _that.win.height)
+      }, 500))
     },
     // 清空焦点高亮
-    clearAllStats() {
+    clearAllStats () {
       const that = this;
       this.selectNode = undefined;
       that.graph.setAutoPaint(false);
@@ -520,7 +582,7 @@ export default {
       that.graph.setAutoPaint(true);
     },
     // 初始化tooltip
-    initToolTip() {
+    initToolTip () {
       this.toolTip = new G6.Tooltip({
         offsetX: 10,
         offsetY: 10,
@@ -553,7 +615,7 @@ export default {
       });
     },
     // 初始化右键菜单
-    initMenu() {
+    initMenu () {
       this.rightMenu = new G6.Menu({
         // 是否允许tooltip出现
         shouldBegin: e => {
@@ -562,7 +624,7 @@ export default {
             return false;
           return true;
         },
-        getContent() {
+        getContent () {
           return `
               <ul id="rightMenu" class="tree-right-menu">
                 <li class="tree-menu-btn">置位关键词</li>
@@ -588,7 +650,7 @@ export default {
       });
     },
     // 脑图树布局切换辐射树改变样式
-    changeStyle(data) {
+    changeStyle (data) {
       let processedData;
       if (Object.prototype.toString.call(data).slice(8, -1) === "Object") {
         processedData = [data];
@@ -607,7 +669,7 @@ export default {
       return data;
     },
     // 初始化数据
-    initData(data) {
+    initData (data) {
       let processedData;
       if (Object.prototype.toString.call(data).slice(8, -1) === "Object") {
         processedData = [data];
@@ -685,14 +747,14 @@ export default {
       return data;
     },
     // 初始化自定义节点
-    initJsxNode() {
+    initJsxNode () {
       //自定义节点
       G6.registerNode("custTree_node", {
         jsx: custNode.tree_node
       });
     },
     // 搜索关键词
-    async remoteMethod(query) {
+    async remoteMethod (query) {
       if (query !== "") {
         await this.getKeywordsList(query);
         this.loading = true;
@@ -707,7 +769,7 @@ export default {
       }
     },
     // 模糊查询列表
-    async getKeywordsList(val) {
+    async getKeywordsList (val) {
       const params = {
         nameLike: val
       };
@@ -719,7 +781,7 @@ export default {
       }
     },
     // 查询按钮
-    async handleSearch() {
+    async handleSearch () {
       if (!this.form.keyWord) {
         this.$message({
           message: "请设置关键词！",
@@ -750,7 +812,7 @@ export default {
       loading.hide();
       this.graph.setItemState(this.centerNode.id, "highlight", true);
     },
-    async getParams() {
+    async getParams () {
       const firstLoading = window.location.href.indexOf("?") === -1;
       if (!firstLoading) {
         let urlParams = window.location.search.substring(1);

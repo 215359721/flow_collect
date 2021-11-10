@@ -215,7 +215,8 @@ import { useMockData, isNewUI } from "../config/index";
 import {
   getUpdateNodesPositionList,
   getNewEdgesList,
-  splitStr
+  splitStr,
+  debounce,
 } from "../utils/common";
 import {
   getXYdata,
@@ -784,7 +785,7 @@ export default {
         const blockObj = {
           id: "block_" + element.weekNo,
           index: index,
-          label: "",
+          label: `第${element.weekNo}周，${element.begin}至${element.end}`,
           method: "block",
           begin: element.begin,
           end: element.end,
@@ -812,9 +813,9 @@ export default {
         } else if (element.icon === "im") {
           element.type = isNewUI ? "custNode_chat_new" : "custNode_chat";
         } else if (element.method === "line") {
-          element.type = "custNode_line";
+          element.type = isNewUI ? "custNode_line_new" : "custNode_line";
         } else if (element.method === "block") {
-          element.type = "custNode_block";
+          element.type = isNewUI ? "custNode_block_new" : "custNode_block";
         } else if (element.method === "mark") {
           element.type = "custNode_mark";
         } else {
@@ -898,6 +899,12 @@ export default {
       G6.registerNode("custNode_tool_new", {
         jsx: nodeNewUI.tool_node
       });
+      G6.registerNode("custNode_line_new", {
+        jsx: nodeNewUI.line_node
+      });
+      G6.registerNode("custNode_block_new", {
+        jsx: nodeNewUI.block_node
+      });
     },
     /**
      * 部门点击过滤
@@ -939,7 +946,8 @@ export default {
       console.log(nodeInfo);
       if (nodeInfo) {
         this.$message({
-          message: `第${val}周，${nodeInfo.begin} 至 ${nodeInfo.end}`
+          message: `第${val}周，${nodeInfo.begin} 至 ${nodeInfo.end}`,
+          duration: 3000
         });
         this.moveTo(nodeInfo.x);
       } else {
@@ -1101,6 +1109,15 @@ export default {
         this.node_wid * this.node_eachLineNum +
         this.node_pad * this.node_eachLineNum;
       this.gird.height = (this.win.height - this.timeBarHei) / this.dep_num;
+      //监听窗口改变
+      window.addEventListener('resize', debounce(() => {
+        _that.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10
+        _that.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 10
+        const newWidth = _that.win.width
+        const newHeight = _that.dep_num * _that.eachGirdHeight
+        console.log('窗口大小改变:' + newWidth + '*' + newHeight)
+        _that.graph.changeSize(newWidth, newHeight)
+      }, 500))
     },
     /**
      * 打印网格信息

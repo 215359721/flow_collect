@@ -82,6 +82,7 @@ import chatNode from "../data/chat_node";
 import dataNode from "../data/data_node";
 import innerCss from "../data/insertCss";
 import { getDataById } from "../api/api";
+import { debounce } from "../utils/common";
 insertCss(innerCss);
 let _that = null;
 
@@ -493,14 +494,17 @@ export default {
      */
     initWindow () {
       _that = this;
-      this.win.height =
-        (document.documentElement.clientHeight || document.body.clientHeight) -
-        10;
-      this.win.width =
-        (document.documentElement.clientWidth || document.body.clientWidth) -
-        10;
+      this.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10;
+      this.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 10;
       this.canvasCenter = [this.win.width / 2, this.win.height / 2];
       console.log("winWid:" + this.win.width + ",winHei:" + this.win.height);
+      //监听窗口改变
+      window.addEventListener('resize', debounce(() => {
+        _that.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10;
+        _that.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 10;
+        console.log('窗口大小改变:' + _that.win.width + '*' + _that.win.height)
+        _that.graph.changeSize(_that.win.width, _that.win.height)
+      }, 500))
     },
     /**
      * 清空焦点高亮

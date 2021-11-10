@@ -249,8 +249,9 @@ const line_node = (node) => {
   return jsx
 }
 //块节点
-//fill: ${(node.index % 2 === 0) ? '#FFFFEE' : '#EEFFFF'},
 const block_node = (node) => {
+  const tipWid = 280
+  const tipHei = 30
   const jsx = `
     <group>
       <rect style={{
@@ -258,6 +259,21 @@ const block_node = (node) => {
         height:${node.height},
         fill: ${(node.index % 2 === 0) ? '#FFFFEE' : '#EEFFFF'},
       }}draggable="true">
+        <rect style={{
+          width: ${tipWid},
+          height:${tipHei},
+          radius:6,
+          fill:'#edf2fc',
+          marginTop:${node.height - tipHei - 20},
+          marginLeft:${(node.width - tipWid) / 2}
+        }}draggable="true">
+          <text style={{
+            fill:'#909399',
+            textAlign: 'center',
+            fontSize:13,
+            marginTop:6,
+            marginLeft:${(node.width - tipWid) / 2 + 145}}}>${node.label}</text>
+        </rect>
       </rect>
     </group>
     `

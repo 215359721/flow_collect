@@ -22,7 +22,20 @@ const splitStr = function (sourceStr, len) {
   return sourceStr.substr(0, len) + '···'
 }
 
-export function createUuid(length) {
+//防抖函数
+const debounce = function (fn, delay) {
+  let timer;
+  return function () {
+    if (timer) {
+      clearTimeout(timer);
+    }
+    timer = setTimeout(() => {
+      fn();
+    }, delay);
+  }
+}
+
+export function createUuid (length) {
   let str = Math.random().toString(36).substr(2)
   if (str.length >= length) {
     return str.substr(0, length)
@@ -35,4 +48,5 @@ export {
   getUpdateNodesPositionList,
   getNewEdgesList,
   splitStr,
+  debounce,
 }

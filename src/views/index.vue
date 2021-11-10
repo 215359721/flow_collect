@@ -25,9 +25,8 @@
     >组件</el-button>
     <el-button
       type="primary"
-      v-show="false"
       @click="jumpPage('/grapheme')"
-    >语义图</el-button>
+    >语义图示例</el-button>
   </div>
 </template>
 
