@@ -1,13 +1,17 @@
 /* eslint-disable no-unused-vars */
 // eslint-disable-next-line no-unused-vars
-const TASK_COLOR_TOP = '#1AE61A'//任务主色
-const TASK_COLOR_BOTTOM = '#15B815'
-const MEET_COLOR_TOP = '#10DEDE'//会议主色
-const MEET_COLOR_BOTTOM = '#0EBEBE'
-const CHAT_COLOR_TOP = '#3A60F9'//即时通讯主色
-const CHAT_COLOR_BOTTOM = '#0729B5'
-const TOOL_COLOR_TOP = '#FFA011'//工具主色
-const TOOL_COLOR_BOTTOM = '#DD8500'
+const TASK_COLOR_TOP = '#75da3a'//任务主色
+const TASK_COLOR_MIDDEL = '#4ac149'
+const TASK_COLOR_BOTTOM = '#28af21'
+const MEET_COLOR_TOP = '#06e4e7'//会议主色
+const MEET_COLOR_MIDDEL = '#00b6c9'
+const MEET_COLOR_BOTTOM = '#32a5c6'
+const CHAT_COLOR_TOP = '#3291fb'//即时通讯主色
+const CHAT_COLOR_MIDDEL = '#3075ed'
+const CHAT_COLOR_BOTTOM = '#3063dc'
+const TOOL_COLOR_TOP = '#ffb100'//工具主色
+const TOOL_COLOR_MIDDEL = '#ff9d00'
+const TOOL_COLOR_BOTTOM = '#e99400'
 const POINT_COLOR = '#ffff00'//便签标签色
 const WIDTH = 150 //节点总宽度
 const HEIGHT = 50 //节点总高度
@@ -15,7 +19,9 @@ const RADIUS = 10 //圆角率
 const PADDING_HORIZONTAL = 15 //水平间距
 const PADDING_VERTICAL = 22 //垂直间距
 const HEIGHT_HEAD = 25 //节点标题高度
-
+const getName = (node) => {
+  return `${node.creatorName || '蔡永强'}`
+}
 //任务节点
 const task_node = (node) => {
   const jsx = `
@@ -23,7 +29,7 @@ const task_node = (node) => {
        <rect style={{
         width: ${WIDTH},
         height:${HEIGHT},
-        fill: 'l(90) 0:${TASK_COLOR_TOP} 1:${TASK_COLOR_BOTTOM}',
+        fill: 'l(90) 0:${TASK_COLOR_TOP} 0.5:${TASK_COLOR_MIDDEL} 1:${TASK_COLOR_BOTTOM}',
         radius: ${RADIUS},
         ${node.unfinish ? "fillOpacity:0.4," : ""}
         ${node.unfinish ? "lineDash:[2,2]," : ""}
@@ -50,7 +56,7 @@ const task_node = (node) => {
             fontSize:14,
             fill: '#fff',
             }}draggable="true">
-            蔡永强:${node.x}|${node.y}
+            ${getName(node)}
           </text>
           ${mark_point(node)}
         </rect>
@@ -79,7 +85,7 @@ const chat_node = (node) => {
        <rect style={{
         width: ${WIDTH},
         height:${HEIGHT},
-        fill: 'l(90) 0:${CHAT_COLOR_TOP} 1:${CHAT_COLOR_BOTTOM}',
+        fill: 'l(90) 0:${CHAT_COLOR_TOP} 0.5:${CHAT_COLOR_MIDDEL} 1:${CHAT_COLOR_BOTTOM}',
         radius: ${RADIUS},
         ${node.unfinish ? "fillOpacity:0.4," : ""}
         ${node.unfinish ? "lineDash:[2,2]," : ""}
@@ -106,7 +112,7 @@ const chat_node = (node) => {
             fontSize:14,
             fill: '#fff',
             }}draggable="true">
-            蔡永强:${node.x}|${node.y}
+            ${getName(node)}
           </text>
           ${mark_point(node)}
         </rect>
@@ -135,7 +141,7 @@ const meet_node = (node) => {
        <rect style={{
         width: ${WIDTH},
         height:${HEIGHT},
-        fill: 'l(90) 0:${MEET_COLOR_TOP} 1:${MEET_COLOR_BOTTOM}',
+        fill: 'l(90) 0:${MEET_COLOR_TOP} 0.5:${MEET_COLOR_MIDDEL} 1:${MEET_COLOR_BOTTOM}',
         radius: ${RADIUS},
         ${node.unfinish ? "fillOpacity:0.4," : ""}
         ${node.unfinish ? "lineDash:[2,2]," : ""}
@@ -162,7 +168,7 @@ const meet_node = (node) => {
             fontSize:14,
             fill: '#fff',
             }}draggable="true">
-            蔡永强:${node.x}|${node.y}
+            ${getName(node)}
           </text>
           ${mark_point(node)}
         </rect>
@@ -191,7 +197,7 @@ const tool_node = (node) => {
        <rect style={{
         width: ${WIDTH},
         height:${HEIGHT},
-        fill: 'l(90) 0:${TOOL_COLOR_TOP} 1:${TOOL_COLOR_BOTTOM}',
+        fill: 'l(90) 0:${TOOL_COLOR_TOP} 0.5:${TOOL_COLOR_MIDDEL} 1:${TOOL_COLOR_BOTTOM}',
         radius: ${RADIUS},
         ${node.unfinish ? "fillOpacity:0.4," : ""}
         ${node.unfinish ? "lineDash:[2,2]," : ""}
@@ -218,7 +224,7 @@ const tool_node = (node) => {
             fontSize:14,
             fill: '#fff',
             }}draggable="true">
-            蔡永强:${node.x}|${node.y}
+            ${getName(node)}
           </text>
           ${mark_point(node)}
         </rect>
@@ -287,7 +293,7 @@ const block_node = (node) => {
       <rect style={{
         width: ${node.width},
         height:${node.height},
-        fill: ${(node.index % 2 === 0) ? '#FFFFEE' : '#EEFFFF'},
+        fill: ${(node.index % 2 === 0) ? '#fff' : '#f7f7f7'},
       }}draggable="true">
         <rect style={{
           width: ${tipWid},

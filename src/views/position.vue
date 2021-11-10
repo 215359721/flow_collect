@@ -94,7 +94,7 @@
       v-for="(item,index) in depData"
       :key="index"
       class="dep-name"
-      :style="{height:Math.floor(canvas.height/dep_num)+'px',top:(Math.floor(canvas.height/dep_num) * index)+'px'}"
+      :style="{height:Math.floor(canvas.height/dep_num-3)+'px',top:(Math.floor(canvas.height/dep_num) * index)+'px'}"
       @click="depClick(item.name)"
     >{{item.name}}</div>
     <!-- 时间轴 -->
@@ -104,7 +104,7 @@
       :style="{height:timeBarHei+'px',top:(win.height-timeBarHei)+'px'}"
     >
       <el-slider
-        v-model="weekRange"
+        v-model="curWeek"
         :min="1"
         :max="timeBarData.length"
         :step="1"
@@ -267,7 +267,7 @@ export default {
       eachGirdWidth: 620, //单个网格宽度
       eachGirdHeight: 180, //单个网格高度
       //配置
-      config: { type: 1, exColor: false, lineBrokenOffset: 20 },
+      config: { type: 1, exColor: true, lineBrokenOffset: 20 },
       //时间轴
       timeBar: null, //时间轴
       timeBarData: [
@@ -286,8 +286,6 @@ export default {
       timeBarMarks: { 1: "" }, //时间轴标注
       animSec: 1, //移动动画时长
       curWeek: 1, //当前显示周
-      weekRange: [1, 3],
-      curRange: [1, 3],
       //批注
       showSingleMark: false, //是否单独显示批注节点
       markNodes: [], //批注节点集合
@@ -927,20 +925,6 @@ export default {
      * 切换周
      */
     changeSilder (val) {
-      // console.log("切换周weekRange:", this.weekRange);
-      // if (this.weekRange[0] === this.curRange[0]) {
-      //   //移动的右边游标
-      //   console.log("移动的右边游标");
-      //   this.weekRange[0] = this.weekRange[1] - 2;
-      // }
-      // if (this.weekRange[1] === this.curRange[1]) {
-      //   //移动的左边游标
-      //   console.log("移动的左边游标");
-      //   this.weekRange[1] = this.weekRange[0] + 2;
-      // }
-      // this.curRange = this.weekRange;
-      // console.log("curRange:", this.curRange);
-
       const descNode = this.graph.findById("week_" + val);
       const nodeInfo = descNode._cfg.model;
       console.log(nodeInfo);
