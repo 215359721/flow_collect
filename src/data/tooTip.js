@@ -1,4 +1,4 @@
-function getTooTipHTML(node) {
+function getTooTipHTML (node) {
   return `
   <div class="content" style="padding: 0px;background-color: rgb(255, 255, 255);z-index:7;">
           <div class="main-part" style="height: 50px;margin-bottom: 5px;display: flex;justify-content: space-between;align-items: center;">
@@ -31,7 +31,7 @@ function getTooTipHTML(node) {
             </div>
           </div>
           <div class="info-part" style="height: 140px;margin-top: 5px;padding-left: 10px;">
-            <div class="title" style="font-weight: bold;line-height: 20px;">任务详情</div>
+            <div class="title" style="font-weight: bold;line-height: 20px;">任务详情（${node.x},${node.y}）</div>
             <div class="each-item" style="color: #9a9a9a;font-size: 12px;line-height: 20px;">
               ${node.id}
             </div>

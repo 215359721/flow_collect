@@ -1,0 +1,165 @@
+@WIDTH:280px;
+@HEIGHT:335px;
+@HEAD_HEIGHT:25px;
+@CONTENT_HEIGHT:310px;
+@RADIUS:15px;
+.tip-div{
+  width: @WIDTH;
+  height: @HEIGHT;
+  display: flex;
+  flex-direction: column;
+  box-shadow: rgb(174, 174, 174) 0px 0px 10px;
+  border-radius: @RADIUS;
+  //表头
+  .tip-head{
+    width: 100%;
+    line-height: @HEAD_HEIGHT;
+    display: flex;
+    justify-content: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    border-radius: @RADIUS @RADIUS 0px 0px;
+  }
+  //内容体
+  .tip-content{
+    width: 94%;
+    height: @CONTENT_HEIGHT;
+    padding: 3% 3% 0 3%;
+    border-radius: 0px 0px @RADIUS @RADIUS;
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+    color: #777;
+    //普通描述行
+    .common-line{
+      width: 100%;
+      line-height: 25px;
+      display: flex;
+      .title{
+        width: 30%;
+        text-align-last: justify;
+        // background-color: rgb(230, 255, 204);
+      }
+      .desc{
+        width: 70%;
+        // background-color:rgb(255, 233, 193);
+      }
+    }
+    //任务状态
+    .status-line{
+      width: 100%;
+      height: 35px;
+      display: flex;
+      justify-content: space-between;
+      .each-box{
+        width: 33%;
+        display: flex;
+        .head-img{
+          width: 40%;
+          // background-color: orange;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          .status-image{
+            width: 28px;
+            height: 28px;
+          }
+        }
+        .status-text{
+          width: 60%;
+          // background-color: #fff;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          padding-left: 5px;
+        }
+      }
+    }
+    //附件描述
+    .file-line{
+      width: 100%;
+      height: 60px;
+      display: flex;
+      flex-direction: column;
+      .title{
+        line-height: 20px;
+        // background-color: rgb(245, 255, 132);
+      }
+      .file-box{
+        width: 100%;
+        height: 40px;
+        overflow-y: auto;
+        .single-file{
+          line-height: 20px;
+          width: 100%;
+          // background-color: palegreen;
+        }
+      }
+    }
+    //会话记录
+    .record-line{
+      width: 100%;
+      .title{
+        line-height: 20px;
+        // background-color: rgb(214, 255, 197);
+      }
+      .record-box{
+        width: 100%;
+        height: 120px;
+        overflow-y: auto;
+        // background-color: #ccc;
+        .single-record{
+          line-height: 20px;
+          // background-color: rgb(197, 248, 255);
+        }
+      }
+    }
+    //文字描述
+    .desc-line{
+      width: 100%;
+      min-height: 40px;
+      .title{
+        line-height: 20px;
+        // background-color: rgb(254, 197, 255);
+      }
+      .content{
+        line-height: 20px;
+        min-height: 20px;
+        overflow-y: auto;
+        // background-color: rgb(200, 228, 255);
+      }
+    }
+  }
+}
+
+
+.bold{
+  font-weight: bold;
+  color: #333;
+}
+.normal{
+  color: #333;
+}
+.link{
+  color: #2a5fff;
+}
+.max20{
+  max-height: 20px;
+}
+.size10{
+  font-size: 10px;
+}
+.sep-line{
+  width: 100%;
+  margin: 5px 0;
+}
+.ml5{
+  margin-left: 5px;
+}
+.tool-max{
+  height: 180px;
+}
+.lineheight20{
+  line-height: 20px !important;
+}

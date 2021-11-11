@@ -45,6 +45,11 @@ const routes = [
     name: 'grapheme',
     component: () => import('../views/grapheme.vue')
   },
+  {
+    path: '/tooltip',
+    name: 'tooltip',
+    component: () => import('../views/toolTip/tooltip.vue')
+  },
 ]
 
 const router = new VueRouter({

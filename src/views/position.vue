@@ -61,16 +61,16 @@
       </el-radio-group>
     </div>
     <!-- 分辨率信息 -->
-    <div class="cur-num cur-resolving">
+    <div class="cur-num cur-resolving un-sel">
       <div class="mr5">screen：{{win.width}} * {{win.height}}</div>
     </div>
     <!-- 网格信息 -->
-    <div class="cur-num cur-grid">
+    <div class="cur-num cur-grid un-sel">
       <div class="mr5">gird：{{gird.width}} * {{Math.floor(gird.height)}}</div>
     </div>
     <!-- 指示器 -->
     <div
-      class="cur-num"
+      class="cur-num un-sel"
       v-if="graph"
     >
       <div class="mr5">zoom：{{graph.getZoom().toFixed(2)}}</div>
@@ -93,13 +93,13 @@
     <div
       v-for="(item,index) in depData"
       :key="index"
-      class="dep-name"
-      :style="{height:Math.floor(canvas.height/dep_num-3)+'px',top:(Math.floor(canvas.height/dep_num) * index)+'px'}"
+      class="dep-name un-sel"
+      :style="{height:Math.floor(canvas.height/dep_num-2)+'px',top:(Math.floor(canvas.height/dep_num) * index)+'px'}"
       @click="depClick(item.name)"
     >{{item.name}}</div>
     <!-- 时间轴 -->
     <div
-      class="timeBar-area"
+      class="timeBar-area un-sel"
       v-if="timeBarData.length"
       :style="{height:timeBarHei+'px',top:(win.height-timeBarHei)+'px'}"
     >
@@ -204,6 +204,7 @@ import G6 from "@antv/g6";
 import insertCss from "insert-css";
 // eslint-disable-next-line no-unused-vars
 import getTooTipHTML from "../data/tooTip";
+import getTipHTML from "../data/toolTipNew"
 import nodeNewUI from '../data/newNode/cust_node_newUI'
 import custNode from "../data/newNode/cust_node";
 import testData from "../mock/testData";
@@ -211,7 +212,7 @@ import innerCss from "../data/insertCss";
 import mock_mainData from "../mock/FinishData/mainData";
 import mock_xyData from "../mock/FinishData/xyData";
 
-import { useMockData, isNewUI } from "../config/index";
+import { useMockData, useExColor, isNewUI } from "../config/index";
 import {
   getUpdateNodesPositionList,
   getNewEdgesList,
@@ -265,9 +266,9 @@ export default {
       //网格
       gird: { width: 0, height: 0, gap: 5 }, //网格基本信息
       eachGirdWidth: 620, //单个网格宽度
-      eachGirdHeight: 180, //单个网格高度
+      eachGirdHeight: 180, //单个网格高度2
       //配置
-      config: { type: 1, exColor: true, lineBrokenOffset: 20 },
+      config: { type: 1, lineBrokenOffset: 20 },
       //时间轴
       timeBar: null, //时间轴
       timeBarData: [
@@ -443,8 +444,15 @@ export default {
             lineWidth: 3,
             stroke: "#ff3300"
           }
+        },
+      });
+      //-------测试数据start-------
+      this.sourceData.nodes.forEach(node => {
+        if (node.method === "line") {
+          node.color = '#e6e6e6'
         }
       });
+      //--------测试数据end--------
       this.graph.data(this.sourceData);
       this.graph.render();
       this.graph.zoomTo(1.0);
@@ -667,7 +675,7 @@ export default {
         itemTypes: ["node", "edge"],
         shouldBegin: e => {
           const model = e.item.getModel();
-          if (model.method === "block" || model.method === "line") {
+          if (model.method === "block" || model.method === "line1") {
             return false;
           }
           return true;
@@ -684,7 +692,7 @@ export default {
               outDiv.innerHTML = model.label + `(${model.x},${model.y})`;
             } else {
               //普通节点
-              outDiv.innerHTML = getTooTipHTML(model);
+              outDiv.innerHTML = isNewUI ? getTipHTML(model) : getTooTipHTML(model)
             }
           } else {
             const source = e.item.getSource();
@@ -777,7 +785,7 @@ export default {
           y: 0,
           width: 1,
           height: _that.canvas.height,
-          color: this.timeBarData.length === index + 1 ? "red" : "#f2f2f2",
+          color: this.timeBarData.length === index + 1 ? "red" : "#e6e6e6",
           dotline: this.timeBarData.length !== index + 1
         };
         const blockObj = {
@@ -793,7 +801,7 @@ export default {
           height: _that.canvas.height
         };
         data.nodes.push(weekObj);
-        if (this.config.exColor) {
+        if (useExColor) {
           data.nodes.unshift(blockObj);
         }
       });
@@ -926,16 +934,15 @@ export default {
      */
     changeSilder (val) {
       const descNode = this.graph.findById("week_" + val);
-      const nodeInfo = descNode._cfg.model;
-      console.log(nodeInfo);
-      if (nodeInfo) {
+      console.log('descNode:', descNode)
+      if (descNode) {
+        const nodeInfo = descNode._cfg.model;
         this.$message({
           message: `第${val}周，${nodeInfo.begin} 至 ${nodeInfo.end}`,
-          duration: 3000
         });
         this.moveTo(nodeInfo.x);
       } else {
-        console.log("err:没有相关节点信息！");
+        this.$message.warning("无更多数据");
       }
     },
     /**
@@ -945,10 +952,7 @@ export default {
       switch (pos) {
         case "prv": //上一周
           if (this.curWeek === 1) {
-            this.$message({
-              message: "没有更多上周数据",
-              type: "warning"
-            });
+            this.$message.warning("没有更多上周数据");
             return;
           } else {
             this.curWeek = this.curWeek - 1;
@@ -972,7 +976,9 @@ export default {
      * 移动到指定点(横坐标)
      */
     moveTo (x) {
-      this.graph.moveTo(0 - (x - 197), 0, true, {
+      const offsetX = 28
+      const offsetY = 10
+      this.graph.moveTo(0 - (x - 197 + offsetX), 0 - offsetY, true, {
         duration: _that.animSec * 1000
       });
     },
@@ -990,10 +996,7 @@ export default {
      */
     async commitMark () {
       if (this.markObj.content === "") {
-        this.$message({
-          message: `请输入批注内容`,
-          type: "warning"
-        });
+        this.$message.warning("请输入批注内容");
         return;
       }
       const cur = this.curOptNode._cfg.model;
@@ -1008,10 +1011,7 @@ export default {
       };
       const responseData = await addMark(requestData);
       if (responseData.data.code === 200) {
-        this.$message({
-          message: `批注添加成功`,
-          type: "success"
-        });
+        this.$message.success("批注添加成功");
         const addData = responseData.data.data;
         if (this.curOptNode._cfg.model.notes === "") {
           this.curOptNode._cfg.model.notes = [];
@@ -1035,10 +1035,7 @@ export default {
         const rsp_node = await modifyNodesPosition(this.nodeMoveList);
         console.log(rsp_node);
         if (rsp_node.data.code === 200) {
-          this.$message({
-            message: `节点信息保存成功`,
-            type: "success"
-          });
+          this.$message.success("`节点信息保存成功");
           // this.reloadPage();
         } else {
           this.$message.error("`节点信息保存失败");
@@ -1048,10 +1045,7 @@ export default {
         const rsp_edge = await addLink(this.addEdgesList);
         console.log(rsp_edge);
         if (rsp_edge.data.code === 200) {
-          this.$message({
-            message: `关系保存成功`,
-            type: "success"
-          });
+          this.$message.success("`关系保存成功");
           // this.reloadPage();
         } else {
           this.$message.error("关系保存失败");
@@ -1063,20 +1057,8 @@ export default {
      */
     initWindow () {
       _that = this;
-      // console.log(`wid:${window.innerWidth - 10};hei:${window.innerHeight - 10}`)
-      // this.$message({
-      //   message: `wid:${window.innerWidth - 10};hei:${window.innerHeight - 10}`,
-      //   type: 'success'
-      // })
-      this.win.height =
-        (document.documentElement.clientHeight || document.body.clientHeight) -
-        10;
-      this.win.width =
-        (document.documentElement.clientWidth || document.body.clientWidth) -
-        10;
-
-      // this.win.height = this.win.height + (this.win.height)
-
+      this.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 0;
+      this.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10;
       this.canvas.width = this.win.width;
       // this.canvas.height = this.win.height - this.timeBarHei
       this.canvas.height = this.dep_num * this.eachGirdHeight;
@@ -1130,5 +1112,7 @@ export default {
 </script>
 <style lang='less'>
 @import "./main.less";
+@import "./toolTip/tooltip.less";
+@import "./toolTip/color.less";
 @import "../assets/css/btn.css";
 </style>

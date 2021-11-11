@@ -18,7 +18,6 @@ const HEIGHT = 50 //节点总高度
 const RADIUS = 10 //圆角率
 const PADDING_HORIZONTAL = 15 //水平间距
 const PADDING_VERTICAL = 22 //垂直间距
-const HEIGHT_HEAD = 25 //节点标题高度
 const getName = (node) => {
   return `${node.creatorName || '蔡永强'}`
 }

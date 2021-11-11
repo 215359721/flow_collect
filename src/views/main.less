@@ -114,7 +114,7 @@ body{
   }
   #canvasDiv{
     z-index: 4;
-    background-color: #fff;
+    // background-color: #f1f3f4;
   }
   //翟浩然
   #graphemeDiv{
@@ -199,18 +199,23 @@ body{
 .timeBar-area{
   position: absolute;
   bottom: 0px;
-  height: 50px !important;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   width:90%;
   z-index:7;
   // background-color: red;
-  margin-top: -10px;
+  margin-top: -20px;
 }
 .time-bar{
   width:100%;
   // background-color: #ccc;
+}
+.un-sel{
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
+  user-select:none;
 }
 
 .g6-component-toolbar,.g6-minimap{
@@ -219,6 +224,12 @@ body{
 .g6-component-toolbar li:nth-child(3), li:nth-child(4), li:nth-child(5), li:nth-child(6){
   // background-color: red;
   // display: none !important;
+}
+.g6-component-tooltip{
+  background-color:transparent;
+  border:none;
+  padding: 5px;
+  box-shadow: none;
 }
 .g6-component-contextmenu{
   background-color: transparent !important;

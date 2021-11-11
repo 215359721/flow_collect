@@ -27,6 +27,10 @@
       type="primary"
       @click="jumpPage('/grapheme')"
     >语义图示例</el-button>
+    <el-button
+      type="primary"
+      @click="jumpPage('/tooltip')"
+    >tooltip</el-button>
   </div>
 </template>
 
