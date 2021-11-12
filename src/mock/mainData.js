@@ -158,7 +158,7 @@ const data = {
     {
       id: '31',
       label: '在线会议',
-      icon: 'chat',
+      icon: 'MeetingInfo',
     },
     {
       id: '32',
@@ -233,7 +233,7 @@ const data = {
     {
       id: '46',
       label: '在线会议',
-      icon: 'chat',
+      icon: 'MeetingInfo',
     },
     {
       id: '47',
@@ -283,7 +283,7 @@ const data = {
     {
       id: '56',
       label: '在线会议',
-      icon: 'chat',
+      icon: 'MeetingInfo',
     },
     {
       id: '57',

@@ -65,6 +65,7 @@ import _ from "lodash";
 import G6 from "@antv/g6";
 import insertCss from "insert-css";
 import loading from "../utils/loading";
+import getTipHTML from "../data/toolTipNew"
 import getTooTipHTML from "../data/tooTip";
 // eslint-disable-next-line no-unused-vars
 import realData from "../mock/realData";
@@ -80,8 +81,10 @@ import taskNode from "../data/task_node";
 import meetNode from "../data/meet_node";
 import chatNode from "../data/chat_node";
 import dataNode from "../data/data_node";
+import nodeNewUI from '../data/newNode/layout_node_newUI'
 import innerCss from "../data/insertCss";
 import { getDataById } from "../api/api";
+import { isNewUI } from "../config/index";
 import { debounce } from "../utils/common";
 insertCss(innerCss);
 let _that = null;
@@ -97,7 +100,7 @@ export default {
       },
       sourceData: {}, //数据源
       graph: null, //graph全局对象
-      showType: "simple", //显示模式
+      showType: "simple", //显示模式（all、normal、simple）
       curDataSource: "mock", //当前数据源
       rankDir: "LR", //当前布局方式（LR-从左至右；TB-从上到下）
       canvasCenter: [0, 0], //画布中心
@@ -185,11 +188,11 @@ export default {
           align: this.align,
           sortByCombo: true,
           nodesepFunc: () => 20,
-          ranksepFunc: () => 20
+          ranksepFunc: () => 70
         },
         //默认节点设置
         defaultNode: {
-          size: [250, 310],
+          size: [280, 335],
           color: "#000",
           style: {
             cursor: "pointer",
@@ -260,10 +263,10 @@ export default {
       this.curZoom = this.graph.getZoom().toFixed(2);
 
       //聚焦到指定节点
-      setTimeout(() => {
-        const item = _that.graph.findById("2");
-        _that.graph.focusItem(item);
-      }, 1000);
+      // setTimeout(() => {
+      //   const item = _that.graph.findById("2");
+      //   _that.graph.focusItem(item);
+      // }, 1000);
       loading.hide();
 
       //监听：节点单击
@@ -478,7 +481,7 @@ export default {
           const model = e.item.getModel();
           // const pos = e.item.getBBox()
           if (e.item.getType() === "node") {
-            outDiv.innerHTML = getTooTipHTML(model);
+            outDiv.innerHTML = isNewUI ? getTipHTML(model) : getTooTipHTML(model);
           } else {
             const source = e.item.getSource();
             const target = e.item.getTarget();
@@ -539,13 +542,13 @@ export default {
         };
         switch (this.showType) {
           case "all":
-            element.size = [250, 310];
+            element.size = isNewUI ? [280, 335] : [250, 310];
             break;
           case "normal":
-            element.size = [250, 90];
+            element.size = isNewUI ? [280, 125] : [250, 390];
             break;
           case "simple":
-            element.size = [250, 50];
+            element.size = isNewUI ? [160, 60] : [250, 50];
             break;
           default:
             break;
@@ -553,24 +556,38 @@ export default {
         switch (element.icon) {
           case "data":
           case "document":
-            element.type = "data_node";
+            if (isNewUI) {
+              element.type = "image"
+              element.size = 80
+              element.img = require('../assets/image/newUI/data.png')
+            } else {
+              element.type = "data_node";
+            }
             break;
           case "DataPacket":
             element.type = "datagroup_node";
             break;
           case "chat":
           case "im":
-            element.type = "chat_node_" + this.showType;
+            element.type = isNewUI ? `chat_${this.showType}_newUI` : `chat_node_${this.showType}`
             break;
           case "task":
-            element.type = "task_node_" + this.showType;
+            element.type = isNewUI ? `task_${this.showType}_newUI` : `task_node_${this.showType}`
+            break;
+          case "MeetingInfo":
+            element.type = isNewUI ? `meet_${this.showType}_newUI` : `meet_node_${this.showType}`
             break;
           case "tool":
-          case "MeetingInfo":
-            element.type = "meet_node_" + this.showType;
+            element.type = isNewUI ? `tool_${this.showType}_newUI` : 'data_node'
             break;
           default:
-            element.type = "data_node";
+            if (isNewUI) {
+              element.type = "image"
+              element.size = 80
+              element.img = require('../assets/image/newUI/data.png')
+            } else {
+              element.type = "data_node";
+            }
             break;
         }
       });
@@ -618,6 +635,43 @@ export default {
       G6.registerNode("datagroup_node", {
         jsx: dataNode.datagroup_jsx
       });
+      //新UI节点
+      G6.registerNode("task_all_newUI", {
+        jsx: nodeNewUI.task_detail
+      });
+      G6.registerNode("meet_all_newUI", {
+        jsx: nodeNewUI.meet_detail
+      });
+      G6.registerNode("chat_all_newUI", {
+        jsx: nodeNewUI.chat_detail
+      });
+      G6.registerNode("tool_all_newUI", {
+        jsx: nodeNewUI.tool_detail
+      });
+      G6.registerNode("task_normal_newUI", {
+        jsx: nodeNewUI.task_general
+      });
+      G6.registerNode("meet_normal_newUI", {
+        jsx: nodeNewUI.meet_general
+      });
+      G6.registerNode("chat_normal_newUI", {
+        jsx: nodeNewUI.chat_general
+      });
+      G6.registerNode("tool_normal_newUI", {
+        jsx: nodeNewUI.tool_general
+      });
+      G6.registerNode("task_simple_newUI", {
+        jsx: nodeNewUI.task_simple
+      });
+      G6.registerNode("meet_simple_newUI", {
+        jsx: nodeNewUI.meet_simple
+      });
+      G6.registerNode("chat_simple_newUI", {
+        jsx: nodeNewUI.chat_simple
+      });
+      G6.registerNode("tool_simple_newUI", {
+        jsx: nodeNewUI.tool_simple
+      });
     },
     /**
      * 显示模式切换
@@ -654,4 +708,6 @@ export default {
 </script>
 <style lang='less'>
 @import "./main.less";
+@import "./toolTip/tooltip.less";
+@import "./toolTip/color.less";
 </style>
