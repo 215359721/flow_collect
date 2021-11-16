@@ -87,6 +87,13 @@ import { getDataById } from "../api/api";
 import { isNewUI } from "../config/index";
 import { debounce } from "../utils/common";
 insertCss(innerCss);
+insertCss(`
+.g6-component-tooltip{
+  background-color:transparent;
+  border:none;
+  padding: 5px;
+  box-shadow: none;
+}`)
 let _that = null;
 
 export default {
@@ -100,7 +107,7 @@ export default {
       },
       sourceData: {}, //数据源
       graph: null, //graph全局对象
-      showType: "simple", //显示模式（all、normal、simple）
+      showType: "normal", //显示模式（all、normal、simple）
       curDataSource: "mock", //当前数据源
       rankDir: "LR", //当前布局方式（LR-从左至右；TB-从上到下）
       canvasCenter: [0, 0], //画布中心
@@ -131,9 +138,10 @@ export default {
         this.sourceData = this.initData(outerData);
       } else {
         //真实数据
-        const queryData = this.$route.query || {
-          nodeId: "c99b3dae-a520-4460-8474-122418792110"
-        };
+        const queryData = this.$route.query
+        if (!queryData.nodeId) {
+          queryData.nodeId = "c99b3dae-a520-4460-8474-122418792110"
+        }
         console.log("queryData:", queryData);
         const responseData = await getDataById(queryData.nodeId);
         console.log("全量数据:", responseData.data);
@@ -187,8 +195,8 @@ export default {
           rankdir: this.rankDir,
           align: this.align,
           sortByCombo: true,
-          nodesepFunc: () => 20,
-          ranksepFunc: () => 70
+          nodesepFunc: () => 10,
+          ranksepFunc: () => 10
         },
         //默认节点设置
         defaultNode: {
@@ -542,10 +550,10 @@ export default {
         };
         switch (this.showType) {
           case "all":
-            element.size = isNewUI ? [280, 335] : [250, 310];
+            element.size = isNewUI ? [280, 335] : [250, 390];
             break;
           case "normal":
-            element.size = isNewUI ? [280, 125] : [250, 390];
+            element.size = isNewUI ? [280, 125] : [250, 310];
             break;
           case "simple":
             element.size = isNewUI ? [160, 60] : [250, 50];

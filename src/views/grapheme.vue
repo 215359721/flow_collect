@@ -46,7 +46,7 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item prop="layout">
+        <!-- <el-form-item prop="layout">
           <el-select
             size="mini"
             v-model="form.layout"
@@ -60,7 +60,7 @@
             >
             </el-option>
           </el-select>
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item>
           <el-button
             type="primary"
@@ -69,6 +69,7 @@
           >查询</el-button>
           <el-dropdown
             size="mini"
+            v-if="false"
             split-button
             type="primary"
             @command="changeLayout"
@@ -86,7 +87,6 @@
     <div
       id="graphemeDiv"
       v-if="isShow"
-      style="padding: 30px"
     ></div>
     <div
       v-else
@@ -113,6 +113,11 @@ import { createUuid } from "../utils/common.js";
 import custNode from "../data/task_node";
 import { baseUrl } from "../config";
 import { debounce } from "../utils/common";
+
+// eslint-disable-next-line no-unused-vars
+import { useMockData, mys } from "../config/index";
+import mock_treeData from "../mock/FinishData/treeData";
+import nodeNewUI from '../data/newNode/tree_node_newUI'
 insertCss(innerCss);
 
 export default {
@@ -185,8 +190,14 @@ export default {
           layer: this.form.level,
           type: this.form.keyWord
         };
-        const res = await getTreeNode(params);
-        this.sourceData = this.initData(res.data);
+        let res = '', resData = ''
+        if (useMockData) {
+          resData = mock_treeData
+        } else {
+          res = await getTreeNode(params);
+          resData = res.data
+        }
+        this.sourceData = this.initData(resData);
         this.centerNode = this.sourceData;
       } else {
         console.log("获取初始树节点-点击节点");
@@ -487,9 +498,9 @@ export default {
         y: this.win.height / 2
       });
       console.log("初始化G6脑图树【完成】", this.sourceData);
-      this.graph.focusItem(this.sourceData.id, true, {
-        duration: 400
-      });
+      // this.graph.focusItem(this.sourceData.id, true, {
+      //   duration: 400
+      // });
       this.graph.on("node:click", this.handleMindNodeClick);
       // 监听：canvas点击
       this.graph.on("canvas:click", () => {
@@ -583,6 +594,7 @@ export default {
     },
     // 初始化tooltip
     initToolTip () {
+      console.log('初始化tooltip')
       this.toolTip = new G6.Tooltip({
         offsetX: 10,
         offsetY: 10,
@@ -680,13 +692,18 @@ export default {
       }
       processedData.forEach(item => {
         if (item.type === "node") {
+          //关键词节点
           item.id = createUuid(32);
           item.type = "custTree_node";
           if (!item.img) {
             item.img = require("../assets/image/logo.png");
           } else {
-            item.img = baseUrl + item.img;
+            item.img = mys ? require("../assets/image/test.png") : (baseUrl + item.img);
           }
+        } else if ((item.type === "edge") && mys) {
+          //关系节点
+          item.id = createUuid(32);
+          item.type = "custTree_rela_newUI";
         } else {
           item.id = createUuid(32);
           item.size = 40;
@@ -750,7 +767,10 @@ export default {
     initJsxNode () {
       //自定义节点
       G6.registerNode("custTree_node", {
-        jsx: custNode.tree_node
+        jsx: (mys ? nodeNewUI.tree_node : custNode.tree_node)
+      });
+      G6.registerNode("custTree_rela_newUI", {
+        jsx: nodeNewUI.rela_node
       });
     },
     // 搜索关键词

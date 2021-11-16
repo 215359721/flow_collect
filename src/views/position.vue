@@ -227,6 +227,13 @@ import {
   addLink,
 } from "../api/api";
 insertCss(innerCss);
+insertCss(`
+.g6-component-tooltip{
+  background-color:transparent;
+  border:none;
+  padding: 5px;
+  box-shadow: none;
+}`)
 let _that = null;
 
 export default {
@@ -596,8 +603,8 @@ export default {
         getContent (e) {
           const item = e.item.getModel();
           let con = ``;
-          if (item.type === "custNode_mark") {
-            //批注节点无右键菜单
+          if (item.method === "block") {
+            //背景节点无右键菜单
             con = ``;
           } else if (item.notes !== "") {
             con = `
