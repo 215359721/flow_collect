@@ -19,7 +19,7 @@ const RADIUS = 10 //圆角率
 const PADDING_HORIZONTAL = 15 //水平间距
 const PADDING_VERTICAL = 22 //垂直间距
 const getName = (node) => {
-  return `${node.creatorName || '蔡永强'}`
+  return `${node.creatorName || 'XXX'}`
 }
 //任务节点
 const task_node = (node) => {
@@ -50,7 +50,7 @@ const task_node = (node) => {
           }}draggable="true"></image>
           <text style={{
             marginTop: ${PADDING_VERTICAL},
-            marginLeft: -35,
+            marginLeft: -30,
             fontWeight: '500',
             fontSize:14,
             fill: '#fff',
@@ -106,7 +106,7 @@ const chat_node = (node) => {
           }}draggable="true"></image>
           <text style={{
             marginTop: ${PADDING_VERTICAL},
-            marginLeft: -35,
+            marginLeft: -30,
             fontWeight: '500',
             fontSize:14,
             fill: '#fff',
@@ -162,7 +162,7 @@ const meet_node = (node) => {
           }}draggable="true"></image>
           <text style={{
             marginTop: ${PADDING_VERTICAL},
-            marginLeft: -35,
+            marginLeft: -30,
             fontWeight: '500',
             fontSize:14,
             fill: '#fff',
@@ -218,7 +218,7 @@ const tool_node = (node) => {
           }}draggable="true"></image>
           <text style={{
             marginTop: ${PADDING_VERTICAL},
-            marginLeft: -35,
+            marginLeft: -30,
             fontWeight: '500',
             fontSize:14,
             fill: '#fff',
@@ -299,7 +299,7 @@ const block_node = (node) => {
           height:${tipHei},
           radius:6,
           fill:'#edf2fc',
-          marginTop:${node.height - tipHei - 20},
+          marginTop:${node.height - tipHei - 5},
           marginLeft:${(node.width - tipWid) / 2}
         }}draggable="true">
           <text style={{

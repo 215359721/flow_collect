@@ -87,13 +87,6 @@ import { getDataById } from "../api/api";
 import { isNewUI } from "../config/index";
 import { debounce } from "../utils/common";
 insertCss(innerCss);
-insertCss(`
-.g6-component-tooltip{
-  background-color:transparent;
-  border:none;
-  padding: 5px;
-  box-shadow: none;
-}`)
 let _that = null;
 
 export default {
@@ -196,7 +189,7 @@ export default {
           align: this.align,
           sortByCombo: true,
           nodesepFunc: () => 10,
-          ranksepFunc: () => 10
+          ranksepFunc: () => 70
         },
         //默认节点设置
         defaultNode: {
@@ -718,4 +711,12 @@ export default {
 @import "./main.less";
 @import "./toolTip/tooltip.less";
 @import "./toolTip/color.less";
+</style>
+<style>
+.g6-component-tooltip {
+  background-color: transparent;
+  border: none;
+  padding: 5px;
+  box-shadow: none;
+}
 </style>

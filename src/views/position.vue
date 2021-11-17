@@ -97,6 +97,10 @@
       :style="{height:Math.floor(canvas.height/dep_num-2)+'px',top:(Math.floor(canvas.height/dep_num) * index)+'px'}"
       @click="depClick(item.name)"
     >{{item.name}}</div>
+    <div
+      class="dep-bottom"
+      :style="{height:canvas.offset_hei+'px',top:canvas.height+'px'}"
+    ></div>
     <!-- 时间轴 -->
     <div
       class="timeBar-area un-sel"
@@ -227,13 +231,6 @@ import {
   addLink,
 } from "../api/api";
 insertCss(innerCss);
-insertCss(`
-.g6-component-tooltip{
-  background-color:transparent;
-  border:none;
-  padding: 5px;
-  box-shadow: none;
-}`)
 let _that = null;
 
 export default {
@@ -242,7 +239,7 @@ export default {
   data () {
     return {
       win: { height: 0, width: 0 }, //window对象
-      canvas: { height: 0, width: 0 }, //画布对象
+      canvas: { height: 0, width: 0, offset_hei: 40 }, //画布对象
       sourceData: {}, //数据源
       graph: null, //graph全局对象
       lineType: "polyline", //线条样式(line,polyline,quadratic,cubic,arc)
@@ -379,7 +376,7 @@ export default {
       this.graph = new G6.Graph({
         container: "canvasDiv",
         width: this.canvas.width,
-        height: this.canvas.height,
+        height: this.canvas.height + this.canvas.offset_hei,
         groupByTypes: false,
         fitView: false,
         fitViewPadding: 0,
@@ -433,7 +430,7 @@ export default {
           style: {
             lineWidth: this.lineThick,
             color: this.lineColor,
-            endArrow: false,
+            endArrow: true,
             radius: 0,
             offset: this.config.lineBrokenOffset
           }
@@ -457,6 +454,7 @@ export default {
       this.sourceData.nodes.forEach(node => {
         if (node.method === "line") {
           node.color = '#e6e6e6'
+          node.height = _that.canvas.height + _that.canvas.offset_hei
         }
       });
       //--------测试数据end--------
@@ -682,7 +680,7 @@ export default {
         itemTypes: ["node", "edge"],
         shouldBegin: e => {
           const model = e.item.getModel();
-          if (model.method === "block" || model.method === "line1") {
+          if ((model.method === "block") || (model.method === "line")) {
             return false;
           }
           return true;
@@ -791,7 +789,7 @@ export default {
           x: 100 + _that.gird.gap * (4 * index) + _that.node_wid * (4 * index),
           y: 0,
           width: 1,
-          height: _that.canvas.height,
+          height: _that.canvas.height + _that.canvas.offset_hei,
           color: this.timeBarData.length === index + 1 ? "red" : "#e6e6e6",
           dotline: this.timeBarData.length !== index + 1
         };
@@ -805,7 +803,7 @@ export default {
           x: 100 + _that.gird.gap * (4 * index) + _that.node_wid * (4 * index),
           y: 0,
           width: 620,
-          height: _that.canvas.height
+          height: _that.canvas.height + _that.canvas.offset_hei
         };
         data.nodes.push(weekObj);
         if (useExColor) {
@@ -1070,9 +1068,7 @@ export default {
       // this.canvas.height = this.win.height - this.timeBarHei
       this.canvas.height = this.dep_num * this.eachGirdHeight;
       console.log("winWid:" + this.win.width + ",winHei:" + this.win.height);
-      console.log(
-        "CanvasWid:" + this.canvas.width + ",CanvasHei:" + this.canvas.height
-      );
+      console.log("CanvasWid:" + this.canvas.width + ",CanvasHei:" + this.canvas.height);
       this.initMenu();
       this.initToolBar();
       this.initMiniMap();
@@ -1122,4 +1118,12 @@ export default {
 @import "./toolTip/tooltip.less";
 @import "./toolTip/color.less";
 @import "../assets/css/btn.css";
+</style>
+<style>
+.g6-component-tooltip {
+  background-color: transparent;
+  border: none;
+  padding: 5px;
+  box-shadow: none;
+}
 </style>

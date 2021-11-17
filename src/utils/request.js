@@ -4,11 +4,11 @@ import loading from './loading'
 axios.defaults.headers.common['Content-Type'] = 'application/json;charset=utf-8'
 axios.defaults.headers.common['x-requested-with'] = 'XMLHttpRequest'
 axios.defaults.withCredentials = true
-
+const SERVER_CONF = window._SERVERCONF
 // 创建axios实例
 const service = axios.create({
   // axios中请求配置有baseURL选项，表示请求URL公共部分
-  baseURL: 'http://192.168.1.55:2800/',
+  baseURL: SERVER_CONF.base_ip_flow,
   // 超时
   timeout: 10000,
   loading: true,

@@ -1,23 +1,26 @@
+const none = '暂无'
 function getTipHTML (node) {
+  // console.log('getTipHTML', node)
+  const info = node.detailInfo || {}
   let result = ``
   const task_html = `<div class="tip-div">
       <div class="tip-head task-head-bg task-border">任务</div>
       <div class="tip-content task-content-bg task-border">
         <div class="common-line lineheight20">
           <div class="title">任务名称：</div>
-          <div class="desc bold">章节编写任务</div>
+          <div class="desc bold">${info.name || none}</div>
         </div>
         <div class="common-line lineheight20">
           <div class="title">创建人：</div>
-          <div class="desc normal">赵竹林</div>
+          <div class="desc normal">${node.creatorName || none}</div>
         </div>
         <div class="common-line lineheight20">
           <div class="title">截止时间：</div>
-          <div class="desc normal">2021-10-31 18:30:00</div>
+          <div class="desc normal">${info.endTime || none}</div>
         </div>
         <div class="common-line lineheight20">
           <div class="title">创建时间：</div>
-          <div class="desc normal">2021-10-01 09:00:00</div>
+          <div class="desc normal">${info.startTime || none}</div>
         </div>
         <div class="status-line">
           <div class="each-box">
@@ -28,7 +31,7 @@ function getTipHTML (node) {
               >
             </div>
             <div class="status-text">
-              <div class="bold">张玲云</div>
+              <div class="bold">${info.executor || none}</div>
               <div class="normal size10">负责人</div>
             </div>
           </div>
@@ -40,7 +43,7 @@ function getTipHTML (node) {
               >
             </div>
             <div class="status-text">
-              <div class="bold">未开始</div>
+              <div class="bold">${info.status || none}</div>
               <div class="normal size10">当前状态</div>
             </div>
           </div>
@@ -52,7 +55,7 @@ function getTipHTML (node) {
               >
             </div>
             <div class="status-text">
-              <div class="bold">普通</div>
+              <div class="bold">${info.type || none}</div>
               <div class="normal size10">优先级</div>
             </div>
           </div>
@@ -61,20 +64,18 @@ function getTipHTML (node) {
         <div class="file-line">
           <div class="title bold">输入物：</div>
           <div class="file-box">
-            <div class="single-file link">会议申请单.doc</div>
-            <div class="single-file link">会议参与人员名单.doc</div>
+            ${getFilePart(info.inPuts || [])}
           </div>
         </div>
         <div class="file-line">
           <div class="title bold">输出物：</div>
           <div class="file-box">
-            <div class="single-file link">会议纪要.doc</div>
-            <div class="single-file link">会议纪要.doc</div>
+            ${getFilePart(info.outPuts || [])}
           </div>
         </div>
         <div class="desc-line">
           <div class="title bold">描述：</div>
-          <div class="content normal max20">这里显示文字描述信息</div>
+          <div class="content normal max20">${info.description || none}</div>
         </div>
       </div>
     </div>`
@@ -83,22 +84,21 @@ function getTipHTML (node) {
       <div class="tip-content chat-content-bg chat-border">
         <div class="common-line">
           <div class="title">参与人：</div>
-          <div class="desc bold">王丽桥、赵竹林</div>
+          <div class="desc bold">${info.executor || none}</div>
         </div>
         <div class="common-line">
           <div class="title">开始时间：</div>
-          <div class="desc normal">2021-10-21 09:00:00</div>
+          <div class="desc normal">${info.startTime || none}</div>
         </div>
         <div class="common-line">
           <div class="title">结束时间：</div>
-          <div class="desc normal">2021-10-21 09:30:00</div>
+          <div class="desc normal">${info.endTime || none}</div>
         </div>
         <div class="sep-line chat-line"></div>
         <div class="file-line">
           <div class="title bold">输入信息：</div>
           <div class="file-box">
-            <div class="single-file link">相关文档申请.doc</div>
-            <div class="single-file link">需求图片.png</div>
+            ${getFilePart(info.inPuts || [])}
           </div>
         </div>
         <div class="record-line">
@@ -123,33 +123,31 @@ function getTipHTML (node) {
       <div class="tip-content meet-content-bg meet-border">
         <div class="common-line">
           <div class="title">会议主题：</div>
-          <div class="desc bold">会议主题会议名称</div>
+          <div class="desc bold">${info.name || none}</div>
         </div>
         <div class="common-line">
           <div class="title">密级：</div>
-          <div class="desc normal">一般</div>
+          <div class="desc normal">${trans4Secret(info.secret)}</div>
         </div>
         <div class="common-line">
-          <div class="title">参与会：</div>
-          <div class="desc normal">王丽桥、赵竹林、刘子扬</div>
+          <div class="title">参与人：</div>
+          <div class="desc normal">${info.executor || none}</div>
         </div>
         <div class="common-line">
           <div class="title">参会时间：</div>
-          <div class="desc normal">2021-10-01 09:00:00</div>
+          <div class="desc normal">${info.startTime || none}</div>
         </div>
         <div class="sep-line meet-line"></div>
         <div class="file-line">
           <div class="title bold">输入物：</div>
           <div class="file-box">
-            <div class="single-file link">会议申请单.doc</div>
-            <div class="single-file link">会议参与人员名单.doc</div>
+            ${getFilePart(info.inPuts || [])}
           </div>
         </div>
         <div class="file-line">
           <div class="title bold">输出物：</div>
           <div class="file-box">
-            <div class="single-file link">会议纪要.doc</div>
-            <div class="single-file link">会议纪要.doc</div>
+            ${getFilePart(info.outPuts || [])}
           </div>
         </div>
         <div class="desc-line">
@@ -192,6 +190,44 @@ function getTipHTML (node) {
       break;
     default:
       result = tool_html
+      break;
+  }
+  return result
+}
+
+function getFilePart (fileArray) {
+  let content = ''
+  // console.log('fileArray:', fileArray)
+  if (fileArray.length) {
+    for (let i = 0; i < fileArray.length; i++) {
+      content += '<span class="single-file link">' + fileArray[i].fileName || none + '</span>'
+      if (i < fileArray.length - 1) {
+        content += '<br/>'
+      }
+    }
+  } else {
+    content = '暂无数据'
+  }
+  return content
+}
+
+function trans4Secret (secret) {
+  let result = ''
+  switch (secret) {
+    case '10':
+      result = '公开'
+      break;
+    case '20':
+      result = '内部'
+      break;
+    case '30':
+      result = '秘密'
+      break;
+    case '40':
+      result = '机密'
+      break;
+    default:
+      result = '未知'
       break;
   }
   return result
