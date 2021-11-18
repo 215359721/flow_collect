@@ -267,10 +267,8 @@ export default {
         { name: "部门5" }
       ], //部门数据
       dep_num: 5, //部门数量
-      //网格
-      gird: { width: 0, height: 0, gap: 5 }, //网格基本信息
-      eachGirdWidth: 620, //单个网格宽度
-      eachGirdHeight: 180, //单个网格高度2
+      //网格信息
+      gird: { width: 620, height: 180, gap: 5 },
       //配置
       config: { type: 1, lineBrokenOffset: 20 },
       //时间轴
@@ -526,8 +524,26 @@ export default {
           );
         }
       });
+      //监听：画布拖拽完成
+      this.graph.on("canvas:dragend", e => {
+        const of_x = e.x - e.canvasX
+        const moveWeek = Math.floor(of_x / _that.gird.width) + 1
+        // console.log(`of_x:${of_x},week:${moveWeek}`)
+        if (_that.curWeek !== moveWeek) {
+          //周改变
+          _that.curWeek = moveWeek
+          const weekObj = this.timeBarData.filter(item => {
+            return (item.weekNo === _that.curWeek)
+          })
+          // console.log('weekObj', weekObj)
+          if (_that.curWeek && weekObj.length) {
+            this.$message({ message: `第${_that.curWeek}周，${weekObj[0].begin} 至 ${weekObj[0].end}`, });
+          }
+        }
+      });
       //监听：节点拖拽完成
       this.graph.on("node:dragend", e => {
+        if (e.item._cfg.model.method === 'block') return;
         const modelItem = {
           configId: this.configId,
           nodeId: e.item._cfg.model.id,
@@ -802,7 +818,7 @@ export default {
           end: element.end,
           x: 100 + _that.gird.gap * (4 * index) + _that.node_wid * (4 * index),
           y: 0,
-          width: 620,
+          width: _that.gird.width,
           height: _that.canvas.height + _that.canvas.offset_hei
         };
         data.nodes.push(weekObj);
@@ -1066,7 +1082,7 @@ export default {
       this.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10;
       this.canvas.width = this.win.width;
       // this.canvas.height = this.win.height - this.timeBarHei
-      this.canvas.height = this.dep_num * this.eachGirdHeight;
+      this.canvas.height = this.dep_num * this.gird.height;
       console.log("winWid:" + this.win.width + ",winHei:" + this.win.height);
       console.log("CanvasWid:" + this.canvas.width + ",CanvasHei:" + this.canvas.height);
       this.initMenu();
@@ -1074,16 +1090,12 @@ export default {
       this.initMiniMap();
       this.initToolTip();
       this.initJsxNode();
-      this.gird.width =
-        this.node_wid * this.node_eachLineNum +
-        this.node_pad * this.node_eachLineNum;
-      this.gird.height = (this.win.height - this.timeBarHei) / this.dep_num;
       //监听窗口改变
       window.addEventListener('resize', debounce(() => {
         _that.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10
         _that.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 10
         const newWidth = _that.win.width
-        const newHeight = _that.dep_num * _that.eachGirdHeight
+        const newHeight = _that.dep_num * _that.gird.height
         console.log('窗口大小改变:' + newWidth + '*' + newHeight)
         _that.graph.changeSize(newWidth, newHeight)
       }, 500))

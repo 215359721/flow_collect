@@ -39,7 +39,7 @@ function getTipHTML (node) {
             <div class="head-img">
               <img
                 class="status-image"
-                src=${require('../assets/image/newUI/defaultHead.png')}
+                src=${trans4Status(info.status)}
               >
             </div>
             <div class="status-text">
@@ -51,11 +51,11 @@ function getTipHTML (node) {
             <div class="head-img">
               <img
                 class="status-image"
-                src=${require('../assets/image/newUI/defaultHead.png')}
+                src=${trans4Type(info.priority)}
               >
             </div>
             <div class="status-text">
-              <div class="bold">${info.type || none}</div>
+              <div class="bold">${info.priority || none}</div>
               <div class="normal size10">优先级</div>
             </div>
           </div>
@@ -96,7 +96,7 @@ function getTipHTML (node) {
         </div>
         <div class="sep-line chat-line"></div>
         <div class="file-line">
-          <div class="title bold">输入信息：</div>
+          <div class="title bold">输入物：</div>
           <div class="file-box">
             ${getFilePart(info.inPuts || [])}
           </div>
@@ -139,20 +139,16 @@ function getTipHTML (node) {
         </div>
         <div class="sep-line meet-line"></div>
         <div class="file-line">
-          <div class="title bold">输入物：</div>
+          <div class="title bold">会议文件：</div>
           <div class="file-box">
             ${getFilePart(info.inPuts || [])}
           </div>
         </div>
         <div class="file-line">
-          <div class="title bold">输出物：</div>
+          <div class="title bold">会议纪要：</div>
           <div class="file-box">
             ${getFilePart(info.outPuts || [])}
           </div>
-        </div>
-        <div class="desc-line">
-          <div class="title bold">会议结论：</div>
-          <div class="content normal max20">这里显示会议结论文字描述信息</div>
         </div>
       </div>
     </div>`
@@ -209,6 +205,55 @@ function getFilePart (fileArray) {
     content = '暂无数据'
   }
   return content
+}
+
+function trans4Status (status) {
+  let image = null
+  switch (status) {
+    case '未开始':
+      image = require('../assets/icon/status/prepare.png')
+      break;
+    case '进行中':
+      image = require('../assets/icon/status/start.png')
+      break;
+    case '已完成':
+      image = require('../assets/icon/status/complate.png')
+      break;
+    case '已取消':
+      image = require('../assets/icon/status/cancel.png')
+      break;
+    case '已停止':
+    case '已暂停':
+      image = require('../assets/icon/status/suapend.png')
+      break;
+    case '已拒绝':
+    case '已回收':
+      image = require('../assets/icon/status/terminate.png')
+      break;
+    default:
+      image = require('../assets/icon/status/prepare.png')
+      break;
+  }
+  return image
+}
+
+function trans4Type (priority) {
+  let image = null
+  switch (priority) {
+    case '普通':
+      image = require('../assets/icon/type/common.png')
+      break;
+    case '紧急':
+      image = require('../assets/icon/type/urgency.png')
+      break;
+    case '非常紧急':
+      image = require('../assets/icon/type/veryurgency.png')
+      break;
+    default:
+      image = require('../assets/icon/type/common.png')
+      break;
+  }
+  return image
 }
 
 function trans4Secret (secret) {

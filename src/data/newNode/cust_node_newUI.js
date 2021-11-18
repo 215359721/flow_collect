@@ -19,7 +19,7 @@ const RADIUS = 10 //圆角率
 const PADDING_HORIZONTAL = 15 //水平间距
 const PADDING_VERTICAL = 22 //垂直间距
 const getName = (node) => {
-  return `${node.creatorName || 'XXX'}`
+  return `${node.creatorName || 'XXX'}(${node.x},${node.y})`
 }
 //任务节点
 const task_node = (node) => {
