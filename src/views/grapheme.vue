@@ -115,7 +115,7 @@ import { baseUrl } from "../config";
 import { debounce } from "../utils/common";
 
 // eslint-disable-next-line no-unused-vars
-import { useMockData, mys } from "../config/index";
+import { useMockData, isNewUI } from "../config/index";
 import mock_treeData from "../mock/FinishData/treeData";
 import nodeNewUI from '../data/newNode/tree_node_newUI'
 insertCss(innerCss);
@@ -698,9 +698,9 @@ export default {
           if (!item.img) {
             item.img = require("../assets/image/logo.png");
           } else {
-            item.img = mys ? require("../assets/image/test.png") : (baseUrl + item.img);
+            item.img = isNewUI ? require("../assets/image/test.png") : (baseUrl + item.img);
           }
-        } else if ((item.type === "edge") && mys) {
+        } else if ((item.type === "edge") && isNewUI) {
           //关系节点
           item.id = createUuid(32);
           item.type = "custTree_rela_newUI";
@@ -767,7 +767,7 @@ export default {
     initJsxNode () {
       //自定义节点
       G6.registerNode("custTree_node", {
-        jsx: (mys ? nodeNewUI.tree_node : custNode.tree_node)
+        jsx: (isNewUI ? nodeNewUI.tree_node : custNode.tree_node)
       });
       G6.registerNode("custTree_rela_newUI", {
         jsx: nodeNewUI.rela_node
@@ -844,7 +844,7 @@ export default {
 };
 </script>
 <style lang="less">
-@import "./main.less";
+@import "./grapheme.less";
 
 .main-page {
   min-height: 600px;

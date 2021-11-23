@@ -34,6 +34,16 @@ const debounce = function (fn, delay) {
     }, delay);
   }
 }
+//判断当前日期是否在指定日期中间
+const isDuringDate = function (beginDateStr, endDateStr) {
+  var curDate = new Date(),
+    beginDate = new Date(beginDateStr),
+    endDate = new Date(endDateStr);
+  if (curDate >= beginDate && curDate <= endDate) {
+    return true;
+  }
+  return false;
+}
 
 export function createUuid (length) {
   let str = Math.random().toString(36).substr(2)
@@ -49,4 +59,5 @@ export {
   getNewEdgesList,
   splitStr,
   debounce,
+  isDuringDate,
 }

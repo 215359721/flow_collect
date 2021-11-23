@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 <template>
   <div class="main-page">
     <div class="opt-div">
@@ -24,6 +25,7 @@
       </div>
       <div class="btn-group">
         <el-input-number
+          v-if="false"
           v-model="animSec"
           :min="1"
           :max="99"
@@ -43,7 +45,7 @@
           @click="goWeek('point')"
         >去指定周</el-button>
         <el-button
-          type="primary"
+          type="danger"
           style="width:100px;margin-top:5px;"
           size="mini"
           :disabled="saveDisabled"
@@ -51,6 +53,7 @@
         >保存更改</el-button>
       </div>
       <el-radio-group
+        v-if="false"
         v-model="dataType"
         size="mini"
         style="margin-top:5px;"
@@ -73,7 +76,8 @@
       class="cur-num un-sel"
       v-if="graph"
     >
-      <div class="mr5">zoom：{{graph.getZoom().toFixed(2)}}</div>
+      <!-- <div class="mr5">zoom：{{graph.getZoom().toFixed(2)}}</div> -->
+      <div class="mr5">V:11_23_B</div>
       <div>当前周：{{curWeek}}</div>
     </div>
     <!-- 部门竖线 -->
@@ -215,23 +219,12 @@ import testData from "../mock/testData";
 import innerCss from "../data/insertCss";
 import mock_mainData from "../mock/FinishData/mainData";
 import mock_xyData from "../mock/FinishData/xyData";
-
 import { useMockData, useExColor, isNewUI } from "../config/index";
-import {
-  getUpdateNodesPositionList,
-  getNewEdgesList,
-  splitStr,
-  debounce,
-} from "../utils/common";
-import {
-  getXYdata,
-  getMainData,
-  modifyNodesPosition,
-  addMark,
-  addLink,
-} from "../api/api";
+import { getUpdateNodesPositionList, getNewEdgesList, splitStr, debounce, isDuringDate } from "../utils/common";
+import { getXYdata, getMainData, modifyNodesPosition, addMark, addLink, } from "../api/api";
 insertCss(innerCss);
 let _that = null;
+const CONFIG = window._SERVERCONF
 
 export default {
   // eslint-disable-next-line vue/no-unused-components
@@ -253,8 +246,6 @@ export default {
       start_x: 100, //起始点X
       node_wid: 150, //单个节点宽度
       node_hei: 50, //单个节点高度
-      node_pad: 5, //节点间隔
-      node_eachLineNum: 4, //一行显示节点数量
       curOptNode: null, //当前操作的节点
       dataType: "real", //数据形式
       configId: 1, //配置id（1-内网台式机，2-会议室大屏）
@@ -268,7 +259,7 @@ export default {
       ], //部门数据
       dep_num: 5, //部门数量
       //网格信息
-      gird: { width: 620, height: 180, gap: 5 },
+      gird: {},
       //配置
       config: { type: 1, lineBrokenOffset: 20 },
       //时间轴
@@ -304,6 +295,7 @@ export default {
   },
   computed: {},
   mounted () {
+    this.initConfig()
     if (this.dataType === "mock") {
       this.initWindow();
       this.sourceData = this.initData(
@@ -355,6 +347,7 @@ export default {
       this.sourceData = this.initData(responseData.data);
       this.initG6();
       this.printGrid();
+      // this.goToCurWeek()
     },
     /**
      * 初始化G6
@@ -403,7 +396,7 @@ export default {
               direction: "x",
               allowDragOnItem: true
             },
-            { type: "scroll-canvas", direction: "x" }
+            { type: "scroll-canvas", direction: "x" },
           ] //'drag-canvas', 'drag-node','zoom-canvas', 'drag-node'
         },
         plugins: [this.toolTip, this.rightMenu],
@@ -451,8 +444,9 @@ export default {
       //-------测试数据start-------
       this.sourceData.nodes.forEach(node => {
         if (node.method === "line") {
+          // node.color = 'blue'
           node.color = '#e6e6e6'
-          node.height = _that.canvas.height + _that.canvas.offset_hei
+          // node.height = _that.canvas.height + _that.canvas.offset_hei
         }
       });
       //--------测试数据end--------
@@ -469,18 +463,18 @@ export default {
       //监听：节点单击
       this.graph.on("node:click", function (e) {
         const item = e.item;
-        console.log(e);
-        console.log(
-          "点击node:{" +
-          item._cfg.model.id +
-          " , " +
-          item._cfg.model.label +
-          "|" +
-          item._cfg.model.x +
-          "," +
-          item._cfg.model.y +
-          "}"
-        );
+        // console.log(e);
+        // console.log(
+        //   "点击node:{" +
+        //   item._cfg.model.id +
+        //   " , " +
+        //   item._cfg.model.label +
+        //   "|" +
+        //   item._cfg.model.x +
+        //   "," +
+        //   item._cfg.model.y +
+        //   "}"
+        // );
         if (
           item._cfg.model.method === "line" ||
           item._cfg.model.method === "block"
@@ -508,6 +502,7 @@ export default {
         _that.clearAllStats();
       });
       //监听：节点拖拽
+      // eslint-disable-next-line no-unused-vars
       this.graph.on("node:drag", e => {
         if (!e.item._cfg.model.method) {
           _that.graph.updateBehavior(
@@ -688,10 +683,10 @@ export default {
      */
     initToolTip () {
       this.toolTip = new G6.Tooltip({
-        offsetX: 0,
+        offsetX: 50,
         offsetY: 0,
-        fixToNode: [1, 0.5],
-        // trigger: "click",
+        // fixToNode: [1, 0.5],
+        trigger: "click",
         // 允许出现 tooltip 的 item 类型
         itemTypes: ["node", "edge"],
         shouldBegin: e => {
@@ -715,12 +710,13 @@ export default {
               //普通节点
               outDiv.innerHTML = isNewUI ? getTipHTML(model) : getTooTipHTML(model)
             }
-          } else {
-            const source = e.item.getSource();
-            const target = e.item.getTarget();
-            outDiv.innerHTML = `来源：${source.getModel().label}<br/>去向：${target.getModel().label
-              }`;
           }
+          // else {
+          //   const source = e.item.getSource();
+          //   const target = e.item.getTarget();
+          //   outDiv.innerHTML = `来源：${source.getModel().label}<br/>去向：${target.getModel().label
+          //     }`;
+          // }
           return outDiv;
         }
       });
@@ -802,7 +798,8 @@ export default {
           method: "line",
           begin: element.begin,
           end: element.end,
-          x: 100 + _that.gird.gap * (4 * index) + _that.node_wid * (4 * index),
+          // x: 100 + _that.gird.gap * (4 * index) + _that.node_wid * (4 * index),
+          x: 100 + index * this.gird.width,
           y: 0,
           width: 1,
           height: _that.canvas.height + _that.canvas.offset_hei,
@@ -816,7 +813,8 @@ export default {
           method: "block",
           begin: element.begin,
           end: element.end,
-          x: 100 + _that.gird.gap * (4 * index) + _that.node_wid * (4 * index),
+          // x: 100 + _that.gird.gap * (4 * index) + _that.node_wid * (4 * index),
+          x: 100 + index * this.gird.width,
           y: 0,
           width: _that.gird.width,
           height: _that.canvas.height + _that.canvas.offset_hei
@@ -837,7 +835,7 @@ export default {
           element.icon === "MeetingInfo"
         ) {
           element.type = isNewUI ? "custNode_meet_new" : "custNode_meet";
-        } else if (element.icon === "im") {
+        } else if (element.icon === "im" || element.icon === "Im") {
           element.type = isNewUI ? "custNode_chat_new" : "custNode_chat";
         } else if (element.method === "line") {
           element.type = isNewUI ? "custNode_line_new" : "custNode_line";
@@ -853,8 +851,8 @@ export default {
           element.y += 0;
         }
         //完成标识
-        if (element.endDate !== "") {
-          element.unfinish = true;
+        if (element.endDate === "") {
+          element.unfinish = false;
         } else {
           element.unfinish = false;
         }
@@ -951,6 +949,23 @@ export default {
       this.graph.setAutoPaint(true);
     },
     /**
+     * 立即跳转至当前周
+     */
+    goToCurWeek () {
+      const nowWeek = this.timeBarData.filter(item => {
+        return (isDuringDate(item.begin, item.end) === true)
+      })
+      if (nowWeek.length) {
+        this.curWeek = nowWeek[0].weekNo
+        const descNode = this.graph.findById("week_" + this.curWeek);
+        if (descNode) {
+          const nodeInfo = descNode._cfg.model;
+          this.moveTo(nodeInfo.x, 0);
+        }
+      }
+
+    },
+    /**
      * 切换周
      */
     changeSilder (val) {
@@ -996,11 +1011,11 @@ export default {
     /**
      * 移动到指定点(横坐标)
      */
-    moveTo (x) {
+    moveTo (x, sec = 1) {
       const offsetX = 28
       const offsetY = 10
       this.graph.moveTo(0 - (x - 197 + offsetX), 0 - offsetY, true, {
-        duration: _that.animSec * 1000
+        duration: sec * 1000
       });
     },
     /**
@@ -1101,6 +1116,17 @@ export default {
       }, 500))
     },
     /**
+     * 初始化配置
+     */
+    initConfig () {
+      console.log('配置：', CONFIG)
+      this.gird = {
+        width: CONFIG.grid_width_flow,
+        height: CONFIG.grid_height_flow,
+        gap: CONFIG.grid_gap_flow,
+      }
+    },
+    /**
      * 打印网格信息
      */
     printGrid () {
@@ -1130,12 +1156,4 @@ export default {
 @import "./toolTip/tooltip.less";
 @import "./toolTip/color.less";
 @import "../assets/css/btn.css";
-</style>
-<style>
-.g6-component-tooltip {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  box-shadow: none;
-}
 </style>

@@ -181,6 +181,7 @@ function getTipHTML (node) {
     case 'MeetingInfo':
       result = meet_html
       break;
+    case 'Im':
     case 'im':
       result = chat_html
       break;
