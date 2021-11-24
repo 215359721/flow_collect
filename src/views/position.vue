@@ -44,6 +44,14 @@
           size="mini"
           @click="goWeek('point')"
         >去指定周</el-button>
+        <el-switch
+          v-model="editMode"
+          active-text="编辑模式"
+          inactive-text="浏览模式"
+          style="width:180px;margin-top:5px;"
+          @change="editChange"
+        >
+        </el-switch>
         <el-button
           type="danger"
           style="width:100px;margin-top:5px;"
@@ -77,7 +85,7 @@
       v-if="graph"
     >
       <!-- <div class="mr5">zoom：{{graph.getZoom().toFixed(2)}}</div> -->
-      <div class="mr5">V:11_23_B</div>
+      <div class="mr5">V：{{version}}</div>
       <div>当前周：{{curWeek}}</div>
     </div>
     <!-- 部门竖线 -->
@@ -243,11 +251,13 @@ export default {
       minimap: null, //小地图
       rightMenu: null, //右键菜单
       //-------------------
+      version: '',//版本
       start_x: 100, //起始点X
       node_wid: 150, //单个节点宽度
       node_hei: 50, //单个节点高度
       curOptNode: null, //当前操作的节点
       dataType: "real", //数据形式
+      editMode: false,//编辑模式开关
       configId: 1, //配置id（1-内网台式机，2-会议室大屏）
       //部门
       depData: [
@@ -387,7 +397,7 @@ export default {
                 if (model.method === "block" || model.method === "line") {
                   return false;
                 }
-                return true;
+                return false;
               }
             },
             { type: "create-edge", trigger: "click", key: "shift" },
@@ -504,23 +514,24 @@ export default {
       //监听：节点拖拽
       // eslint-disable-next-line no-unused-vars
       this.graph.on("node:drag", e => {
-        if (!e.item._cfg.model.method) {
-          _that.graph.updateBehavior(
-            "drag-canvas",
-            { allowDragOnItem: false },
-            "default"
-          );
-        }
-        if (e.item._cfg.model.method === "block") {
-          _that.graph.updateBehavior(
-            "drag-canvas",
-            { allowDragOnItem: true },
-            "default"
-          );
-        }
+        // if (!e.item._cfg.model.method) {
+        //   _that.graph.updateBehavior(
+        //     "drag-canvas",
+        //     { allowDragOnItem: false },
+        //     "default"
+        //   );
+        // }
+        // if (e.item._cfg.model.method === "block") {
+        //   _that.graph.updateBehavior(
+        //     "drag-canvas",
+        //     { allowDragOnItem: true },
+        //     "default"
+        //   );
+        // }
       });
       //监听：画布拖拽完成
       this.graph.on("canvas:dragend", e => {
+        // console.log('=========画布拖拽完成=========', e)
         const of_x = e.x - e.canvasX
         const moveWeek = Math.floor(of_x / _that.gird.width) + 1
         // console.log(`of_x:${of_x},week:${moveWeek}`)
@@ -538,7 +549,7 @@ export default {
       });
       //监听：节点拖拽完成
       this.graph.on("node:dragend", e => {
-        if (e.item._cfg.model.method === 'block') return;
+        if ((e.item._cfg.model.method === 'block') || !_that.editMode) return;
         const modelItem = {
           configId: this.configId,
           nodeId: e.item._cfg.model.id,
@@ -546,11 +557,11 @@ export default {
           nodeY: e.item._cfg.model.y
         };
         console.log("node拖拽完成:", modelItem);
-        _that.graph.updateBehavior(
-          "drag-canvas",
-          { allowDragOnItem: true },
-          "default"
-        );
+        // _that.graph.updateBehavior(
+        //   "drag-canvas",
+        //   { allowDragOnItem: true },
+        //   "default"
+        // );
         _that.nodeMoveList = getUpdateNodesPositionList(
           _that.nodeMoveList,
           modelItem
@@ -932,6 +943,54 @@ export default {
       });
     },
     /**
+    * 模式切换
+    */
+    editChange (e) {
+      if (e) {
+        //编辑模式
+        this.$message.warning("切换为【编辑模式】");
+        _that.graph.updateBehavior(
+          "drag-canvas",
+          { allowDragOnItem: false },
+          "default"
+        );
+        _that.graph.updateBehavior(
+          "drag-node",
+          {
+            shouldBegin: e => {
+              const model = e.item.getModel();
+              if (model.method === "block" || model.method === "line") {
+                return false;
+              }
+              return true;
+            }
+          },
+          "default"
+        );
+      } else {
+        //浏览模式
+        this.$message.warning("切换为【浏览模式】");
+        _that.graph.updateBehavior(
+          "drag-canvas",
+          { allowDragOnItem: true },
+          "default"
+        );
+        _that.graph.updateBehavior(
+          "drag-node",
+          {
+            shouldBegin: e => {
+              const model = e.item.getModel();
+              if (model.method === "block" || model.method === "line") {
+                return false;
+              }
+              return false;
+            }
+          },
+          "default"
+        );
+      }
+    },
+    /**
      * 部门点击过滤
      */
     depClick (depName) {
@@ -1120,6 +1179,7 @@ export default {
      */
     initConfig () {
       console.log('配置：', CONFIG)
+      this.version = CONFIG.base_version || '0.0.0'
       this.gird = {
         width: CONFIG.grid_width_flow,
         height: CONFIG.grid_height_flow,

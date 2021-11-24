@@ -104,16 +104,8 @@ function getTipHTML (node) {
         <div class="record-line">
           <div class="title bold">会话记录：</div>
           <div class="record-box">
-            <div class="single-record">
-              <span class="bold">赵竹林</span>
-              <span class="ml5">2021-10-21 09:00：</span>
-              <span class="normal ml5">文字内容+图片内容+xxxxxxx</span>
-            </div>
-            <div class="single-record">
-              <span class="bold">刘子扬</span>
-              <span class="ml5">2021-10-21 09:10：</span>
-              <span class="normal ml5">文字内容1+图片内容1+xxxxxxx1</span>
-            </div>
+          ${getMessagePart(info.messages || [])}
+            
           </div>
         </div>
       </div>
@@ -199,6 +191,25 @@ function getFilePart (fileArray) {
     for (let i = 0; i < fileArray.length; i++) {
       content += '<span class="single-file link">' + fileArray[i].fileName || none + '</span>'
       if (i < fileArray.length - 1) {
+        content += '<br/>'
+      }
+    }
+  } else {
+    content = '暂无数据'
+  }
+  return content
+}
+
+function getMessagePart (msgArray) {
+  let content = ''
+  if (msgArray.length) {
+    for (let i = 0; i < msgArray.length; i++) {
+      content += `<div class="single-record">
+                    <span class="bold">${msgArray[i].sourceName || none}</span>
+                    <span class="ml5">${msgArray[i].createTime || none}：</span>
+                    <span class="normal ml5">${msgArray[i].msg || none}</span>
+                  </div >`
+      if (i < msgArray.length - 1) {
         content += '<br/>'
       }
     }

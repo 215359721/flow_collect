@@ -236,7 +236,7 @@ const tool_node = (node) => {
             marginTop: 17,
             marginLeft: -30,
             fontSize:12,
-            fill: '#fff'}}draggable="true">
+            fill: '#fff'}} draggable="true">
             ${node.label}
           </text>
         </rect>
@@ -256,8 +256,8 @@ const mark_point = (node) => {
         fill:${POINT_COLOR},
         marginTop:-3,
         marginLeft:${WIDTH - offset_x},
-      }}>
-        <text style={{fill:'#5a5a5a',textAlign: 'center',fontSize:12,marginTop:-10,marginLeft:${WIDTH - offset_x},}}>${node.notes.length}</text>
+      }} draggable="true">
+        <text style={{fill:'#5a5a5a',textAlign: 'center',fontSize:12,marginTop:-10,marginLeft:${WIDTH - offset_x},}} draggable="true">${node.notes.length}</text>
       </circle>
     `
   }
