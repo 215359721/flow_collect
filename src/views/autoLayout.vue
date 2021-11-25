@@ -100,8 +100,8 @@ export default {
       },
       sourceData: {}, //数据源
       graph: null, //graph全局对象
-      showType: "normal", //显示模式（all、normal、simple）
-      curDataSource: "mock", //当前数据源
+      showType: "simple", //显示模式（all、normal、simple）
+      curDataSource: "real", //当前数据源
       rankDir: "LR", //当前布局方式（LR-从左至右；TB-从上到下）
       canvasCenter: [0, 0], //画布中心
       align: undefined, //当前对齐方式

@@ -10,7 +10,7 @@ const service = axios.create({
   // axios中请求配置有baseURL选项，表示请求URL公共部分
   baseURL: SERVER_CONF.base_ip_flow,
   // 超时
-  timeout: 10000,
+  timeout: SERVER_CONF.base_timeout * 1000,
   loading: true,
   validateStatus: function (status) {
 

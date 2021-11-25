@@ -17,11 +17,13 @@ const HEIGHT = 335
 const HEAD_HEIGHT = 25
 const CONTENT_HEIGHT = 310 //详细模式内容高度
 const CONTENT_HEIGHT_GEN = 100 //概要模式内容高度
-const WIDTH_SIM = 160 //精简模式内容宽度
-const CONTENT_HEIGHT_SIM = 60 //精简模式内容高度
+const WIDTH_SIM = 150 //精简模式内容宽度
+const CONTENT_HEIGHT_SIM = 50 //精简模式内容高度
 const RADIUS = 15
 let lightCol = '', mainCol = '', bgCol = '', nodeName = ''
-
+const getName = (node) => {
+  return `${node.creatorName || 'XXX'}`
+}
 const getCurColor = (node) => {
   switch (node.icon) {
     case 'task':
@@ -37,6 +39,7 @@ const getCurColor = (node) => {
       nodeName = '会议'
       break;
     case 'chat':
+    case 'Im':
     case 'im':
       lightCol = CHAT_LIGHT_COL
       mainCol = CHAT_MAIN_COL
@@ -253,7 +256,7 @@ const task_simple = (node) => {
             width:40,
             height:40,
             marginLeft:10,
-            marginTop:10,
+            marginTop:5,
           }}></image>
         </rect>
         <rect style={{
@@ -262,8 +265,8 @@ const task_simple = (node) => {
           next: inline,
           radius: ${RADIUS},
         }}draggable="true">
-          <text style={{marginLeft: 5,fill: '#fff',marginTop: 10,fontWeight:bold,}}draggable="true">发起人名</text>
-          <text style={{marginLeft: 5,fill: '#fff',marginTop: 15,}}draggable="true">${node.label}</text>=
+          <text style={{marginLeft: 5,fill: '#fff',marginTop: 5,fontWeight:bold,}}draggable="true">${getName(node)}</text>
+          <text style={{marginLeft: 5,fill: '#fff',marginTop: 10,}}draggable="true">${node.label}</text>=
         </rect>
       </rect>
     </group>`
@@ -338,7 +341,7 @@ const meet_simple = (node) => {
             width:40,
             height:40,
             marginLeft:10,
-            marginTop:10,
+            marginTop:5,
           }}></image>
         </rect>
         <rect style={{
@@ -347,8 +350,8 @@ const meet_simple = (node) => {
           next: inline,
           radius: ${RADIUS},
         }}draggable="true">
-          <text style={{marginLeft: 5,fill: '#fff',marginTop: 10,fontWeight:bold,}}draggable="true">发起人名</text>
-          <text style={{marginLeft: 5,fill: '#fff',marginTop: 15,}}draggable="true">${node.label}</text>=
+          <text style={{marginLeft: 5,fill: '#fff',marginTop: 5,fontWeight:bold,}}draggable="true">${getName(node)}</text>
+          <text style={{marginLeft: 5,fill: '#fff',marginTop: 10,}}draggable="true">${node.label}</text>=
         </rect>
       </rect>
     </group>`
@@ -420,7 +423,7 @@ const chat_simple = (node) => {
             width:40,
             height:40,
             marginLeft:10,
-            marginTop:10,
+            marginTop:5,
           }}></image>
         </rect>
         <rect style={{
@@ -429,8 +432,8 @@ const chat_simple = (node) => {
           next: inline,
           radius: ${RADIUS},
         }}draggable="true">
-          <text style={{marginLeft: 5,fill: '#fff',marginTop: 10,fontWeight:bold,}}draggable="true">发起人名</text>
-          <text style={{marginLeft: 5,fill: '#fff',marginTop: 15,}}draggable="true">${node.label}</text>=
+          <text style={{marginLeft: 5,fill: '#fff',marginTop: 5,fontWeight:bold,}}draggable="true">${getName(node)}</text>
+          <text style={{marginLeft: 5,fill: '#fff',marginTop: 10,}}draggable="true">${node.label}</text>=
         </rect>
       </rect>
     </group>`
@@ -502,7 +505,7 @@ const tool_simple = (node) => {
             width:40,
             height:40,
             marginLeft:10,
-            marginTop:10,
+            marginTop:5,
           }}></image>
         </rect>
         <rect style={{
@@ -511,8 +514,8 @@ const tool_simple = (node) => {
           next: inline,
           radius: ${RADIUS},
         }}draggable="true">
-          <text style={{marginLeft: 5,fill: '#fff',marginTop: 10,fontWeight:bold,}}draggable="true">发起人名</text>
-          <text style={{marginLeft: 5,fill: '#fff',marginTop: 15,}}draggable="true">${node.label}</text>=
+          <text style={{marginLeft: 5,fill: '#fff',marginTop: 5,fontWeight:bold,}}draggable="true">${getName(node)}</text>
+          <text style={{marginLeft: 5,fill: '#fff',marginTop: 10,}}draggable="true">${node.label}</text>=
         </rect>
       </rect>
     </group>`

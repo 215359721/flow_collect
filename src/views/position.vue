@@ -61,6 +61,15 @@
         >保存更改</el-button>
       </div>
       <el-radio-group
+        v-model="nodeStyle"
+        size="mini"
+        style="margin-top:5px;"
+        @change="changeNodeStyle"
+      >
+        <el-radio-button label="old">样式1</el-radio-button>
+        <el-radio-button label="new">样式2</el-radio-button>
+      </el-radio-group>
+      <el-radio-group
         v-if="false"
         v-model="dataType"
         size="mini"
@@ -117,7 +126,7 @@
     <div
       class="timeBar-area un-sel"
       v-if="timeBarData.length"
-      :style="{height:timeBarHei+'px',top:(win.height-timeBarHei)+'px'}"
+      :style="{height:timeBarHei+'px',top:(canvas.height+canvas.offset_hei)+'px'}"
     >
       <el-slider
         v-model="curWeek"
@@ -222,6 +231,7 @@ import insertCss from "insert-css";
 import getTooTipHTML from "../data/tooTip";
 import getTipHTML from "../data/toolTipNew"
 import nodeNewUI from '../data/newNode/cust_node_newUI'
+import layoutNewUI from '../data/newNode/layout_node_newUI'
 import custNode from "../data/newNode/cust_node";
 import testData from "../mock/testData";
 import innerCss from "../data/insertCss";
@@ -252,11 +262,13 @@ export default {
       rightMenu: null, //右键菜单
       //-------------------
       version: '',//版本
+      zoom: 1.0,
       start_x: 100, //起始点X
       node_wid: 150, //单个节点宽度
       node_hei: 50, //单个节点高度
       curOptNode: null, //当前操作的节点
       dataType: "real", //数据形式
+      nodeStyle: "old", //节点样式
       editMode: false,//编辑模式开关
       configId: 1, //配置id（1-内网台式机，2-会议室大屏）
       //部门
@@ -412,7 +424,7 @@ export default {
         plugins: [this.toolTip, this.rightMenu],
         //默认节点设置
         defaultNode: {
-          size: [150, 50],
+          size: [100, 50],
           color: "#000",
           style: {
             cursor: "pointer",
@@ -752,6 +764,13 @@ export default {
       that.graph.setAutoPaint(true);
     },
     /**
+     * 切换节点样式
+     */
+    changeNodeStyle (val) {
+      localStorage.setItem('node-style', val)
+      this.reloadPage()
+    },
+    /**
      * 数据形式改变
      */
     async changeDataType (val) {
@@ -840,14 +859,14 @@ export default {
       data.nodes.forEach(element => {
         //节点样式
         if (element.id <= 20 || element.icon === "task") {
-          element.type = isNewUI ? "custNode_task_new" : "custNode_task";
+          element.type = isNewUI ? ((_that.nodeStyle === "old") ? "custNode_task_new" : "layoutNode_task_new") : "custNode_task";
         } else if (
           (element.id > 20 && element.id <= 99) ||
           element.icon === "MeetingInfo"
         ) {
-          element.type = isNewUI ? "custNode_meet_new" : "custNode_meet";
+          element.type = isNewUI ? ((_that.nodeStyle === "old") ? "custNode_meet_new" : "layoutNode_meet_new") : "custNode_meet";
         } else if (element.icon === "im" || element.icon === "Im") {
-          element.type = isNewUI ? "custNode_chat_new" : "custNode_chat";
+          element.type = isNewUI ? ((_that.nodeStyle === "old") ? "custNode_chat_new" : "layoutNode_chat_new") : "custNode_chat";
         } else if (element.method === "line") {
           element.type = isNewUI ? "custNode_line_new" : "custNode_line";
         } else if (element.method === "block") {
@@ -855,12 +874,14 @@ export default {
         } else if (element.method === "mark") {
           element.type = "custNode_mark";
         } else {
-          element.type = isNewUI ? "custNode_tool_new" : "custNode_chat";
+          element.type = isNewUI ? ((_that.nodeStyle === "old") ? "custNode_tool_new" : "layoutNode_tool_new") : "custNode_chat";
         }
         //节点坐标微调
         if (element.y > 0) {
           element.y += 0;
+          element.y = element.y * _that.zoom
         }
+
         //完成标识
         if (element.endDate === "") {
           element.unfinish = false;
@@ -940,6 +961,19 @@ export default {
       });
       G6.registerNode("custNode_block_new", {
         jsx: nodeNewUI.block_node
+      });
+      //新UI-layout
+      G6.registerNode("layoutNode_task_new", {
+        jsx: layoutNewUI.task_simple
+      });
+      G6.registerNode("layoutNode_meet_new", {
+        jsx: layoutNewUI.meet_simple
+      });
+      G6.registerNode("layoutNode_chat_new", {
+        jsx: layoutNewUI.chat_simple
+      });
+      G6.registerNode("layoutNode_tool_new", {
+        jsx: layoutNewUI.tool_simple
       });
     },
     /**
@@ -1071,8 +1105,8 @@ export default {
      * 移动到指定点(横坐标)
      */
     moveTo (x, sec = 1) {
-      const offsetX = 28
-      const offsetY = 10
+      const offsetX = CONFIG.move_offset_x
+      const offsetY = CONFIG.move_offset_y
       this.graph.moveTo(0 - (x - 197 + offsetX), 0 - offsetY, true, {
         duration: sec * 1000
       });
@@ -1155,10 +1189,13 @@ export default {
       this.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 0;
       this.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10;
       this.canvas.width = this.win.width;
+      // this.zoom = this.win.height / 988
+      this.gird.height = this.gird.height * this.zoom
       // this.canvas.height = this.win.height - this.timeBarHei
       this.canvas.height = this.dep_num * this.gird.height;
-      console.log("winWid:" + this.win.width + ",winHei:" + this.win.height);
-      console.log("CanvasWid:" + this.canvas.width + ",CanvasHei:" + this.canvas.height);
+      console.log("winWid:" + this.win.width + ",winHei:" + this.win.height + ",zoom:" + this.zoom);
+      console.log("CanvasWid:" + this.canvas.width + ",CanvasHei:" + this.canvas.height + ",zoom:" + this.zoom);
+
       this.initMenu();
       this.initToolBar();
       this.initMiniMap();
@@ -1173,6 +1210,8 @@ export default {
         console.log('窗口大小改变:' + newWidth + '*' + newHeight)
         _that.graph.changeSize(newWidth, newHeight)
       }, 500))
+      //读取配置
+      this.nodeStyle = localStorage.getItem('node-style') || 'old'
     },
     /**
      * 初始化配置

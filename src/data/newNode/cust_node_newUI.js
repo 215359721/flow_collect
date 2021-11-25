@@ -314,5 +314,12 @@ const block_node = (node) => {
     `
   return jsx
 }
-const node = { task_node, chat_node, meet_node, tool_node, line_node, block_node }
+const node = {
+  task_node,
+  chat_node,
+  meet_node,
+  tool_node,
+  line_node,
+  block_node,
+}
 export default node
