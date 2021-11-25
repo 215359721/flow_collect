@@ -21,6 +21,7 @@ const WIDTH_SIM = 150 //精简模式内容宽度
 const CONTENT_HEIGHT_SIM = 50 //精简模式内容高度
 const RADIUS = 15
 let lightCol = '', mainCol = '', bgCol = '', nodeName = ''
+const defaulIcon = require('../../assets/image/newUI/defaultIcon.png')
 const getName = (node) => {
   return `${node.creatorName || 'XXX'}`
 }
@@ -252,7 +253,7 @@ const task_simple = (node) => {
           radius: ${RADIUS},
         }}draggable="true">
           <image style={{
-            img:${require('../../assets/image/newUI/defaultHead.png')},
+            img:${node.detailInfo.appIcon || defaulIcon},
             width:40,
             height:40,
             marginLeft:10,
@@ -337,7 +338,7 @@ const meet_simple = (node) => {
           radius: ${RADIUS},
         }}draggable="true">
           <image style={{
-            img:${require('../../assets/image/newUI/defaultUser1.png')},
+            img:${node.detailInfo.appIcon || defaulIcon},
             width:40,
             height:40,
             marginLeft:10,
@@ -419,7 +420,7 @@ const chat_simple = (node) => {
           radius: ${RADIUS},
         }}draggable="true">
           <image style={{
-            img:${require('../../assets/image/newUI/defaultUser3.png')},
+            img:${node.detailInfo.appIcon || defaulIcon},
             width:40,
             height:40,
             marginLeft:10,
@@ -501,7 +502,7 @@ const tool_simple = (node) => {
           radius: ${RADIUS},
         }}draggable="true">
           <image style={{
-            img:${require('../../assets/image/newUI/defaultUser4.png')},
+            img:${node.detailInfo.appIcon || defaulIcon},
             width:40,
             height:40,
             marginLeft:10,

@@ -609,6 +609,9 @@ export default {
         _that.saveDisabled =
           _that.addEdgesList.length === 0 && _that.nodeMoveList.length === 0;
       });
+      this.graph.on("tooltipchange", (item) => {
+        console.log(item)
+      })
     },
     filtNodeAndEdge (graph, item) {
       graph.getEdges().forEach(function (edge) {
@@ -641,12 +644,14 @@ export default {
           } else if (item.notes !== "") {
             con = `
             <div class="left-menu">
+              <button class="btn btn-small submit bounce-left" fnname="copynode">显示节点ID</button>
               <button class="btn btn-small submit bounce-left" fnname="showMark">查看批注</button>
               <button class="btn btn-small submit bounce-left" fnname="showNodeRelation">查看关系详情</button>
             </div>`;
           } else {
             con = `
             <div class="left-menu">
+              <button class="btn btn-small submit bounce-left" fnname="copynode">显示节点ID</button>
               <button class="btn btn-small submit bounce-left" fnname="addMark">添加批注</button>
               <button class="btn btn-small submit bounce-left" fnname="showNodeRelation">查看关系详情</button>
             </div>`;
@@ -663,6 +668,9 @@ export default {
           });
           console.log("curOptNode:", _that.curOptNode);
           switch (target.getAttribute("fnname")) {
+            case "copynode":
+              alert("节点ID:" + cur.id)
+              break;
             case "addMark":
               _that.addMarkShow = true;
               break;

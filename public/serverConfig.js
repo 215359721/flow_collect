@@ -1,6 +1,6 @@
 
 //当前部署版本号
-var base_version = '11_25_04'
+var base_version = '11_25_06'
 //网络请求超时时间
 var base_timeout = 20
 //流程地址

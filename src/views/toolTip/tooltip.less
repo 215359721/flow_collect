@@ -1,4 +1,4 @@
-@WIDTH:280px;
+@WIDTH:300px;
 @HEIGHT:335px;
 @HEAD_HEIGHT:25px;
 @CONTENT_HEIGHT:310px;
@@ -31,19 +31,57 @@
     flex-direction: column;
     font-size: 12px;
     color: #777;
-    //普通描述行
-    .common-line{
+    .top-box{
       width: 100%;
-      line-height: 25px;
       display: flex;
-      .title{
+      .left{
         width: 30%;
-        text-align-last: justify;
-        // background-color: rgb(230, 255, 204);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        // background-color: pink;
+        .big-head{
+          width: 75px;
+          height: 75px;
+          border-radius: 5px;
+        }
+        .user-name{
+          margin-top: 5px;
+          font-weight: bold;
+          font-size: 14px;
+        }
       }
-      .desc{
+      .right{
         width: 70%;
-        // background-color:rgb(255, 233, 193);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        // background-color: rgb(222, 187, 255);
+        //普通描述行
+        .common-line{
+          width: 100%;
+          line-height: 25px;
+          display: flex;
+          flex-direction: row;
+          
+          .title{
+            width: 35%;
+            text-align-last: justify;
+            // background-color: rgb(230, 255, 204);
+          }
+          .desc{
+            width: 65%;
+            white-space:nowrap;
+            text-overflow:ellipsis;
+            overflow:hidden;
+            // background-color:rgb(255, 233, 193);
+            .status{
+              width: 13px;
+              height: 13px;
+              margin-right: 5px;
+            }
+          }
+        }
       }
     }
     //任务状态

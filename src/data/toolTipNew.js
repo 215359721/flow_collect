@@ -1,4 +1,5 @@
 const none = '暂无'
+const defaultHead = require('../assets/image/newUI/bigHead.png')
 function getTipHTML (node) {
   // console.log('getTipHTML', node)
   const info = node.detailInfo || {}
@@ -6,60 +7,37 @@ function getTipHTML (node) {
   const task_html = `<div class="tip-div">
       <div class="tip-head task-head-bg task-border">任务</div>
       <div class="tip-content task-content-bg task-border">
-        <div class="common-line lineheight20">
-          <div class="title">任务名称：</div>
-          <div class="desc bold">${info.name || none}</div>
-        </div>
-        <div class="common-line lineheight20">
-          <div class="title">创建人：</div>
-          <div class="desc normal">${node.creatorName || none}</div>
-        </div>
-        <div class="common-line lineheight20">
-          <div class="title">截止时间：</div>
-          <div class="desc normal">${info.endTime || none}</div>
-        </div>
-        <div class="common-line lineheight20">
-          <div class="title">创建时间：</div>
-          <div class="desc normal">${info.startTime || none}</div>
-        </div>
-        <div class="status-line">
-          <div class="each-box">
-            <div class="head-img">
-              <img
-                class="status-image"
-                src=${require('../assets/image/newUI/defaultHead.png')}
-              >
-            </div>
-            <div class="status-text">
-              <div class="bold">${info.executor || none}</div>
-              <div class="normal size10">负责人</div>
-            </div>
+        
+        <div class="top-box">
+          <div class="left">
+            <img class="big-head" src="${node.creatorPhotoUrl || defaultHead}">
+            <div class="user-name bold">${node.creatorName || none}</div>
           </div>
-          <div class="each-box">
-            <div class="head-img">
-              <img
-                class="status-image"
-                src=${trans4Status(info.status)}
-              >
+          <div class="right">
+            <div class="common-line lineheight20">
+              <div class="title">任务名称：</div>
+              <div class="desc bold">${info.name || none}</div>
             </div>
-            <div class="status-text">
-              <div class="bold">${info.status || none}</div>
-              <div class="normal size10">当前状态</div>
+            <div class="common-line lineheight20">
+              <div class="title">创建人：</div>
+              <div class="desc normal">${node.creatorName || none}</div>
             </div>
-          </div>
-          <div class="each-box">
-            <div class="head-img">
-              <img
-                class="status-image"
-                src=${trans4Type(info.priority)}
-              >
+            <div class="common-line lineheight20">
+              <div class="title">截止时间：</div>
+              <div class="desc normal">${info.endTime || none}</div>
             </div>
-            <div class="status-text">
-              <div class="bold">${info.priority || none}</div>
-              <div class="normal size10">优先级</div>
+            <div class="common-line lineheight20">
+              <div class="title">创建时间：</div>
+              <div class="desc normal">${info.startTime || none}</div>
+            </div>
+            <div class="common-line lineheight20">
+              <div class="title">当前状态：</div>
+              <div class="desc normal">
+              <img class="status" src=${trans4Status(info.status)}>${info.status || none}</div>
             </div>
           </div>
         </div>
+
         <div class="sep-line task-line"></div>
         <div class="file-line">
           <div class="title bold">输入物：</div>
@@ -82,18 +60,28 @@ function getTipHTML (node) {
   const chat_html = `<div class="tip-div">
       <div class="tip-head chat-head-bg chat-border">即时通讯</div>
       <div class="tip-content chat-content-bg chat-border">
-        <div class="common-line">
-          <div class="title">参与人：</div>
-          <div class="desc bold">${info.executor || none}</div>
+
+        <div class="top-box">
+          <div class="left">
+            <img class="big-head" src="${node.creatorPhotoUrl || defaultHead}">
+            <div class="user-name bold">${node.creatorName || none}</div>
+          </div>
+          <div class="right">
+            <div class="common-line">
+              <div class="title">参与人：</div>
+              <div class="desc bold">${info.executor || none}</div>
+            </div>
+            <div class="common-line">
+              <div class="title">开始时间：</div>
+              <div class="desc normal">${info.startTime || none}</div>
+            </div>
+            <div class="common-line">
+              <div class="title">结束时间：</div>
+              <div class="desc normal">${info.endTime || none}</div>
+            </div>
+          </div>
         </div>
-        <div class="common-line">
-          <div class="title">开始时间：</div>
-          <div class="desc normal">${info.startTime || none}</div>
-        </div>
-        <div class="common-line">
-          <div class="title">结束时间：</div>
-          <div class="desc normal">${info.endTime || none}</div>
-        </div>
+
         <div class="sep-line chat-line"></div>
         <div class="file-line">
           <div class="title bold">输入物：</div>
@@ -113,22 +101,32 @@ function getTipHTML (node) {
   const meet_html = `<div class="tip-div">
       <div class="tip-head meet-head-bg meet-border">会议</div>
       <div class="tip-content meet-content-bg meet-border">
-        <div class="common-line">
-          <div class="title">会议主题：</div>
-          <div class="desc bold">${info.name || none}</div>
+
+        <div class="top-box">
+          <div class="left">
+            <img class="big-head" src="${node.creatorPhotoUrl || defaultHead}">
+            <div class="user-name bold">${node.creatorName || none}</div>
+          </div>
+          <div class="right">
+            <div class="common-line">
+              <div class="title">会议主题：</div>
+              <div class="desc bold">${info.name || none}</div>
+            </div>
+            <div class="common-line">
+              <div class="title">密级：</div>
+              <div class="desc normal">${trans4Secret(info.secret)}</div>
+            </div>
+            <div class="common-line">
+              <div class="title">参与人：</div>
+              <div class="desc normal">${info.executor || none}</div>
+            </div>
+            <div class="common-line">
+              <div class="title">参会时间：</div>
+              <div class="desc normal">${info.startTime || none}</div>
+            </div>
+          </div>
         </div>
-        <div class="common-line">
-          <div class="title">密级：</div>
-          <div class="desc normal">${trans4Secret(info.secret)}</div>
-        </div>
-        <div class="common-line">
-          <div class="title">参与人：</div>
-          <div class="desc normal">${info.executor || none}</div>
-        </div>
-        <div class="common-line">
-          <div class="title">参会时间：</div>
-          <div class="desc normal">${info.startTime || none}</div>
-        </div>
+        
         <div class="sep-line meet-line"></div>
         <div class="file-line">
           <div class="title bold">会议文件：</div>
@@ -147,18 +145,28 @@ function getTipHTML (node) {
   const tool_html = `<div class="tip-div">
       <div class="tip-head tool-head-bg tool-border">工具</div>
       <div class="tip-content tool-content-bg tool-border">
-        <div class="common-line">
-          <div class="title">工具名称：</div>
-          <div class="desc bold">word|excel</div>
+
+        <div class="top-box">
+          <div class="left">
+            <img class="big-head" src="${node.creatorPhotoUrl || defaultHead}">
+            <div class="user-name bold">${node.creatorName || none}</div>
+          </div>
+          <div class="right">
+            <div class="common-line">
+              <div class="title">工具名称：</div>
+              <div class="desc bold">word|excel</div>
+            </div>
+            <div class="common-line">
+              <div class="title">创建人：</div>
+              <div class="desc normal">赵竹林</div>
+            </div>
+            <div class="common-line">
+              <div class="title">创建时间：</div>
+              <div class="desc normal">2021-10-01 09:00:00</div>
+            </div>
+          </div>
         </div>
-        <div class="common-line">
-          <div class="title">创建人：</div>
-          <div class="desc normal">赵竹林</div>
-        </div>
-        <div class="common-line">
-          <div class="title">创建时间：</div>
-          <div class="desc normal">2021-10-01 09:00:00</div>
-        </div>
+
         <div class="sep-line tool-line"></div>
         <div class="desc-line">
           <div class="title bold">工具介绍：</div>
@@ -249,6 +257,7 @@ function trans4Status (status) {
   return image
 }
 
+// eslint-disable-next-line no-unused-vars
 function trans4Type (priority) {
   let image = null
   switch (priority) {

@@ -96,12 +96,34 @@ const data = {
       },
       {
         "deptName": "十二所",
+        "detailInfo": {
+          "innerId": "d5f15f9d-babe-4501-8514-45f358602d01",
+          "appIcon": "https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fpic.51yuansu.com%2Fpic2%2Fcover%2F00%2F33%2F15%2F58111732d4c50_610.jpg&refer=http%3A%2F%2Fpic.51yuansu.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1640426502&t=c214d791625776e18f8abc7a152c8a8bhttp://api.bjsasc.com/aspfile/file/1.0/files/Q8ea005d07601000",
+          "description": "300001",
+          "name": "任务111300001",
+          "executor": "华语",
+          "executorIcon": "https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fpic.51yuansu.com%2Fpic2%2Fcover%2F00%2F33%2F15%2F58111732d4c50_610.jpg&refer=http%3A%2F%2Fpic.51yuansu.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1640426502&t=c214d791625776e18f8abc7a152c8a8b",
+          "status": "未开始",
+          "startTime": "2021-11-13 08:00:00",
+          "endTime": "2021-11-20 23:59:59",
+          "inPuts": [
+            {
+              "fileId": "Q8eadcfbd1601000",
+              "fileName": "vscode常用快捷键.txt（公开）",
+              "fileType": "",
+              "fileCreator": "Q8dce7510d601018",
+              "fileCreateTime": "2021-11-13 09:21:31"
+            }
+          ],
+          "outPuts": [],
+          "type": "普通任务",
+          "priority": "普通"
+        },
         "notes": "",
         "endDate": "",
         "icon": "task",
         "deptId": "12",
         "creatorName": "赵竹林",
-        "detailInfo": "",
         "label": "测试33",
         "beginDate": "2021-10-14",
         "creatorPhotoUrl": "",

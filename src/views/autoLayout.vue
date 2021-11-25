@@ -529,6 +529,9 @@ export default {
      * 初始化节点
      */
     initData (data) {
+      if (data.nodes.length <= 0) {
+        alert('没有与之关联的节点数据!')
+      }
       data.nodes.forEach(element => {
         // element.type = 'image'
         element.img = require("../assets/icon/" +

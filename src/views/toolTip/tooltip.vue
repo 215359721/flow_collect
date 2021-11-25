@@ -4,23 +4,41 @@
     <div class="tip-div">
       <div class="tip-head task-head-bg task-border">任务</div>
       <div class="tip-content task-content-bg task-border">
-        <div class="common-line lineheight20">
-          <div class="title">任务名称：</div>
-          <div class="desc bold">章节编写任务</div>
+        <div class="top-box">
+          <div class="left">
+            <img
+              class="big-head"
+              :src="require('../../assets/image/newUI/bigHead.png')"
+            >
+            <div class="user-name bold">张玲云</div>
+          </div>
+          <div class="right">
+            <div class="common-line lineheight20">
+              <div class="title">任务名称：</div>
+              <div class="desc bold">章节编写任务</div>
+            </div>
+            <div class="common-line lineheight20">
+              <div class="title">创建人：</div>
+              <div class="desc normal">赵竹林</div>
+            </div>
+            <div class="common-line lineheight20">
+              <div class="title">截止时间：</div>
+              <div class="desc normal">2021-10-31 18:30:00</div>
+            </div>
+            <div class="common-line lineheight20">
+              <div class="title">创建时间：</div>
+              <div class="desc normal">2021-10-01 09:00:00</div>
+            </div>
+            <div class="common-line lineheight20">
+              <div class="title">当前状态：</div>
+              <div class="desc normal"><img
+                  class="status"
+                  :src="require('../../assets/icon/status/prepare.png')"
+                >未开始</div>
+            </div>
+          </div>
         </div>
-        <div class="common-line lineheight20">
-          <div class="title">创建人：</div>
-          <div class="desc normal">赵竹林</div>
-        </div>
-        <div class="common-line lineheight20">
-          <div class="title">截止时间：</div>
-          <div class="desc normal">2021-10-31 18:30:00</div>
-        </div>
-        <div class="common-line lineheight20">
-          <div class="title">创建时间：</div>
-          <div class="desc normal">2021-10-01 09:00:00</div>
-        </div>
-        <div class="status-line">
+        <!-- <div class="status-line">
           <div class="each-box">
             <div class="head-img">
               <img
@@ -57,7 +75,7 @@
               <div class="normal size10">优先级</div>
             </div>
           </div>
-        </div>
+        </div> -->
         <div class="sep-line task-line" />
         <div class="file-line">
           <div class="title bold">输入物：</div>
@@ -83,21 +101,32 @@
     <div class="tip-div">
       <div class="tip-head meet-head-bg meet-border">会议</div>
       <div class="tip-content meet-content-bg meet-border">
-        <div class="common-line">
-          <div class="title">会议主题：</div>
-          <div class="desc bold">会议主题会议名称</div>
-        </div>
-        <div class="common-line">
-          <div class="title">密级：</div>
-          <div class="desc normal">一般</div>
-        </div>
-        <div class="common-line">
-          <div class="title">参与会：</div>
-          <div class="desc normal">王丽桥、赵竹林、刘子扬</div>
-        </div>
-        <div class="common-line">
-          <div class="title">参会时间：</div>
-          <div class="desc normal">2021-10-01 09:00:00</div>
+        <div class="top-box">
+          <div class="left">
+            <img
+              class="big-head"
+              :src="require('../../assets/image/newUI/bigHead.png')"
+            >
+            <div class="user-name bold">张玲云</div>
+          </div>
+          <div class="right">
+            <div class="common-line">
+              <div class="title">会议主题：</div>
+              <div class="desc bold">会议主题会议名称</div>
+            </div>
+            <div class="common-line">
+              <div class="title">密级：</div>
+              <div class="desc normal">一般</div>
+            </div>
+            <div class="common-line">
+              <div class="title">参与会：</div>
+              <div class="desc normal">王丽桥、赵竹林、刘子扬</div>
+            </div>
+            <div class="common-line">
+              <div class="title">参会时间：</div>
+              <div class="desc normal">2021-10-01 09:00:00</div>
+            </div>
+          </div>
         </div>
         <div class="sep-line meet-line" />
         <div class="file-line">
@@ -124,17 +153,28 @@
     <div class="tip-div">
       <div class="tip-head chat-head-bg chat-border">即时通讯</div>
       <div class="tip-content chat-content-bg chat-border">
-        <div class="common-line">
-          <div class="title">参与人：</div>
-          <div class="desc bold">王丽桥、赵竹林</div>
-        </div>
-        <div class="common-line">
-          <div class="title">开始时间：</div>
-          <div class="desc normal">2021-10-21 09:00:00</div>
-        </div>
-        <div class="common-line">
-          <div class="title">结束时间：</div>
-          <div class="desc normal">2021-10-21 09:30:00</div>
+        <div class="top-box">
+          <div class="left">
+            <img
+              class="big-head"
+              :src="require('../../assets/image/newUI/bigHead.png')"
+            >
+            <div class="user-name bold">张玲云</div>
+          </div>
+          <div class="right">
+            <div class="common-line">
+              <div class="title">参与人：</div>
+              <div class="desc bold">王丽桥、赵竹林</div>
+            </div>
+            <div class="common-line">
+              <div class="title">开始时间：</div>
+              <div class="desc normal">2021-10-21 09:00:00</div>
+            </div>
+            <div class="common-line">
+              <div class="title">结束时间：</div>
+              <div class="desc normal">2021-10-21 09:30:00</div>
+            </div>
+          </div>
         </div>
         <div class="sep-line chat-line" />
         <div class="file-line">
@@ -165,18 +205,30 @@
     <div class="tip-div">
       <div class="tip-head tool-head-bg tool-border">工具</div>
       <div class="tip-content tool-content-bg tool-border">
-        <div class="common-line">
-          <div class="title">工具名称：</div>
-          <div class="desc bold">word|excel</div>
+        <div class="top-box">
+          <div class="left">
+            <img
+              class="big-head"
+              :src="require('../../assets/image/newUI/bigHead.png')"
+            >
+            <div class="user-name bold">张玲云</div>
+          </div>
+          <div class="right">
+            <div class="common-line">
+              <div class="title">工具名称：</div>
+              <div class="desc bold">word|excel</div>
+            </div>
+            <div class="common-line">
+              <div class="title">创建人：</div>
+              <div class="desc normal">赵竹林</div>
+            </div>
+            <div class="common-line">
+              <div class="title">创建时间：</div>
+              <div class="desc normal">2021-10-01 09:00:00</div>
+            </div>
+          </div>
         </div>
-        <div class="common-line">
-          <div class="title">创建人：</div>
-          <div class="desc normal">赵竹林</div>
-        </div>
-        <div class="common-line">
-          <div class="title">创建时间：</div>
-          <div class="desc normal">2021-10-01 09:00:00</div>
-        </div>
+
         <div class="sep-line tool-line" />
         <div class="desc-line">
           <div class="title bold">工具介绍：</div>
