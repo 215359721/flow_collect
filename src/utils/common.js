@@ -1,3 +1,4 @@
+import G6 from "@antv/g6";
 //获得已更新节点集合
 const getUpdateNodesPositionList = function (moveList, curMoveNode) {
   if (moveList.length) {
@@ -45,6 +46,31 @@ const isDuringDate = function (beginDateStr, endDateStr) {
   return false;
 }
 
+//根据指定宽度截取长度
+const fittingString = (str, maxWidth, fontSize) => {
+  const ellipsis = '...';
+  const ellipsisLength = G6.Util.getTextSize(ellipsis, fontSize)[0];
+  let currentWidth = 0;
+  let res = str;
+  const pattern = new RegExp('[\u4E00-\u9FA5]+'); // distinguish the Chinese charactors and letters
+  if (str.length) {
+    str.split('').forEach((letter, i) => {
+      if (currentWidth > maxWidth - ellipsisLength) return;
+      if (pattern.test(letter)) {
+        // Chinese charactors
+        currentWidth += fontSize;
+      } else {
+        // get the width of single letter according to the fontSize
+        currentWidth += G6.Util.getLetterWidth(letter, fontSize);
+      }
+      if (currentWidth > maxWidth - ellipsisLength) {
+        res = `${str.substr(0, i)}${ellipsis}`;
+      }
+    });
+  }
+  return res;
+};
+
 export function createUuid (length) {
   let str = Math.random().toString(36).substr(2)
   if (str.length >= length) {
@@ -60,4 +86,5 @@ export {
   splitStr,
   debounce,
   isDuringDate,
+  fittingString,
 }

@@ -154,15 +154,15 @@ function getTipHTML (node) {
           <div class="right">
             <div class="common-line">
               <div class="title">工具名称：</div>
-              <div class="desc bold">word|excel</div>
+              <div class="desc bold">${node.label || none}</div>
             </div>
             <div class="common-line">
               <div class="title">创建人：</div>
-              <div class="desc normal">赵竹林</div>
+              <div class="desc normal">${node.creatorName || none}</div>
             </div>
             <div class="common-line">
               <div class="title">创建时间：</div>
-              <div class="desc normal">2021-10-01 09:00:00</div>
+              <div class="desc normal">${info.startTime || none}</div>
             </div>
           </div>
         </div>
@@ -170,7 +170,7 @@ function getTipHTML (node) {
         <div class="sep-line tool-line"></div>
         <div class="desc-line">
           <div class="title bold">工具介绍：</div>
-          <div class="content normal tool-max">Word2003是目前使用比较广泛的一种文字处理软件，它集文字的编辑、排版、表格处理、图形处理为一体，在Word中我们可以制作一份简单的通知。在则业的时候我们可以撰写自己的简历、可以加入自己的照片，并且我们可以书写论文、计划，同时我们还可以在我们编写的文档中加入声音、图象这样可以构成一个图文并茂的文件。为你提供word2003下载</div>
+          <div class="content normal tool-max">${info.name || none}</div>
         </div>
       </div>
     </div>`

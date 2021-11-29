@@ -84,8 +84,9 @@ import dataNode from "../data/data_node";
 import nodeNewUI from '../data/newNode/layout_node_newUI'
 import innerCss from "../data/insertCss";
 import { getDataById } from "../api/api";
-import { isNewUI } from "../config/index";
+import { useMockData, isNewUI } from "../config/index";
 import { debounce } from "../utils/common";
+import mock_detailData from "../mock/FinishData/detailData";
 insertCss(innerCss);
 let _that = null;
 
@@ -136,11 +137,17 @@ export default {
           queryData.nodeId = "c99b3dae-a520-4460-8474-122418792110"
         }
         console.log("queryData:", queryData);
-        const responseData = await getDataById(queryData.nodeId);
+        let responseData = {}
+        if (useMockData) {
+          responseData = mock_detailData
+        } else {
+          responseData = await getDataById(queryData.nodeId);
+        }
+
         console.log("全量数据:", responseData.data);
         this.sourceData = this.initData(responseData.data);
       }
-      this.initMenu();
+      // this.initMenu();
       this.initToolBar();
       this.initMiniMap();
       this.initToolTip();
@@ -182,7 +189,7 @@ export default {
             "collapse-expand-combo"
           ] //'drag-canvas', 'zoom-canvas', 'drag-node'
         },
-        plugins: [this.toolTip, this.minimap, this.rightMenu, this.toolBar],
+        plugins: [this.toolTip, this.minimap, this.toolBar],
         layout: {
           type: "dagre", //dagre
           rankdir: this.rankDir,
@@ -259,6 +266,13 @@ export default {
           }
         }
       });
+      //-------测试数据start-------
+      this.sourceData.nodes.forEach(node => {
+        if (node.type === "image") {
+          node.size = 60
+        }
+      });
+      //--------测试数据end--------
       this.graph.data(this.sourceData);
       this.graph.render();
       this.curZoom = this.graph.getZoom().toFixed(2);
@@ -529,14 +543,13 @@ export default {
      * 初始化节点
      */
     initData (data) {
-      if (data.nodes.length <= 0) {
-        alert('没有与之关联的节点数据!')
-      }
+      if (data.nodes.length <= 0) { this.$message.error("没有与之关联的节点数据"); }
       data.nodes.forEach(element => {
         // element.type = 'image'
+        const defaultImg = require('../assets/icon/data.png')
         element.img = require("../assets/icon/" +
           element.icon.toLowerCase() +
-          ".png");
+          ".png") || defaultImg;
         element.obj = {
           userHead: require("../assets/image/logo.png"),
           status: require("../assets/image/task.png"),
@@ -562,7 +575,7 @@ export default {
           case "document":
             if (isNewUI) {
               element.type = "image"
-              element.size = 80
+              element.size = 60
               element.img = require('../assets/image/newUI/data.png')
             } else {
               element.type = "data_node";
@@ -581,13 +594,13 @@ export default {
           case "MeetingInfo":
             element.type = isNewUI ? `meet_${this.showType}_newUI` : `meet_node_${this.showType}`
             break;
-          case "tool":
+          case "App":
             element.type = isNewUI ? `tool_${this.showType}_newUI` : 'data_node'
             break;
           default:
             if (isNewUI) {
               element.type = "image"
-              element.size = 80
+              element.size = 60
               element.img = require('../assets/image/newUI/data.png')
             } else {
               element.type = "data_node";

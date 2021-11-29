@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 // eslint-disable-next-line no-unused-vars
+import { fittingString } from '../../utils/common'
 const TASK_LIGHT_COL = '#75da3a'
 const TASK_MAIN_COL = '#4ac149'
 const TASK_BG_COL = '#f2fce8'
@@ -267,7 +268,7 @@ const task_simple = (node) => {
           radius: ${RADIUS},
         }}draggable="true">
           <text style={{marginLeft: 5,fill: '#fff',marginTop: 5,fontWeight:bold,}}draggable="true">${getName(node)}</text>
-          <text style={{marginLeft: 5,fill: '#fff',marginTop: 10,}}draggable="true">${node.label}</text>=
+          <text style={{marginLeft: 5,fill: '#fff',marginTop: 10,}}draggable="true">${fittingString(node.label, 90, 12)}</text>
         </rect>
       </rect>
     </group>`
@@ -352,7 +353,7 @@ const meet_simple = (node) => {
           radius: ${RADIUS},
         }}draggable="true">
           <text style={{marginLeft: 5,fill: '#fff',marginTop: 5,fontWeight:bold,}}draggable="true">${getName(node)}</text>
-          <text style={{marginLeft: 5,fill: '#fff',marginTop: 10,}}draggable="true">${node.label}</text>=
+          <text style={{marginLeft: 5,fill: '#fff',marginTop: 10,}}draggable="true">${fittingString(node.label, 90, 12)}</text>=
         </rect>
       </rect>
     </group>`
@@ -434,7 +435,7 @@ const chat_simple = (node) => {
           radius: ${RADIUS},
         }}draggable="true">
           <text style={{marginLeft: 5,fill: '#fff',marginTop: 5,fontWeight:bold,}}draggable="true">${getName(node)}</text>
-          <text style={{marginLeft: 5,fill: '#fff',marginTop: 10,}}draggable="true">${node.label}</text>=
+          <text style={{marginLeft: 5,fill: '#fff',marginTop: 10,}}draggable="true">${fittingString(node.label, 90, 12)}</text>=
         </rect>
       </rect>
     </group>`
@@ -516,7 +517,7 @@ const tool_simple = (node) => {
           radius: ${RADIUS},
         }}draggable="true">
           <text style={{marginLeft: 5,fill: '#fff',marginTop: 5,fontWeight:bold,}}draggable="true">${getName(node)}</text>
-          <text style={{marginLeft: 5,fill: '#fff',marginTop: 10,}}draggable="true">${node.label}</text>=
+          <text style={{marginLeft: 5,fill: '#fff',marginTop: 10,}}draggable="true">${fittingString(node.label || '暂无', 90, 12)}</text>=
         </rect>
       </rect>
     </group>`

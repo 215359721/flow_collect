@@ -66,8 +66,9 @@
         style="margin-top:5px;"
         @change="changeNodeStyle"
       >
-        <el-radio-button label="old">样式1</el-radio-button>
-        <el-radio-button label="new">样式2</el-radio-button>
+        <el-radio-button label="default">默认</el-radio-button>
+        <el-radio-button label="type1">样式1</el-radio-button>
+        <el-radio-button label="type2">样式2</el-radio-button>
       </el-radio-group>
       <el-radio-group
         v-if="false"
@@ -268,7 +269,7 @@ export default {
       node_hei: 50, //单个节点高度
       curOptNode: null, //当前操作的节点
       dataType: "real", //数据形式
-      nodeStyle: "old", //节点样式
+      nodeStyle: "default", //节点样式
       editMode: false,//编辑模式开关
       configId: 1, //配置id（1-内网台式机，2-会议室大屏）
       //部门
@@ -375,10 +376,6 @@ export default {
      * 初始化G6
      */
     async initG6 () {
-      // const snapLine = new G6.SnapLine();
-      // const gird = new G6.Grid({
-      //   img: this.img
-      // });
       G6.Util.processParallelEdges(
         this.sourceData.edges,
         80,
@@ -485,18 +482,6 @@ export default {
       //监听：节点单击
       this.graph.on("node:click", function (e) {
         const item = e.item;
-        // console.log(e);
-        // console.log(
-        //   "点击node:{" +
-        //   item._cfg.model.id +
-        //   " , " +
-        //   item._cfg.model.label +
-        //   "|" +
-        //   item._cfg.model.x +
-        //   "," +
-        //   item._cfg.model.y +
-        //   "}"
-        // );
         if (
           item._cfg.model.method === "line" ||
           item._cfg.model.method === "block"
@@ -522,24 +507,6 @@ export default {
       //监听：canvas点击
       this.graph.on("canvas:click", () => {
         _that.clearAllStats();
-      });
-      //监听：节点拖拽
-      // eslint-disable-next-line no-unused-vars
-      this.graph.on("node:drag", e => {
-        // if (!e.item._cfg.model.method) {
-        //   _that.graph.updateBehavior(
-        //     "drag-canvas",
-        //     { allowDragOnItem: false },
-        //     "default"
-        //   );
-        // }
-        // if (e.item._cfg.model.method === "block") {
-        //   _that.graph.updateBehavior(
-        //     "drag-canvas",
-        //     { allowDragOnItem: true },
-        //     "default"
-        //   );
-        // }
       });
       //监听：画布拖拽完成
       this.graph.on("canvas:dragend", e => {
@@ -569,11 +536,6 @@ export default {
           nodeY: e.item._cfg.model.y
         };
         console.log("node拖拽完成:", modelItem);
-        // _that.graph.updateBehavior(
-        //   "drag-canvas",
-        //   { allowDragOnItem: true },
-        //   "default"
-        // );
         _that.nodeMoveList = getUpdateNodesPositionList(
           _that.nodeMoveList,
           modelItem
@@ -609,9 +571,6 @@ export default {
         _that.saveDisabled =
           _that.addEdgesList.length === 0 && _that.nodeMoveList.length === 0;
       });
-      this.graph.on("tooltipchange", (item) => {
-        console.log(item)
-      })
     },
     filtNodeAndEdge (graph, item) {
       graph.getEdges().forEach(function (edge) {
@@ -822,12 +781,6 @@ export default {
      * 初始化节点
      */
     initData (data) {
-      //加入周节点
-      // const lineData = lineNode({ height: this.canvas.height, width: this.canvas.height, way: this.dep_num })
-      // console.log('lineData:', lineData)
-      // lineData.nodes.forEach(element => {
-      //   data.nodes.push(element)
-      // })
       this.timeBarData.forEach((element, index) => {
         const weekObj = {
           id: "week_" + element.weekNo,
@@ -866,30 +819,12 @@ export default {
       this.markNodes = [];
       data.nodes.forEach(element => {
         //节点样式
-        if (element.id <= 20 || element.icon === "task") {
-          element.type = isNewUI ? ((_that.nodeStyle === "old") ? "custNode_task_new" : "layoutNode_task_new") : "custNode_task";
-        } else if (
-          (element.id > 20 && element.id <= 99) ||
-          element.icon === "MeetingInfo"
-        ) {
-          element.type = isNewUI ? ((_that.nodeStyle === "old") ? "custNode_meet_new" : "layoutNode_meet_new") : "custNode_meet";
-        } else if (element.icon === "im" || element.icon === "Im") {
-          element.type = isNewUI ? ((_that.nodeStyle === "old") ? "custNode_chat_new" : "layoutNode_chat_new") : "custNode_chat";
-        } else if (element.method === "line") {
-          element.type = isNewUI ? "custNode_line_new" : "custNode_line";
-        } else if (element.method === "block") {
-          element.type = isNewUI ? "custNode_block_new" : "custNode_block";
-        } else if (element.method === "mark") {
-          element.type = "custNode_mark";
-        } else {
-          element.type = isNewUI ? ((_that.nodeStyle === "old") ? "custNode_tool_new" : "layoutNode_tool_new") : "custNode_chat";
-        }
+        element.type = this.fitNodeType(element)
         //节点坐标微调
         if (element.y > 0) {
           element.y += 0;
           element.y = element.y * _that.zoom
         }
-
         //完成标识
         if (element.endDate === "") {
           element.unfinish = false;
@@ -927,6 +862,52 @@ export default {
       console.log("【批注数据】", this.markNodes);
       console.log("【all节点数据】", data);
       return data;
+    },
+    /**
+     * 根据节点类型加载不同UI节点样式
+     */
+    fitNodeType (node) {
+      let type = ''
+      if (node.icon === "task") {
+        if (_that.nodeStyle === "type1") {
+          type = "layoutNode_task_new"
+        } else if ((_that.nodeStyle === "type2")) {
+          type = "custNode_task_ver_new"
+        } else {
+          type = "custNode_task_new"
+        }
+      } else if (node.icon === "MeetingInfo") {
+        if (_that.nodeStyle === "type1") {
+          type = "layoutNode_meet_new"
+        } else if ((_that.nodeStyle === "type2")) {
+          type = "custNode_meet_ver_new"
+        } else {
+          type = "custNode_meet_new"
+        }
+      } else if (node.icon === "im" || node.icon === "Im") {
+        if (_that.nodeStyle === "type1") {
+          type = "layoutNode_chat_new"
+        } else if ((_that.nodeStyle === "type2")) {
+          type = "custNode_chat_ver_new"
+        } else {
+          type = "custNode_chat_new"
+        }
+      } else if (node.method === "line") {
+        type = "custNode_line_new"
+      } else if (node.method === "block") {
+        type = "custNode_block_new"
+      } else if (node.method === "mark") {
+        type = "custNode_mark";
+      } else {
+        if (_that.nodeStyle === "type1") {
+          type = "layoutNode_tool_new"
+        } else if ((_that.nodeStyle === "type2")) {
+          type = "custNode_tool_ver_new"
+        } else {
+          type = "custNode_tool_new"
+        }
+      }
+      return type
     },
     /**
      * 初始化自定义节点
@@ -982,6 +963,19 @@ export default {
       });
       G6.registerNode("layoutNode_tool_new", {
         jsx: layoutNewUI.tool_simple
+      });
+      //新UI-纵向排列
+      G6.registerNode("custNode_task_ver_new", {
+        jsx: nodeNewUI.task_node_ver
+      });
+      G6.registerNode("custNode_chat_ver_new", {
+        jsx: nodeNewUI.chat_node_ver
+      });
+      G6.registerNode("custNode_meet_ver_new", {
+        jsx: nodeNewUI.meet_node_ver
+      });
+      G6.registerNode("custNode_tool_ver_new", {
+        jsx: nodeNewUI.tool_node_ver
       });
     },
     /**
@@ -1219,7 +1213,7 @@ export default {
         _that.graph.changeSize(newWidth, newHeight)
       }, 500))
       //读取配置
-      this.nodeStyle = localStorage.getItem('node-style') || 'old'
+      this.nodeStyle = localStorage.getItem('node-style') || 'default'
     },
     /**
      * 初始化配置
