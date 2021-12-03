@@ -69,6 +69,8 @@
         <el-radio-button label="default">默认</el-radio-button>
         <el-radio-button label="type1">样式1</el-radio-button>
         <el-radio-button label="type2">样式2</el-radio-button>
+        <el-radio-button label="type3">样式3</el-radio-button>
+        <el-radio-button label="type4">样式4</el-radio-button>
       </el-radio-group>
       <el-radio-group
         v-if="false"
@@ -232,6 +234,7 @@ import insertCss from "insert-css";
 import getTooTipHTML from "../data/tooTip";
 import getTipHTML from "../data/toolTipNew"
 import nodeNewUI from '../data/newNode/cust_node_newUI'
+import nodeST34 from '../data/newNode/cust_node_3_4'
 import layoutNewUI from '../data/newNode/layout_node_newUI'
 import custNode from "../data/newNode/cust_node";
 import testData from "../mock/testData";
@@ -489,6 +492,7 @@ export default {
           _that.clearAllStats();
           return;
         }
+        console.log('节点点击:', item._cfg.model)
         //---高亮---
         _that.graph.setAutoPaint(false);
         _that.graph.getNodes().forEach(function (node) {
@@ -701,12 +705,6 @@ export default {
               outDiv.innerHTML = isNewUI ? getTipHTML(model) : getTooTipHTML(model)
             }
           }
-          // else {
-          //   const source = e.item.getSource();
-          //   const target = e.item.getTarget();
-          //   outDiv.innerHTML = `来源：${source.getModel().label}<br/>去向：${target.getModel().label
-          //     }`;
-          // }
           return outDiv;
         }
       });
@@ -873,6 +871,10 @@ export default {
           type = "layoutNode_task_new"
         } else if ((_that.nodeStyle === "type2")) {
           type = "custNode_task_ver_new"
+        } else if ((_that.nodeStyle === "type3")) {
+          type = "custNode_task_style3"
+        } else if ((_that.nodeStyle === "type4")) {
+          type = "custNode_task_style4"
         } else {
           type = "custNode_task_new"
         }
@@ -881,6 +883,10 @@ export default {
           type = "layoutNode_meet_new"
         } else if ((_that.nodeStyle === "type2")) {
           type = "custNode_meet_ver_new"
+        } else if ((_that.nodeStyle === "type3")) {
+          type = "custNode_meet_style3"
+        } else if ((_that.nodeStyle === "type4")) {
+          type = "custNode_meet_style4"
         } else {
           type = "custNode_meet_new"
         }
@@ -889,6 +895,10 @@ export default {
           type = "layoutNode_chat_new"
         } else if ((_that.nodeStyle === "type2")) {
           type = "custNode_chat_ver_new"
+        } else if ((_that.nodeStyle === "type3")) {
+          type = "custNode_chat_style3"
+        } else if ((_that.nodeStyle === "type4")) {
+          type = "custNode_chat_style4"
         } else {
           type = "custNode_chat_new"
         }
@@ -903,6 +913,10 @@ export default {
           type = "layoutNode_tool_new"
         } else if ((_that.nodeStyle === "type2")) {
           type = "custNode_tool_ver_new"
+        } else if ((_that.nodeStyle === "type3")) {
+          type = "custNode_tool_style3"
+        } else if ((_that.nodeStyle === "type4")) {
+          type = "custNode_tool_style4"
         } else {
           type = "custNode_tool_new"
         }
@@ -932,7 +946,7 @@ export default {
       G6.registerNode("custNode_block", {
         jsx: custNode.block_node
       });
-      //新UI节点
+      //新UI节点（样式-默认）
       G6.registerNode("custNode_task_new", {
         jsx: nodeNewUI.task_node
       });
@@ -951,7 +965,7 @@ export default {
       G6.registerNode("custNode_block_new", {
         jsx: nodeNewUI.block_node
       });
-      //新UI-layout
+      //新UI-layout（样式1）
       G6.registerNode("layoutNode_task_new", {
         jsx: layoutNewUI.task_simple
       });
@@ -964,7 +978,7 @@ export default {
       G6.registerNode("layoutNode_tool_new", {
         jsx: layoutNewUI.tool_simple
       });
-      //新UI-纵向排列
+      //新UI-纵向排列（样式2）
       G6.registerNode("custNode_task_ver_new", {
         jsx: nodeNewUI.task_node_ver
       });
@@ -976,6 +990,32 @@ export default {
       });
       G6.registerNode("custNode_tool_ver_new", {
         jsx: nodeNewUI.tool_node_ver
+      });
+      //新UI-（样式3）
+      G6.registerNode("custNode_task_style3", {
+        jsx: nodeST34.task_node_style3
+      });
+      G6.registerNode("custNode_chat_style3", {
+        jsx: nodeST34.chat_node_style3
+      });
+      G6.registerNode("custNode_meet_style3", {
+        jsx: nodeST34.meet_node_style3
+      });
+      G6.registerNode("custNode_tool_style3", {
+        jsx: nodeST34.tool_node_style3
+      });
+      //新UI-（样式4）
+      G6.registerNode("custNode_task_style4", {
+        jsx: nodeST34.task_node_style4
+      });
+      G6.registerNode("custNode_chat_style4", {
+        jsx: nodeST34.chat_node_style4
+      });
+      G6.registerNode("custNode_meet_style4", {
+        jsx: nodeST34.meet_node_style4
+      });
+      G6.registerNode("custNode_tool_style4", {
+        jsx: nodeST34.tool_node_style4
       });
     },
     /**
@@ -1166,17 +1206,17 @@ export default {
         const rsp_node = await modifyNodesPosition(this.nodeMoveList);
         console.log(rsp_node);
         if (rsp_node.data.code === 200) {
-          this.$message.success("`节点信息保存成功");
+          this.$message.success("节点信息保存成功");
           // this.reloadPage();
         } else {
-          this.$message.error("`节点信息保存失败");
+          this.$message.error("节点信息保存失败");
         }
       }
       if (this.addEdgesList.length) {
         const rsp_edge = await addLink(this.addEdgesList);
         console.log(rsp_edge);
         if (rsp_edge.data.code === 200) {
-          this.$message.success("`关系保存成功");
+          this.$message.success("关系保存成功");
           // this.reloadPage();
         } else {
           this.$message.error("关系保存失败");
@@ -1231,15 +1271,15 @@ export default {
      * 打印网格信息
      */
     printGrid () {
-      const eachGridHei = Math.floor(this.canvas.height / this.dep_num);
-      console.log(`【eahc：${eachGridHei}】`);
-      for (let i = 0; i < this.dep_num; i++) {
-        const result = eachGridHei * (i + 1);
-        console.log(
-          `泳道${i + 1}:(${this.canvas.height} / ${this.dep_num}) * ${i +
-          1} = ${result}`
-        );
-      }
+      // const eachGridHei = Math.floor(this.canvas.height / this.dep_num);
+      // console.log(`【eahc：${eachGridHei}】`);
+      // for (let i = 0; i < this.dep_num; i++) {
+      //   const result = eachGridHei * (i + 1);
+      //   console.log(
+      //     `泳道${i + 1}:(${this.canvas.height} / ${this.dep_num}) * ${i +
+      //     1} = ${result}`
+      //   );
+      // }
     },
     /**
      * 刷新页面

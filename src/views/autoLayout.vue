@@ -133,10 +133,11 @@ export default {
       } else {
         //真实数据
         const queryData = this.$route.query
-        if (!queryData.nodeId) {
-          queryData.nodeId = "c99b3dae-a520-4460-8474-122418792110"
-        }
         console.log("queryData:", queryData);
+        if (!queryData.nodeId) {
+          alert('没有对应的初始节点！')
+          return
+        }
         let responseData = {}
         if (useMockData) {
           responseData = mock_detailData
