@@ -1,6 +1,6 @@
 
 //当前部署版本号
-var base_version = '11_29_16pm'
+var base_version = '12_03_01'
 //网络请求超时时间
 var base_timeout = 20
 //流程地址
@@ -14,7 +14,7 @@ var grid_height_flow = 180
 //泳道图网格-间距
 var grid_gap_flow = 5
 //移动偏移量-x
-var move_offset_x = 0
+var move_offset_x = 12
 //移动偏移量-y
 var move_offset_y = 1
 var config = {

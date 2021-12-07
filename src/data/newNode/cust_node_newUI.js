@@ -35,6 +35,7 @@ const task_node = (node) => {
         ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
+      keyshape="true"
       >
         <rect style={{
           width: ${WIDTH},
@@ -91,6 +92,7 @@ const task_node_ver = (node) => {
         ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
+      keyshape="true"
       >
         <image style={{
           img:${node.creatorPhotoUrl || defaultHead},
@@ -135,6 +137,7 @@ const chat_node = (node) => {
         ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
+      keyshape="true"
       >
         <rect style={{
           width: ${WIDTH},
@@ -191,6 +194,7 @@ const chat_node_ver = (node) => {
         ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
+      keyshape="true"
       >
         <image style={{
           img:${node.creatorPhotoUrl || defaultHead},
@@ -235,6 +239,7 @@ const meet_node = (node) => {
         ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
+      keyshape="true"
       >
         <rect style={{
           width: ${WIDTH},
@@ -291,6 +296,7 @@ const meet_node_ver = (node) => {
         ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
+      keyshape="true"
       >
         <image style={{
           img:${node.creatorPhotoUrl || defaultHead},
@@ -325,57 +331,58 @@ const meet_node_ver = (node) => {
 //工具节点
 const tool_node = (node) => {
   const jsx = `
-    <group>
-       <rect style={{
+  <group>
+     <rect style={{
+      width: ${WIDTH},
+      height:${HEIGHT},
+      fill: 'l(90) 0:${TOOL_COLOR_TOP} 0.5:${TOOL_COLOR_MIDDEL} 1:${TOOL_COLOR_BOTTOM}',
+      radius: ${RADIUS},
+      ${node.unfinish ? "fillOpacity:0.4," : ""}
+      ${node.unfinish ? "lineDash:[2,2]," : ""}
+    }}
+    draggable="true"
+    keyshape="true"
+    >
+      <rect style={{
         width: ${WIDTH},
-        height:${HEIGHT},
-        fill: 'l(90) 0:${TOOL_COLOR_TOP} 0.5:${TOOL_COLOR_MIDDEL} 1:${TOOL_COLOR_BOTTOM}',
-        radius: ${RADIUS},
-        ${node.unfinish ? "fillOpacity:0.4," : ""}
-        ${node.unfinish ? "lineDash:[2,2]," : ""}
-      }}
-      draggable="true"
-      >
-        <rect style={{
-          width: ${WIDTH},
-          height:25,
-          radius:${RADIUS},
+        height:25,
+        radius:${RADIUS},
+        }}draggable="true">
+        <image style={{
+          img:${node.creatorPhotoUrl || defaultHead},
+          width: 20,
+          height: 20,
+          marginTop: 4,
+          marginLeft: ${PADDING_HORIZONTAL},
+          next: inline
+        }}draggable="true"></image>
+        <text style={{
+          marginTop: ${PADDING_VERTICAL},
+          marginLeft: -20,
+          fontWeight: '500',
+          fontSize:14,
+          fill: '#fff',
           }}draggable="true">
-          <image style={{
-            img:${node.creatorPhotoUrl || defaultHead},
-            width: 20,
-            height: 20,
-            marginTop: 4,
-            marginLeft: ${PADDING_HORIZONTAL},
-            next: inline
-          }}draggable="true"></image>
-          <text style={{
-            marginTop: ${PADDING_VERTICAL},
-            marginLeft: -30,
-            fontWeight: '500',
-            fontSize:14,
-            fill: '#fff',
-            }}draggable="true">
-            ${getName(node)}
-          </text>
-          ${mark_point(node)}
-        </rect>
-        <rect style={{
-          width: ${WIDTH},
-          height:25,
-          radius:${RADIUS},
-          }}draggable="true">
-          <text style={{
-            marginTop: 17,
-            marginLeft: -30,
-            fontSize:12,
-            fill: '#fff'}} draggable="true">
-           ${fittingString(node.label || '暂无', 125, 12)}
-          </text>
-        </rect>
+          ${getName(node)}
+        </text>
+        ${mark_point(node)}
       </rect>
-    </group>
-    `
+      <rect style={{
+        width: ${WIDTH},
+        height:25,
+        radius:${RADIUS},
+        }}draggable="true">
+        <text style={{
+          marginTop: 17,
+          marginLeft: -20,
+          fontSize:12,
+          fill: '#fff'}}draggable="true">
+          ${fittingString(node.label, 125, 12)}
+        </text>
+      </rect>
+    </rect>
+  </group>
+  `
   return jsx
 }
 //工具节点-左右结构样式
@@ -391,6 +398,7 @@ const tool_node_ver = (node) => {
         ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
+      keyshape="true"
       >
         <image style={{
           img:${node.creatorPhotoUrl || defaultHead},

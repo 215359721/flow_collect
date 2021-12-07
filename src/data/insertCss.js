@@ -11,7 +11,7 @@ const innerCss = `
   .g6-minimap{
     position:absolute;
     bottom:10px;
-    right:10px;
+    left:10px;
     background-color: #fff;
   }
   .g6-minimap-container {

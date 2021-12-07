@@ -246,7 +246,10 @@ const task_simple = (node) => {
         fill: 'l(90) 0:${lightCol} 1:${mainCol}',
         radius: ${RADIUS},
         lineWidth:1,
-        }}draggable="true">
+        }}
+        draggable="true"
+        keyshape="true"
+        >
         <rect style={{
           width:50,
           height:60,
@@ -331,7 +334,10 @@ const meet_simple = (node) => {
         fill: 'l(90) 0:${lightCol} 1:${mainCol}',
         radius: ${RADIUS},
         lineWidth:1,
-        }}draggable="true">
+        }}
+        draggable="true"
+        keyshape="true"
+        >
         <rect style={{
           width:50,
           height:60,
@@ -413,7 +419,10 @@ const chat_simple = (node) => {
         fill: 'l(90) 0:${lightCol} 1:${mainCol}',
         radius: ${RADIUS},
         lineWidth:1,
-        }}draggable="true">
+        }}
+        draggable="true"
+        keyshape="true"
+        >
         <rect style={{
           width:50,
           height:60,
@@ -495,7 +504,10 @@ const tool_simple = (node) => {
         fill: 'l(90) 0:${lightCol} 1:${mainCol}',
         radius: ${RADIUS},
         lineWidth:1,
-        }}draggable="true">
+        }}
+        draggable="true"
+        keyshape="true"
+        >
         <rect style={{
           width:50,
           height:60,
@@ -522,6 +534,32 @@ const tool_simple = (node) => {
       </rect>
     </group>`
 }
+//数据-精简
+const data_simple = (node) => {
+  let labelLen = node.label.length
+  return `
+    <group>
+      <rect style={{
+        width: 50,
+        height:${CONTENT_HEIGHT_SIM},
+        }}
+        draggable="true"
+        keyshape="true"
+        >
+        <rect style={{
+          width:50,
+          height:50,
+        }}draggable="true">
+          <image style={{
+            img:${require('../../assets/image/newUI/data.png')},
+            width:50,
+            height:50,
+          }}></image>
+        </rect>
+        <text style={{fill: '#5e5e5e',textAlign:start,marginLeft:${0-(labelLen*1.3)},marginTop:5}}draggable="true">${node.label}</text>
+      </rect>
+    </group>`
+}
 
-const custNode = { task_detail, meet_detail, chat_detail, tool_detail, task_general, meet_general, chat_general, tool_general, task_simple, meet_simple, chat_simple, tool_simple }
+const custNode = { task_detail, meet_detail, chat_detail, tool_detail, task_general, meet_general, chat_general, tool_general, task_simple, meet_simple, chat_simple, tool_simple, data_simple }
 export default custNode

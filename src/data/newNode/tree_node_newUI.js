@@ -46,6 +46,52 @@ const tree_node = (node) => {
   return treeNode
 }
 
+// 树图自定义节点-大节点
+const tree_node_big = (node) => {
+  let nodeName = ''
+  if (node.name.length > 6) {
+    nodeName = node.name.substring(0, 6) + "..."
+  } else {
+    nodeName = node.name
+  }
+const treeNode_big =
+    `<group>
+      <rect style={{
+        width: 120,
+        height: 90,
+        fill: 'l(90) 0:#06cde7 1:#1f94cc',
+        radius: 5,
+        cursor: pointer
+      }}>
+        <rect style={{
+          width:110,
+          height:65,
+          marginTop: 5,
+          marginLeft: 5,
+          radius: 3,
+          fill:'#fff',
+        }}>
+          <image style={{
+            img: ${node.img},
+            width: 104,
+            height: 60,
+            marginTop: 3,
+            marginLeft: 8,
+            cursor: pointer
+          }}></image>
+        </rect>
+        <text style={{
+          marginTop: 20,
+          marginLeft: 5,
+          fill: '#fff',
+          fontWeight:bold,
+          cursor: pointer}}>${nodeName}
+        </text>
+    </rect>
+  </group>`
+  return treeNode_big
+}
+
 //树自定义关系节点
 const rela_node = (node) => {
   console.log(node.name)
@@ -61,4 +107,4 @@ const rela_node = (node) => {
   </group>`
 }
 
-export default { tree_node, rela_node }
+export default { tree_node, rela_node,tree_node_big }

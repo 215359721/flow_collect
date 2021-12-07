@@ -270,7 +270,7 @@ export default {
       //-------测试数据start-------
       this.sourceData.nodes.forEach(node => {
         if (node.type === "image") {
-          node.size = 60
+          node.size = 50
         }
       });
       //--------测试数据end--------
@@ -288,18 +288,18 @@ export default {
       //监听：节点单击
       this.graph.on("node:click", function (e) {
         const item = e.item;
-        console.log(e);
-        console.log(
-          "点击node:{" +
-          item._cfg.model.id +
-          " , " +
-          item._cfg.model.label +
-          "|" +
-          item._cfg.model.x +
-          "," +
-          item._cfg.model.y +
-          "}"
-        );
+        console.log(e.item._cfg.model);
+        // console.log(
+        //   "点击node:{" +
+        //   item._cfg.model.id +
+        //   " , " +
+        //   item._cfg.model.label +
+        //   "|" +
+        //   item._cfg.model.x +
+        //   "," +
+        //   item._cfg.model.y +
+        //   "}"
+        // );
         //聚焦item
         _that.graph.focusItem(item);
         //---高亮---
@@ -489,6 +489,13 @@ export default {
         fixToNode: [1, 0.5],
         // 允许出现 tooltip 的 item 类型
         itemTypes: ["node", "edge"],
+        shouldBegin: e => {
+          const model = e.item.getModel();
+          if ((model.type === "data_node_simple")) {
+            return false;
+          }
+          return true;
+        },
         // 自定义 tooltip 内容
         getContent: e => {
           const outDiv = document.createElement("div");
@@ -498,11 +505,6 @@ export default {
           // const pos = e.item.getBBox()
           if (e.item.getType() === "node") {
             outDiv.innerHTML = isNewUI ? getTipHTML(model) : getTooTipHTML(model);
-          } else {
-            const source = e.item.getSource();
-            const target = e.item.getTarget();
-            outDiv.innerHTML = `来源：${source.getModel().label}<br/>去向：${target.getModel().label
-              }`;
           }
           return outDiv;
         }
@@ -547,17 +549,17 @@ export default {
       if (data.nodes.length <= 0) { this.$message.error("没有与之关联的节点数据"); }
       data.nodes.forEach(element => {
         // element.type = 'image'
-        const defaultImg = require('../assets/icon/data.png')
-        element.img = require("../assets/icon/" +
-          element.icon.toLowerCase() +
-          ".png") || defaultImg;
-        element.obj = {
-          userHead: require("../assets/image/logo.png"),
-          status: require("../assets/image/task.png"),
-          level: require("../assets/image/dot.png"),
-          inList: ["会议申请单.doc", "会议参会人员名单.excl"],
-          outList: ["会议纪要1.doc"]
-        };
+        // const defaultImg = require('../assets/icon/data.png')
+        // element.img = require("../assets/icon/" +
+        //   element.icon.toLowerCase() +
+        //   ".png") || defaultImg;
+        // element.obj = {
+        //   userHead: require("../assets/image/logo.png"),
+        //   status: require("../assets/image/task.png"),
+        //   level: require("../assets/image/dot.png"),
+        //   inList: ["会议申请单.doc", "会议参会人员名单.excl"],
+        //   outList: ["会议纪要1.doc"]
+        // };
         switch (this.showType) {
           case "all":
             element.size = isNewUI ? [280, 335] : [250, 390];
@@ -566,7 +568,7 @@ export default {
             element.size = isNewUI ? [280, 125] : [250, 310];
             break;
           case "simple":
-            element.size = isNewUI ? [160, 60] : [250, 50];
+            element.size = isNewUI ? [150, 50] : [250, 50];
             break;
           default:
             break;
@@ -575,9 +577,10 @@ export default {
           case "data":
           case "document":
             if (isNewUI) {
-              element.type = "image"
-              element.size = 60
-              element.img = require('../assets/image/newUI/data.png')
+              // element.type = "image"
+              // element.size = 50
+              // element.img = require('../assets/image/newUI/data.png')
+              element.type="data_node_simple"
             } else {
               element.type = "data_node";
             }
@@ -600,9 +603,10 @@ export default {
             break;
           default:
             if (isNewUI) {
-              element.type = "image"
-              element.size = 60
-              element.img = require('../assets/image/newUI/data.png')
+              // element.type = "image"
+              // element.size = 50
+              // element.img = require('../assets/image/newUI/data.png')
+              element.type="data_node_simple"
             } else {
               element.type = "data_node";
             }
@@ -616,6 +620,10 @@ export default {
      * 初始化自定义节点
      */
     initJsxNode () {
+      //数据节点
+      G6.registerNode("data_node_simple", {
+        jsx: nodeNewUI.data_simple
+      });
       //任务自定义节点
       G6.registerNode("task_node_all", {
         jsx: taskNode.task_jsx4All

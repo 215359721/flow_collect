@@ -32,6 +32,7 @@ const task_node_style3 = (node) => {
         ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
+      keyshape="true"
       >
         <rect style={{
           width: 48,
@@ -42,15 +43,15 @@ const task_node_style3 = (node) => {
           next: inline,
         }}>
           <image style={{
-            img:${node.creatorPhotoUrl || defaultHead},
+            img:${node.detailInfo.appIcon || defaultHead},
             width: 30,
             height: 30,
             marginTop: 0,
             marginLeft: 15,
           }}draggable="true"></image>
           <text style={{
-            marginTop: 12,
-            marginLeft: ${(getName(node).length > 2) ? -37 : -30},
+            marginTop: 14,
+            marginLeft: ${(getName(node).length > 2) ? -31 : -25},
             fontWeight: '500',
             fontSize:12,
             fill: '#fff',
@@ -59,7 +60,7 @@ const task_node_style3 = (node) => {
           </text>
         </rect>
         <rect style={{
-          width: 90,
+          width: 92,
           height:${HEIGHT_VER - 10},
           fill: '#fff',
           marginTop: 5,
@@ -85,6 +86,7 @@ const task_node_style4 = (node) => {
         ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
+      keyshape="true"
       >
         <rect style={{
           width: 48,
@@ -96,15 +98,15 @@ const task_node_style4 = (node) => {
           next: inline,
         }}>
           <image style={{
-            img:${node.creatorPhotoUrl || defaultHead},
+            img:${node.detailInfo.appIcon || defaultHead},
             width: 25,
             height: 25,
-            marginTop: 5,
+            marginTop:2,
             marginLeft: 15,
           }}draggable="true"></image>
           <text style={{
             marginTop: 16,
-            marginLeft: ${(getName(node).length > 2) ? -37 : -32},
+            marginLeft: ${(getName(node).length > 2) ? -33 : -28},
             fontWeight: '500',
             fontSize:12,
             fill: ${TASK_COLOR_BOTTOM},
@@ -113,7 +115,7 @@ const task_node_style4 = (node) => {
           </text>
         </rect>
         <rect style={{
-          width: 85,
+          width: 87,
           height:${HEIGHT_VER - 10},
           fill: '#fff',
           marginTop: 5,
@@ -139,6 +141,7 @@ const chat_node_style3 = (node) => {
         ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
+      keyshape="true"
       >
         <rect style={{
           width: 48,
@@ -149,15 +152,15 @@ const chat_node_style3 = (node) => {
           next: inline,
         }}>
           <image style={{
-            img:${node.creatorPhotoUrl || defaultHead},
+            img:${node.detailInfo.appIcon || defaultHead},
             width: 30,
             height: 30,
             marginTop: 0,
             marginLeft: 15,
           }}draggable="true"></image>
           <text style={{
-            marginTop: 12,
-            marginLeft: ${(getName(node).length > 2) ? -37 : -30},
+            marginTop: 14,
+            marginLeft: ${(getName(node).length > 2) ? -31 : -25},
             fontWeight: '500',
             fontSize:12,
             fill: '#fff',
@@ -166,7 +169,7 @@ const chat_node_style3 = (node) => {
           </text>
         </rect>
         <rect style={{
-          width: 90,
+          width: 92,
           height:${HEIGHT_VER - 10},
           fill: '#fff',
           marginTop: 5,
@@ -192,26 +195,27 @@ const chat_node_style4 = (node) => {
         ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
+      keyshape="true"
       >
         <rect style={{
           width: 48,
           height:${HEIGHT_VER - 10},
           fill: '#fff',
-          marginTop: 5,
+          marginTop: 2,
           marginLeft:5,
           radius: ${RADIUS},
           next: inline,
         }}>
           <image style={{
-            img:${node.creatorPhotoUrl || defaultHead},
+            img:${node.detailInfo.appIcon || defaultHead},
             width: 25,
             height: 25,
-            marginTop: 5,
+            marginTop: 2,
             marginLeft: 15,
           }}draggable="true"></image>
           <text style={{
             marginTop: 16,
-            marginLeft: ${(getName(node).length > 2) ? -37 : -32},
+            marginLeft: ${(getName(node).length > 2) ? -33 : -28},
             fontWeight: '500',
             fontSize:12,
             fill: ${CHAT_COLOR_BOTTOM},
@@ -220,7 +224,7 @@ const chat_node_style4 = (node) => {
           </text>
         </rect>
         <rect style={{
-          width: 85,
+          width: 87,
           height:${HEIGHT_VER - 10},
           fill: '#fff',
           marginTop: 5,
@@ -246,6 +250,7 @@ const meet_node_style3 = (node) => {
         ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
+      keyshape="true"
       >
         <rect style={{
           width: 48,
@@ -256,15 +261,15 @@ const meet_node_style3 = (node) => {
           next: inline,
         }}>
           <image style={{
-            img:${node.creatorPhotoUrl || defaultHead},
+            img:${node.detailInfo.appIcon || defaultHead},
             width: 30,
             height: 30,
             marginTop: 0,
             marginLeft: 15,
           }}draggable="true"></image>
           <text style={{
-            marginTop: 12,
-            marginLeft: ${(getName(node).length > 2) ? -37 : -30},
+            marginTop: 14,
+            marginLeft: ${(getName(node).length > 2) ? -31 : -25},
             fontWeight: '500',
             fontSize:12,
             fill: '#fff',
@@ -273,7 +278,7 @@ const meet_node_style3 = (node) => {
           </text>
         </rect>
         <rect style={{
-          width: 90,
+          width: 92,
           height:${HEIGHT_VER - 10},
           fill: '#fff',
           marginTop: 5,
@@ -299,6 +304,7 @@ const meet_node_style4 = (node) => {
         ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
+      keyshape="true"
       >
         <rect style={{
           width: 48,
@@ -310,15 +316,15 @@ const meet_node_style4 = (node) => {
           next: inline,
         }}>
           <image style={{
-            img:${node.creatorPhotoUrl || defaultHead},
+            img:${node.detailInfo.appIcon || defaultHead},
             width: 25,
             height: 25,
-            marginTop: 5,
+            marginTop: 2,
             marginLeft: 15,
           }}draggable="true"></image>
           <text style={{
             marginTop: 16,
-            marginLeft: ${(getName(node).length > 2) ? -37 : -32},
+            marginLeft: ${(getName(node).length > 2) ? -33 : -28},
             fontWeight: '500',
             fontSize:12,
             fill: ${MEET_COLOR_BOTTOM},
@@ -327,7 +333,7 @@ const meet_node_style4 = (node) => {
           </text>
         </rect>
         <rect style={{
-          width: 85,
+          width: 87,
           height:${HEIGHT_VER - 10},
           fill: '#fff',
           marginTop: 5,
@@ -353,6 +359,7 @@ const tool_node_style3 = (node) => {
         ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
+      keyshape="true"
       >
         <rect style={{
           width: 48,
@@ -363,15 +370,15 @@ const tool_node_style3 = (node) => {
           next: inline,
         }}>
           <image style={{
-            img:${node.creatorPhotoUrl || defaultHead},
+            img:${node.detailInfo.appIcon || defaultHead},
             width: 30,
             height: 30,
             marginTop: 0,
             marginLeft: 15,
           }}draggable="true"></image>
           <text style={{
-            marginTop: 12,
-            marginLeft: ${(getName(node).length > 2) ? -37 : -30},
+            marginTop: 14,
+            marginLeft: ${(getName(node).length > 2) ? -31 : -25},
             fontWeight: '500',
             fontSize:12,
             fill: '#fff',
@@ -380,7 +387,7 @@ const tool_node_style3 = (node) => {
           </text>
         </rect>
         <rect style={{
-          width: 90,
+          width: 92,
           height:${HEIGHT_VER - 10},
           fill: '#fff',
           marginTop: 5,
@@ -406,6 +413,7 @@ const tool_node_style4 = (node) => {
         ${node.unfinish ? "lineDash:[2,2]," : ""}
       }}
       draggable="true"
+      keyshape="true"
       >
         <rect style={{
           width: 48,
@@ -417,7 +425,7 @@ const tool_node_style4 = (node) => {
           next: inline,
         }}>
           <image style={{
-            img:${node.creatorPhotoUrl || defaultHead},
+            img:${node.detailInfo.appIcon || defaultHead},
             width: 25,
             height: 25,
             marginTop: 5,
@@ -425,7 +433,7 @@ const tool_node_style4 = (node) => {
           }}draggable="true"></image>
           <text style={{
             marginTop: 16,
-            marginLeft: ${(getName(node).length > 2) ? -37 : -32},
+            marginLeft: ${(getName(node).length > 2) ? -33 : -28},
             fontWeight: '500',
             fontSize:12,
             fill: ${TOOL_COLOR_BOTTOM},
@@ -434,7 +442,7 @@ const tool_node_style4 = (node) => {
           </text>
         </rect>
         <rect style={{
-          width: 85,
+          width: 87,
           height:${HEIGHT_VER - 10},
           fill: '#fff',
           marginTop: 5,

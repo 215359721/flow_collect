@@ -31,7 +31,10 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item prop="level">
+        <el-form-item
+          prop="level"
+          v-if="false"
+        >
           <el-select
             size="mini"
             v-model="form.level"
@@ -67,6 +70,11 @@
             size="mini"
             @click="handleSearch"
           >查询</el-button>
+          <el-button
+            type="primary"
+            size="mini"
+            @click="areaShow = !areaShow"
+          >{{areaShow?'隐藏详情':'显示详情'}}</el-button>
           <el-dropdown
             size="mini"
             v-if="false"
@@ -95,6 +103,47 @@
       <img src="../assets/image/single.png">
       <label>暂无数据</label>
     </div>
+    <!-- 左侧区域 -->
+    <div
+      v-show="areaShow"
+      class="left-area"
+      :style="{width:boxWidth+'px'}"
+    >
+      <div
+        class="left-box"
+        :style="{height:win.height-200 +'px'}"
+      >
+
+      </div>
+    </div>
+    <!-- 右侧区域 -->
+    <div
+      v-show="areaShow"
+      class="right-area"
+      :style="{height:win.height+20+'px',width:boxWidth+'px'}"
+    >
+      <div
+        class="right-box"
+        :style="{height:boxHeight +'px'}"
+      >
+        相关文章
+        <table-s />
+      </div>
+      <div
+        class="right-box"
+        :style="{height: boxHeight+'px'}"
+      >
+        相关度Top
+        <top-x ref="topx" />
+      </div>
+      <div
+        class="right-box"
+        :style="{height:boxHeight +'px'}"
+      >
+        关键词趋势
+        <line-x ref="line" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -113,15 +162,17 @@ import { createUuid } from "../utils/common.js";
 import custNode from "../data/task_node";
 import { baseUrl } from "../config";
 import { debounce } from "../utils/common";
-
 // eslint-disable-next-line no-unused-vars
 import { useMockData, isNewUI } from "../config/index";
 import mock_treeData from "../mock/FinishData/treeData";
 import nodeNewUI from '../data/newNode/tree_node_newUI'
+import topX from '../components/charts/topx.vue'
+import tableS from '../components/charts/table.vue'
+import lineX from '../components/charts/line.vue'
 insertCss(innerCss);
 
 export default {
-  components: {},
+  components: { topX, tableS, lineX },
   data () {
     return {
       //window对象
@@ -174,7 +225,11 @@ export default {
       keyWordOptions: [],
       list: [],
       loading: false,
-      firstLoading: true
+      firstLoading: true,
+      //右侧
+      areaShow: false,
+      boxWidth: 0,
+      boxHeight: 0,
     };
   },
   computed: {},
@@ -182,6 +237,7 @@ export default {
     this.getParams();
   },
   methods: {
+
     // 获取初始树节点
     async getTreeNode () {
       if (!this.selectNode) {
@@ -436,10 +492,10 @@ export default {
           type: "mindmap",
           direction: "H",
           getHeight: () => {
-            return 50;
+            return 90;
           },
           getWidth: () => {
-            return 36;
+            return 50;
           },
           getVGap: () => {
             return 10;
@@ -498,13 +554,13 @@ export default {
         y: this.win.height / 2
       });
       console.log("初始化G6脑图树【完成】", this.sourceData);
-      // this.graph.focusItem(this.sourceData.id, true, {
-      //   duration: 400
-      // });
       this.graph.on("node:click", this.handleMindNodeClick);
       // 监听：canvas点击
       this.graph.on("canvas:click", () => {
         this.clearAllStats();
+      });
+      this.graph.on("canvas:drag", () => {
+        this.areaShow = false
       });
     },
     // 切换布局
@@ -570,6 +626,8 @@ export default {
       this.canvasCenter = [this.win.width / 2, this.win.height / 2];
       this.initJsxNode();
       const _that = this
+      this.boxWidth = this.win.width * 0.25
+      this.boxHeight = this.win.height / 3.5
       //监听窗口改变
       window.addEventListener('resize', debounce(() => {
         _that.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 70;
@@ -639,11 +697,15 @@ export default {
         getContent () {
           return `
               <ul id="rightMenu" class="tree-right-menu">
+                <li class="tree-menu-btn">详情展示</li>
                 <li class="tree-menu-btn">置位关键词</li>
                 <li class="tree-menu-btn">搜索</li>
               </ul>`;
         },
         handleMenuClick: (target, item) => {
+          if (target.innerHTML === "详情展示") {
+            this.areaShow = true
+          }
           if (target.innerHTML === "置位关键词") {
             const url =
               "http://" +
@@ -698,7 +760,7 @@ export default {
           if (!item.img) {
             item.img = require("../assets/image/logo.png");
           } else {
-            item.img = isNewUI ? require("../assets/image/test.png") : (baseUrl + item.img);
+            item.img = baseUrl + item.img
           }
         } else if ((item.type === "edge") && isNewUI) {
           //关系节点
@@ -767,7 +829,7 @@ export default {
     initJsxNode () {
       //自定义节点
       G6.registerNode("custTree_node", {
-        jsx: (isNewUI ? nodeNewUI.tree_node : custNode.tree_node)
+        jsx: (isNewUI ? nodeNewUI.tree_node_big : custNode.tree_node)
       });
       G6.registerNode("custTree_rela_newUI", {
         jsx: nodeNewUI.rela_node
@@ -831,6 +893,13 @@ export default {
       }
       loading.hide();
       this.graph.setItemState(this.centerNode.id, "highlight", true);
+      //触发渲染图表
+      this.renderCharts()
+    },
+    renderCharts () {
+      this.$refs.topx.initChart(this.boxWidth - 40, this.boxHeight - 30)
+      this.$refs.line.initChart(this.boxWidth - 40, this.boxHeight - 30)
+      this.areaShow = true
     },
     async getParams () {
       const firstLoading = window.location.href.indexOf("?") === -1;

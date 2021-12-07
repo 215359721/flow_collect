@@ -424,7 +424,7 @@ export default {
         plugins: [this.toolTip, this.rightMenu],
         //默认节点设置
         defaultNode: {
-          size: [100, 50],
+          size: [150, 50],
           color: "#000",
           style: {
             cursor: "pointer",
@@ -435,7 +435,7 @@ export default {
         defaultEdge: {
           color: this.lineColor,
           type: this.lineType, //（quadratic-二阶贝塞尔曲线；cubic-三阶贝塞尔曲线）
-          controlPoints: [],
+          // controlPoints: [],
           labelCfg: {
             autoRotate: true,
             refY: -10
@@ -630,6 +630,7 @@ export default {
             query: { nodeId: cur.id }
           });
           console.log("curOptNode:", _that.curOptNode);
+          const openWindowOption = "top=0,left=0,toolbar=no,menubar=no"
           switch (target.getAttribute("fnname")) {
             case "copynode":
               alert("节点ID:" + cur.id)
@@ -642,7 +643,7 @@ export default {
               _that.markObj.content = "";
               break;
             case "showNodeRelation":
-              window.open(page.href, "_blank");
+              window.open(page.href, cur.label,openWindowOption);
               break;
             default:
               break;
@@ -685,7 +686,7 @@ export default {
         itemTypes: ["node", "edge"],
         shouldBegin: e => {
           const model = e.item.getModel();
-          if ((model.method === "block") || (model.method === "line")) {
+          if ((model.method === "block") || (model.method === "line1")) {
             return false;
           }
           return true;
@@ -821,7 +822,6 @@ export default {
         //节点坐标微调
         if (element.y > 0) {
           element.y += 0;
-          element.y = element.y * _that.zoom
         }
         //完成标识
         if (element.endDate === "") {
