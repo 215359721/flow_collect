@@ -60,18 +60,66 @@
           @click="commitChanges"
         >保存更改</el-button>
       </div>
-      <el-radio-group
+      <el-select
         v-model="nodeStyle"
-        size="mini"
-        style="margin-top:5px;"
+        placeholder="请选择"
+        style="width:130px;margin-top:5px;"
         @change="changeNodeStyle"
       >
-        <el-radio-button label="default">默认</el-radio-button>
-        <el-radio-button label="type1">样式1</el-radio-button>
-        <el-radio-button label="type2">样式2</el-radio-button>
-        <el-radio-button label="type3">样式3</el-radio-button>
-        <el-radio-button label="type4">样式4</el-radio-button>
-      </el-radio-group>
+        <el-option
+          label="默认"
+          value="default"
+        >
+        </el-option>
+        <el-option
+          label="样式1"
+          value="type1"
+        >
+        </el-option>
+        <el-option
+          label="样式2"
+          value="type2"
+        >
+        </el-option>
+        <el-option
+          label="样式3"
+          value="type3"
+        >
+        </el-option>
+        <el-option
+          label="样式4"
+          value="type4"
+        >
+        </el-option>
+        <el-option
+          label="样式5"
+          value="type5"
+        >
+        </el-option>
+        <el-option
+          label="样式6"
+          value="type6"
+        >
+        </el-option>
+      </el-select>
+      <el-select
+        v-model="curDep"
+        style="width:130px;margin-top:5px;"
+        @change="changeDep"
+      >
+        <el-option
+          label="全部"
+          value="all"
+        >
+        </el-option>
+        <el-option
+          v-for="(item,index) in depData"
+          :key="index"
+          :label="item.name"
+          :value="item.id"
+        >
+        </el-option>
+      </el-select>
       <el-radio-group
         v-if="false"
         v-model="dataType"
@@ -85,7 +133,10 @@
     </div>
     <!-- 分辨率信息 -->
     <div class="cur-num cur-resolving un-sel">
-      <div class="mr5">screen：{{win.width}} * {{win.height}}</div>
+      <div
+        class="mr5"
+        v-if="graph"
+      >screen：{{win.width}} * {{win.height}} 【{{graph.getZoom().toFixed(3)}}】</div>
     </div>
     <!-- 网格信息 -->
     <div class="cur-num cur-grid un-sel">
@@ -96,7 +147,6 @@
       class="cur-num un-sel"
       v-if="graph"
     >
-      <!-- <div class="mr5">zoom：{{graph.getZoom().toFixed(2)}}</div> -->
       <div class="mr5">V：{{version}}</div>
       <div>当前周：{{curWeek}}</div>
     </div>
@@ -106,21 +156,37 @@
       :style="{height:canvas.height+'px'}"
     />
     <!-- 泳道横线 -->
-    <div
-      v-for="(item,index) in dep_num"
-      :key="'yd_'+index"
-      class="line"
-      :hei="Math.floor((canvas.height/dep_num))*(index+1)"
-      :style="{top:(Math.floor((canvas.height/dep_num))*(index+1)-2)+'px'}"
-    />
+    <div v-if="(curDep === 'all')">
+      <div
+        v-for="(item,index) in dep_num"
+        :key="'yd_'+index"
+        class="line"
+        :hei="Math.floor((canvas.height/dep_num))*(index+1)"
+        :style="{top:(Math.floor((canvas.height/dep_num))*(index+1)-2)+'px'}"
+      />
+    </div>
+    <div v-else>
+      <div 
+        class="line"
+        :style="{top:canvas.height+'px'}" />
+    </div>
     <!-- 部门名称 -->
-    <div
-      v-for="(item,index) in depData"
-      :key="index"
+    <div v-if="(curDep === 'all')">
+      <div
+        v-for="(item,index) in depData"
+        :key="index"
+        class="dep-name un-sel"
+        :style="{height:Math.floor(canvas.height/dep_num-2)+'px',top:(Math.floor(canvas.height/dep_num) * index)+'px'}"
+        @click="depClick(item.name)"
+      >{{item.name}}</div>
+    </div>
+    <div 
+      v-else
       class="dep-name un-sel"
-      :style="{height:Math.floor(canvas.height/dep_num-2)+'px',top:(Math.floor(canvas.height/dep_num) * index)+'px'}"
-      @click="depClick(item.name)"
-    >{{item.name}}</div>
+      :style="{height:canvas.height+'px',top:'0px'}"
+      >
+      <div>{{curDepName}}</div>
+    </div>
     <div
       class="dep-bottom"
       :style="{height:canvas.offset_hei+'px',top:canvas.height+'px'}"
@@ -234,7 +300,10 @@ import insertCss from "insert-css";
 import getTooTipHTML from "../data/tooTip";
 import getTipHTML from "../data/toolTipNew"
 import nodeNewUI from '../data/newNode/cust_node_newUI'
-import nodeST34 from '../data/newNode/cust_node_3_4'
+import nodeSt3 from '../data/newNode/cust_node_3'
+import nodeSt4 from '../data/newNode/cust_node_4'
+import nodeSt5 from '../data/newNode/cust_node_5'
+import nodeSt6 from '../data/newNode/cust_node_6'
 import layoutNewUI from '../data/newNode/layout_node_newUI'
 import custNode from "../data/newNode/cust_node";
 import testData from "../mock/testData";
@@ -242,8 +311,9 @@ import innerCss from "../data/insertCss";
 import mock_mainData from "../mock/FinishData/mainData";
 import mock_xyData from "../mock/FinishData/xyData";
 import { useMockData, useExColor, isNewUI } from "../config/index";
+import { saView } from "../utils/service"
 import { getUpdateNodesPositionList, getNewEdgesList, splitStr, debounce, isDuringDate } from "../utils/common";
-import { getXYdata, getMainData, modifyNodesPosition, addMark, addLink, } from "../api/api";
+import { getXYdata, getMainData,getDataByDep, modifyNodesPosition, addMark, addLink, } from "../api/api";
 insertCss(innerCss);
 let _that = null;
 const CONFIG = window._SERVERCONF
@@ -258,7 +328,7 @@ export default {
       sourceData: {}, //数据源
       graph: null, //graph全局对象
       lineType: "polyline", //线条样式(line,polyline,quadratic,cubic,arc)
-      lineColor: "#cccccc", //线条颜色
+      lineColor: "#888888", //线条颜色
       lineThick: 2, //线条粗细
       toolTip: "", //提示框内容
       toolBar: null, //工具栏
@@ -283,11 +353,13 @@ export default {
         { name: "部门4" },
         { name: "部门5" }
       ], //部门数据
+      curDep:'all',//当前显示数据的部门
+      curDepName:'',//当前显示数据部门名称
       dep_num: 5, //部门数量
       //网格信息
       gird: {},
       //配置
-      config: { type: 1, lineBrokenOffset: 20 },
+      config: { type: 0, lineBrokenOffset: 20 },
       //时间轴
       timeBar: null, //时间轴
       timeBarData: [
@@ -364,10 +436,18 @@ export default {
       if (useMockData) {
         responseData = mock_mainData;
       } else {
-        responseData = await getMainData(this.config.type);
+        if(this.curDep === 'all'){
+          responseData = await getMainData(this.config.type);
+          console.log("请求全局节点数据:", responseData);
+        }else{
+          const arr = this.depData.filter(item=>{
+            return (item.id === this.curDep)
+          })
+          this.curDepName = arr[0].name || ''
+          console.log(`请求部门：${this.curDepName}`)
+          responseData = await getDataByDep(this.config.type,this.curDep,this.curDepName)
+        }
       }
-
-      console.log("请求全局节点数据:", responseData);
       //开始初始化
       this.initWindow();
       this.sourceData = this.initData(responseData.data);
@@ -474,7 +554,7 @@ export default {
       //--------测试数据end--------
       this.graph.data(this.sourceData);
       this.graph.render();
-      this.graph.zoomTo(1.0);
+      this.graph.zoomTo(this.zoom);
 
       this.graph.getNodes().forEach(node => {
         if (node._cfg.model.method === "block") {
@@ -609,14 +689,16 @@ export default {
             <div class="left-menu">
               <button class="btn btn-small submit bounce-left" fnname="copynode">显示节点ID</button>
               <button class="btn btn-small submit bounce-left" fnname="showMark">查看批注</button>
-              <button class="btn btn-small submit bounce-left" fnname="showNodeRelation">查看关系详情</button>
+              <button class="btn btn-small submit bounce-left" fnname="showNodeRelation">查看关系</button>
+              <button class="btn btn-small submit bounce-left" fnname="jumpInfo">跳转详情</button>
             </div>`;
           } else {
             con = `
             <div class="left-menu">
               <button class="btn btn-small submit bounce-left" fnname="copynode">显示节点ID</button>
               <button class="btn btn-small submit bounce-left" fnname="addMark">添加批注</button>
-              <button class="btn btn-small submit bounce-left" fnname="showNodeRelation">查看关系详情</button>
+              <button class="btn btn-small submit bounce-left" fnname="showNodeRelation">查看关系</button>
+              <button class="btn btn-small submit bounce-left" fnname="jumpInfo">跳转详情</button>
             </div>`;
           }
           return con;
@@ -630,10 +712,11 @@ export default {
             query: { nodeId: cur.id }
           });
           console.log("curOptNode:", _that.curOptNode);
-          const openWindowOption = "top=0,left=0,toolbar=no,menubar=no"
+          const openWindowOption = `top=0,left=0,toolbar=no,menubar=no,fullscreen=yes,width=${window.screen.availWidth-10},height=${window.screen.availHeight-30}`
           switch (target.getAttribute("fnname")) {
             case "copynode":
-              alert("节点ID:" + cur.id)
+              // alert("节点ID:" + cur.id)
+              console.log(saView)
               break;
             case "addMark":
               _that.addMarkShow = true;
@@ -643,8 +726,11 @@ export default {
               _that.markObj.content = "";
               break;
             case "showNodeRelation":
-              window.open(page.href, cur.label,openWindowOption);
+              window.open(page.href, cur.label, openWindowOption);
               break;
+            case "jumpInfo":
+              window.openURL('asp://shellapp/task')
+            break;
             default:
               break;
           }
@@ -734,6 +820,13 @@ export default {
      */
     changeNodeStyle (val) {
       localStorage.setItem('node-style', val)
+      this.reloadPage()
+    },
+    /**
+     * 切换部门显示
+     */
+    changeDep(val){
+      localStorage.setItem('show-dep', val)
       this.reloadPage()
     },
     /**
@@ -859,6 +952,9 @@ export default {
       });
       console.log("【批注数据】", this.markNodes);
       console.log("【all节点数据】", data);
+      data.nodes.forEach((node)=>{
+        console.log(node.label+'|y:【'+node.y+'】')
+      })
       return data;
     },
     /**
@@ -875,6 +971,10 @@ export default {
           type = "custNode_task_style3"
         } else if ((_that.nodeStyle === "type4")) {
           type = "custNode_task_style4"
+        } else if ((_that.nodeStyle === "type5")) {
+          type = "custNode_task_style5"
+        } else if ((_that.nodeStyle === "type6")) {
+          type = "custNode_task_style6"
         } else {
           type = "custNode_task_new"
         }
@@ -887,6 +987,10 @@ export default {
           type = "custNode_meet_style3"
         } else if ((_that.nodeStyle === "type4")) {
           type = "custNode_meet_style4"
+        } else if ((_that.nodeStyle === "type5")) {
+          type = "custNode_meet_style5"
+        } else if ((_that.nodeStyle === "type6")) {
+          type = "custNode_meet_style6"
         } else {
           type = "custNode_meet_new"
         }
@@ -899,6 +1003,10 @@ export default {
           type = "custNode_chat_style3"
         } else if ((_that.nodeStyle === "type4")) {
           type = "custNode_chat_style4"
+        } else if ((_that.nodeStyle === "type5")) {
+          type = "custNode_chat_style5"
+        } else if ((_that.nodeStyle === "type6")) {
+          type = "custNode_chat_style6"
         } else {
           type = "custNode_chat_new"
         }
@@ -917,6 +1025,10 @@ export default {
           type = "custNode_tool_style3"
         } else if ((_that.nodeStyle === "type4")) {
           type = "custNode_tool_style4"
+        } else if ((_that.nodeStyle === "type5")) {
+          type = "custNode_tool_style5"
+        } else if ((_that.nodeStyle === "type6")) {
+          type = "custNode_tool_style6"
         } else {
           type = "custNode_tool_new"
         }
@@ -993,29 +1105,55 @@ export default {
       });
       //新UI-（样式3）
       G6.registerNode("custNode_task_style3", {
-        jsx: nodeST34.task_node_style3
+        jsx: nodeSt3.task_node_style3
       });
       G6.registerNode("custNode_chat_style3", {
-        jsx: nodeST34.chat_node_style3
+        jsx: nodeSt3.chat_node_style3
       });
       G6.registerNode("custNode_meet_style3", {
-        jsx: nodeST34.meet_node_style3
+        jsx: nodeSt3.meet_node_style3
       });
       G6.registerNode("custNode_tool_style3", {
-        jsx: nodeST34.tool_node_style3
+        jsx: nodeSt3.tool_node_style3
       });
       //新UI-（样式4）
       G6.registerNode("custNode_task_style4", {
-        jsx: nodeST34.task_node_style4
+        jsx: nodeSt4.task_node_style4
       });
       G6.registerNode("custNode_chat_style4", {
-        jsx: nodeST34.chat_node_style4
+        jsx: nodeSt4.chat_node_style4
       });
       G6.registerNode("custNode_meet_style4", {
-        jsx: nodeST34.meet_node_style4
+        jsx: nodeSt4.meet_node_style4
       });
       G6.registerNode("custNode_tool_style4", {
-        jsx: nodeST34.tool_node_style4
+        jsx: nodeSt4.tool_node_style4
+      });
+      //新UI-（样式5）
+      G6.registerNode("custNode_task_style5", {
+        jsx: nodeSt5.task_node_style5
+      });
+      G6.registerNode("custNode_chat_style5", {
+        jsx: nodeSt5.chat_node_style5
+      });
+      G6.registerNode("custNode_meet_style5", {
+        jsx: nodeSt5.meet_node_style5
+      });
+      G6.registerNode("custNode_tool_style5", {
+        jsx: nodeSt5.tool_node_style5
+      });
+      //新UI-（样式6）
+      G6.registerNode("custNode_task_style6", {
+        jsx: nodeSt6.task_node_style6
+      });
+      G6.registerNode("custNode_chat_style6", {
+        jsx: nodeSt6.chat_node_style6
+      });
+      G6.registerNode("custNode_meet_style6", {
+        jsx: nodeSt6.meet_node_style6
+      });
+      G6.registerNode("custNode_tool_style6", {
+        jsx: nodeSt6.tool_node_style6
       });
     },
     /**
@@ -1252,8 +1390,7 @@ export default {
         console.log('窗口大小改变:' + newWidth + '*' + newHeight)
         _that.graph.changeSize(newWidth, newHeight)
       }, 500))
-      //读取配置
-      this.nodeStyle = localStorage.getItem('node-style') || 'default'
+      
     },
     /**
      * 初始化配置
@@ -1261,10 +1398,21 @@ export default {
     initConfig () {
       console.log('配置：', CONFIG)
       this.version = CONFIG.base_version || '0.0.0'
+      this.config.type = CONFIG.cfg_type || '0'
       this.gird = {
         width: CONFIG.grid_width_flow,
         height: CONFIG.grid_height_flow,
         gap: CONFIG.grid_gap_flow,
+      }
+      //读取配置
+      this.nodeStyle = localStorage.getItem('node-style') || 'default'
+      this.curDep = localStorage.getItem('show-dep') || 'all'
+      if((this.nodeStyle === 'type3')|| (this.nodeStyle === 'type4') || (this.nodeStyle === 'type5') || ((this.nodeStyle === 'type6'))){
+        //大图标
+        this.config.type = (this.curDep === 'all')?'1':'101'
+      }else{
+        //小图标
+        this.config.type = (this.curDep === 'all')?'0':'100'
       }
     },
     /**

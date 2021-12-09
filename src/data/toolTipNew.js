@@ -197,7 +197,7 @@ function getFilePart (fileArray) {
   // console.log('fileArray:', fileArray)
   if (fileArray.length) {
     for (let i = 0; i < fileArray.length; i++) {
-      content += '<span class="single-file link">' + fileArray[i].fileName || none + '</span>'
+      content += '<span class="single-file link">' + (fileArray[i].fileName || fileArray[i].filename) || none + '</span>'
       if (i < fileArray.length - 1) {
         content += '<br/>'
       }

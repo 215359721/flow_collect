@@ -560,7 +560,7 @@ export default {
         this.clearAllStats();
       });
       this.graph.on("canvas:drag", () => {
-        this.areaShow = false
+        // this.areaShow = false
       });
     },
     // 切换布局
@@ -897,8 +897,8 @@ export default {
       this.renderCharts()
     },
     renderCharts () {
-      this.$refs.topx.initChart(this.boxWidth - 40, this.boxHeight - 30)
-      this.$refs.line.initChart(this.boxWidth - 40, this.boxHeight - 30)
+      this.$refs.topx.initChart(this.boxWidth - 50, this.boxHeight - 30)
+      this.$refs.line.initChart(this.boxWidth - 50, this.boxHeight - 30)
       this.areaShow = true
     },
     async getParams () {

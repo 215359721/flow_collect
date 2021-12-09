@@ -11,6 +11,10 @@ export const getXYdata = () => {
 export const getMainData = (typeid) => {
   return request({ url: `/graph/getGraph?configId=${typeid}`, method: 'get', })
 }
+//获得某个部门的关系全图
+export const getDataByDep = (typeid,depId,depName) => {
+  return request({ url: `/graph/getDepartmentGraph?configId=${typeid}&deptId=${depId}&deptName=${depName}`, method: 'get', })
+}
 //根据节点id获得关系全图
 export const getDataById = (nodeId) => {
   return request({ url: `/graph/getGraphInfo?nodeId=${nodeId}`, method: 'get', })

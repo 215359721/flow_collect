@@ -87,6 +87,8 @@ import { getDataById } from "../api/api";
 import { useMockData, isNewUI } from "../config/index";
 import { debounce } from "../utils/common";
 import mock_detailData from "../mock/FinishData/detailData";
+import nodeSt5 from '../data/newNode/cust_node_5'
+import nodeDataSt5 from '../data/newNode/cust_node_data'
 insertCss(innerCss);
 let _that = null;
 
@@ -107,7 +109,7 @@ export default {
       canvasCenter: [0, 0], //画布中心
       align: undefined, //当前对齐方式
       lineType: "polyline", //线条样式(line,polyline,quadratic,cubic,arc)
-      lineColor: "#bababa", //线条颜色
+      lineColor: "#888888", //线条颜色
       lineThick: 2, //线条粗细
       toolTip: "", //提示框内容
       toolBar: null, //工具栏
@@ -147,6 +149,10 @@ export default {
 
         console.log("全量数据:", responseData.data);
         this.sourceData = this.initData(responseData.data);
+
+        this.sourceData.nodes.forEach(data=>{
+          console.log('icon:'+data.icon)
+        })
       }
       // this.initMenu();
       this.initToolBar();
@@ -196,8 +202,8 @@ export default {
           rankdir: this.rankDir,
           align: this.align,
           sortByCombo: true,
-          nodesepFunc: () => 10,
-          ranksepFunc: () => 70
+          nodesepFunc: () => 150,//纵向间距
+          ranksepFunc: () => 30,//横向间距
         },
         //默认节点设置
         defaultNode: {
@@ -491,7 +497,7 @@ export default {
         itemTypes: ["node", "edge"],
         shouldBegin: e => {
           const model = e.item.getModel();
-          if ((model.type === "data_node_simple")) {
+          if ((model.icon === "document") || (model.icon === "DataPacket")) {
             return false;
           }
           return true;
@@ -548,18 +554,6 @@ export default {
     initData (data) {
       if (data.nodes.length <= 0) { this.$message.error("没有与之关联的节点数据"); }
       data.nodes.forEach(element => {
-        // element.type = 'image'
-        // const defaultImg = require('../assets/icon/data.png')
-        // element.img = require("../assets/icon/" +
-        //   element.icon.toLowerCase() +
-        //   ".png") || defaultImg;
-        // element.obj = {
-        //   userHead: require("../assets/image/logo.png"),
-        //   status: require("../assets/image/task.png"),
-        //   level: require("../assets/image/dot.png"),
-        //   inList: ["会议申请单.doc", "会议参会人员名单.excl"],
-        //   outList: ["会议纪要1.doc"]
-        // };
         switch (this.showType) {
           case "all":
             element.size = isNewUI ? [280, 335] : [250, 390];
@@ -568,48 +562,34 @@ export default {
             element.size = isNewUI ? [280, 125] : [250, 310];
             break;
           case "simple":
-            element.size = isNewUI ? [150, 50] : [250, 50];
+            element.size = isNewUI ? [200, 60] : [250, 50];
             break;
           default:
             break;
         }
         switch (element.icon) {
           case "data":
-          case "document":
-            if (isNewUI) {
-              // element.type = "image"
-              // element.size = 50
-              // element.img = require('../assets/image/newUI/data.png')
-              element.type="data_node_simple"
-            } else {
-              element.type = "data_node";
-            }
+          case "document"://数据
+            element.type="custNode_data_style5"
             break;
-          case "DataPacket":
-            element.type = "datagroup_node";
+          case "DataPacket"://数据包
+            element.type = "custNode_data_group_style5";
             break;
           case "chat":
-          case "im":
-            element.type = isNewUI ? `chat_${this.showType}_newUI` : `chat_node_${this.showType}`
+          case "im"://即时通讯
+            element.type = "custNode_chat_style5"
             break;
-          case "task":
-            element.type = isNewUI ? `task_${this.showType}_newUI` : `task_node_${this.showType}`
+          case "task"://任务
+            element.type = "custNode_task_style5"
             break;
-          case "MeetingInfo":
-            element.type = isNewUI ? `meet_${this.showType}_newUI` : `meet_node_${this.showType}`
+          case "MeetingInfo"://会议
+            element.type = "custNode_meet_style5"
             break;
-          case "App":
-            element.type = isNewUI ? `tool_${this.showType}_newUI` : 'data_node'
+          case "App"://工具
+            element.type = "custNode_tool_style5"
             break;
           default:
-            if (isNewUI) {
-              // element.type = "image"
-              // element.size = 50
-              // element.img = require('../assets/image/newUI/data.png')
-              element.type="data_node_simple"
-            } else {
-              element.type = "data_node";
-            }
+            element.type="custNode_data_style5"
             break;
         }
       });
@@ -697,6 +677,25 @@ export default {
       });
       G6.registerNode("tool_simple_newUI", {
         jsx: nodeNewUI.tool_simple
+      });
+      //新UI节点-样式5
+      G6.registerNode("custNode_task_style5", {
+        jsx: nodeSt5.task_node_style5
+      });
+      G6.registerNode("custNode_chat_style5", {
+        jsx: nodeSt5.chat_node_style5
+      });
+      G6.registerNode("custNode_meet_style5", {
+        jsx: nodeSt5.meet_node_style5
+      });
+      G6.registerNode("custNode_tool_style5", {
+        jsx: nodeSt5.tool_node_style5
+      });
+      G6.registerNode("custNode_data_style5", {
+        jsx: nodeDataSt5.data_node_style5
+      });
+      G6.registerNode("custNode_data_group_style5", {
+        jsx: nodeDataSt5.data_group_node_style5
       });
     },
     /**

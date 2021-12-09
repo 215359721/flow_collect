@@ -1,3 +1,4 @@
+@leftWidth:92px;
 body{
   background-color: #f1f3f4;
 }
@@ -49,7 +50,7 @@ body{
     justify-content: center;
   }
   .cur-resolving{
-    width: 150px;
+    width: 230px;
     right: 370px;
     display: flex;
     justify-content: center;
@@ -143,7 +144,7 @@ body{
   position: absolute;
   z-index:2;
   top:0px;
-  left:98px;
+  left:@leftWidth;
   width: 1px;
   border-right:2px dotted #e6e6e6;
 }
@@ -154,7 +155,7 @@ body{
   background-color:#f1f3f4;
   border-bottom: 2px solid #fff;
   left:0px;
-  width: 98px;
+  width: @leftWidth;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -166,7 +167,7 @@ body{
   z-index:5;
   background-color:#f1f3f4;
   left:0px;
-  width: 98px;
+  width: @leftWidth;
 }
 .timeBar-area{
   position: absolute;
