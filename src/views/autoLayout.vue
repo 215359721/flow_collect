@@ -9,6 +9,7 @@
         @click="reloadPage"
       >刷新</el-button>
       <el-dropdown
+        v-if="false"
         size="mini"
         split-button
         type="primary"
@@ -27,6 +28,7 @@
       </el-dropdown>
       <!-- 精简模式切换 -->
       <el-radio-group
+        v-if="false"
         v-model="showType"
         size="mini"
         class="mt5"
@@ -46,7 +48,14 @@
         <el-radio-button label="mock">测试数据</el-radio-button>
         <el-radio-button label="real">真实数据</el-radio-button>
       </el-radio-group>
+      <el-button
+        type="primary"
+        style="width:100px;margin-top:5px;"
+        size="mini"
+        @click="commitChanges"
+      >保存更改</el-button>
     </div>
+
     <div
       class="cur-num"
       style="width:200px;"
@@ -86,6 +95,8 @@ import innerCss from "../data/insertCss";
 import { getDataById } from "../api/api";
 import { useMockData, isNewUI } from "../config/index";
 import { debounce } from "../utils/common";
+import mock_layoutData from "../mock/FinishData/layoutData";
+// eslint-disable-next-line no-unused-vars
 import mock_detailData from "../mock/FinishData/detailData";
 import nodeSt5 from '../data/newNode/cust_node_5'
 import nodeDataSt5 from '../data/newNode/cust_node_data'
@@ -116,7 +127,10 @@ export default {
       minimap: null, //小地图
       rightMenu: null, //右键菜单
       curLayout: "dagre", //当前布局
-      curZoom: 1.0 //当前缩放率
+      curZoom: 1.0, //当前缩放率
+      //-------
+      useLocalPostion: false,//是否使用本地坐标or采用自动布局
+      nodePositionList: [],//全量节点坐标集合
     };
   },
   computed: {},
@@ -142,16 +156,18 @@ export default {
         }
         let responseData = {}
         if (useMockData) {
-          responseData = mock_detailData
+          // responseData = mock_detailData
+          responseData = mock_layoutData
         } else {
           responseData = await getDataById(queryData.nodeId);
         }
-
         console.log("全量数据:", responseData.data);
         this.sourceData = this.initData(responseData.data);
+        this.useLocalPostion = Boolean(this.sourceData.local)
+        console.log('【useLocalPostion】', this.useLocalPostion)
 
-        this.sourceData.nodes.forEach(data=>{
-          console.log('icon:'+data.icon)
+        this.sourceData.edges.forEach(data => {
+          console.log('label:' + data.label)
         })
       }
       // this.initMenu();
@@ -173,6 +189,15 @@ export default {
         "polyline",
         "loop"
       );
+      let currentLayout = {
+        type: "dagre", //dagre
+        rankdir: this.rankDir,
+        align: this.align,
+        sortByCombo: true,
+        nodesepFunc: () => 150,//纵向间距
+        ranksepFunc: () => 30,//横向间距
+      }
+      if (this.useLocalPostion) { currentLayout = {} }
       this.graph = new G6.Graph({
         container: "canvasDiv",
         width: this.win.width,
@@ -197,14 +222,7 @@ export default {
           ] //'drag-canvas', 'zoom-canvas', 'drag-node'
         },
         plugins: [this.toolTip, this.minimap, this.toolBar],
-        layout: {
-          type: "dagre", //dagre
-          rankdir: this.rankDir,
-          align: this.align,
-          sortByCombo: true,
-          nodesepFunc: () => 150,//纵向间距
-          ranksepFunc: () => 30,//横向间距
-        },
+        layout: currentLayout,
         //默认节点设置
         defaultNode: {
           size: [280, 335],
@@ -274,11 +292,11 @@ export default {
         }
       });
       //-------测试数据start-------
-      this.sourceData.nodes.forEach(node => {
-        if (node.type === "image") {
-          node.size = 50
-        }
-      });
+      // this.sourceData.nodes.forEach(node => {
+      //   if (node.type === "image") {
+      //     node.size = 50
+      //   }
+      // });
       //--------测试数据end--------
       this.graph.data(this.sourceData);
       this.graph.render();
@@ -349,6 +367,23 @@ export default {
           graph.setItemState(edge, "highlight", false);
         }
       });
+    },
+    /**
+     * 提交修改节点信息
+     */
+    async commitChanges () {
+      this.nodePositionList = []
+      this.graph.cfg.nodes.forEach(item => {
+        const model = item._cfg.model
+        console.log(model.id + ":  " + model.x + "," + model.y)
+        const obj = {
+          nodeId: model.id,
+          nodeX: model.x,
+          nodeY: model.y,
+        }
+        this.nodePositionList.push(obj)
+      })
+
     },
     /**
      * 切换布局
@@ -512,6 +547,9 @@ export default {
           if (e.item.getType() === "node") {
             outDiv.innerHTML = isNewUI ? getTipHTML(model) : getTooTipHTML(model);
           }
+          if ((e.item.getType() === "edge") && (model.label !== '')) {
+            outDiv.innerHTML = model.label
+          }
           return outDiv;
         }
       });
@@ -570,7 +608,7 @@ export default {
         switch (element.icon) {
           case "data":
           case "document"://数据
-            element.type="custNode_data_style5"
+            element.type = "custNode_data_style5"
             break;
           case "DataPacket"://数据包
             element.type = "custNode_data_group_style5";
@@ -589,7 +627,7 @@ export default {
             element.type = "custNode_tool_style5"
             break;
           default:
-            element.type="custNode_data_style5"
+            element.type = "custNode_data_style5"
             break;
         }
       });

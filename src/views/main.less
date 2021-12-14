@@ -144,9 +144,8 @@ body{
   position: absolute;
   z-index:2;
   top:0px;
-  left:@leftWidth;
-  width: 1px;
-  border-right:2px dotted #e6e6e6;
+  // border-right:2px dotted #e6e6e6;
+  // border-right:2px dotted #ff0000;
 }
 .dep-name{
   position: absolute;
@@ -155,19 +154,19 @@ body{
   background-color:#f1f3f4;
   border-bottom: 2px solid #fff;
   left:0px;
-  width: @leftWidth;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 16px;
   color: rgba(0,0,0,0.7);
+  // display:none;
 }
 .dep-bottom{
   position: absolute;
   z-index:5;
+  // background-color:red;
   background-color:#f1f3f4;
   left:0px;
-  width: @leftWidth;
 }
 .timeBar-area{
   position: absolute;
@@ -176,7 +175,7 @@ body{
   align-items: flex-start;
   width:90%;
   z-index:7;
-  // background-color: red;
+  // background-color: green;
   margin-top: 0px;
 }
 .time-bar{
@@ -214,6 +213,10 @@ body{
   // background-color: aquamarine;
   font-size: 12px;
 }
+
+// .el-tooltip__popper{
+//   zoom:2.19;
+// }
 
 //animation
 .bounce-left {

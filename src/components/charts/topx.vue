@@ -1,5 +1,5 @@
 <template>
-  <div id="content"></div>
+  <div id="content-top"></div>
 </template>
 
 <script>
@@ -14,6 +14,10 @@ export default {
     height: {
       type: Number,
       default: 300,
+    },
+    data:{
+      type:Array,
+      default:()=>[]
     }
   },
   data () {
@@ -23,7 +27,7 @@ export default {
   methods: {
     initChart (wid, hei) {
       console.log('topx-图表宽高:' + wid + "|" + hei)
-      document.getElementById('content').innerHTML = ''
+      document.getElementById('content-top').innerHTML = ''
       const data = [
         { type: '光继电器', value: 20 },
         { type: '断路器', value: 30 },
@@ -32,7 +36,7 @@ export default {
         { type: '继电器', value: 80 },
       ];
       const chart = new Chart({
-        container: 'content',
+        container: 'content-top',
         autoFit: true,
         width: wid, // 指定图表宽度
         height: hei, // 指定图表高度

@@ -1,12 +1,12 @@
+const fontMode = localStorage.getItem('font-mode')
 const WIDTH = 200 //节点总宽度
 const HEIGHT = 60 //节点总高度
-const DATA_COLOR = '#7676f0'//数据主色
-const DATA_BG_COLOR = '#0A0A8F'
-const DATA_GROUP_COLOR = '#ff7011'//数据包主色
-const DATA_GROUP_BG_COLOR = '#773000'
+const DARK_FONT = '#000'
+const DATA_BG_COLOR ='#0A0A8F'
+const DATA_GROUP_BG_COLOR ='#773000'
+const DATA_FONT_COLOR = (fontMode === 'dark')?DARK_FONT:'#0A0A8F'
+const DATA_GROUP_FONT_COLOR =  (fontMode === 'dark')?DARK_FONT:'#773000'
 const RADIUS = 6 //圆角率
-const DATA_SVG = require('../../assets/svg/task.svg')
-const DATA_GROUP_SVG = require('../../assets/svg/tool.svg')
 const DATA_ICON = require('../../assets/image/newUI/data.png')
 const IMG_SIZE = 42
 //阴影
@@ -20,6 +20,7 @@ const data_node_style5 = (node) => {
        <rect style={{
         width: ${WIDTH},
         height:${HEIGHT},
+        fill:'#fff',
         stroke: ${DATA_BG_COLOR},
         lineWidth:1,
         radius: ${RADIUS},
@@ -48,12 +49,12 @@ const data_node_style5 = (node) => {
             marginLeft: -30,
             fontWeight: '550',
             fontSize:15,
-            fill: ${DATA_BG_COLOR},
+            fill: ${DATA_FONT_COLOR},
             }}draggable="true">
             数据
           </text>
         </rect>
-        ${breakLine(node,DATA_BG_COLOR)}
+        ${breakLine(node, DATA_FONT_COLOR)}
       </rect>
     </group>`
   return jsx
@@ -65,6 +66,7 @@ const data_group_node_style5 = (node) => {
        <rect style={{
         width: ${WIDTH},
         height:${HEIGHT},
+        fill:'#fff',
         stroke: ${DATA_GROUP_BG_COLOR},
         lineWidth:1,
         radius: ${RADIUS},
@@ -94,12 +96,12 @@ const data_group_node_style5 = (node) => {
             marginLeft: -30,
             fontWeight: '550',
             fontSize:15,
-            fill: ${DATA_GROUP_BG_COLOR},
+            fill: ${DATA_GROUP_FONT_COLOR},
             }}draggable="true">
             数据包
           </text>
         </rect>
-        ${breakLine(node,DATA_GROUP_BG_COLOR)}
+        ${breakLine(node, DATA_GROUP_FONT_COLOR)}
       </rect>
     </group>`
   return jsx
@@ -141,7 +143,7 @@ const breakLine = (node, color = '#fff') => {
 }
 
 const node = {
-    data_node_style5,
-    data_group_node_style5,
+  data_node_style5,
+  data_group_node_style5,
 }
 export default node

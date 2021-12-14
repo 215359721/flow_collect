@@ -1,10 +1,10 @@
 const none = '暂无'
 const defaultHead = require('../assets/image/newUI/bigHead.png')
-function getTipHTML (node) {
+function getTipHTML (node, zoom = 1.0) {
   // console.log('getTipHTML', node)
   const info = node.detailInfo || {}
   let result = ``
-  const task_html = `<div class="tip-div">
+  const task_html = `<div class="tip-div" style="zoom:${zoom}">
       <div class="tip-head task-head-bg task-border">任务</div>
       <div class="tip-content task-content-bg task-border">
         
@@ -20,15 +20,15 @@ function getTipHTML (node) {
             </div>
             <div class="common-line lineheight20">
               <div class="title">创建人：</div>
-              <div class="desc normal">${node.creatorName || none}</div>
+              <div class="desc normal">${splitDate(node.creatorName) || none}</div>
             </div>
             <div class="common-line lineheight20">
               <div class="title">截止时间：</div>
-              <div class="desc normal">${info.endTime || none}</div>
+              <div class="desc normal">${splitDate(info.endTime) || none}</div>
             </div>
             <div class="common-line lineheight20">
               <div class="title">创建时间：</div>
-              <div class="desc normal">${info.startTime || none}</div>
+              <div class="desc normal">${splitDate(info.startTime) || none}</div>
             </div>
             <div class="common-line lineheight20">
               <div class="title">当前状态：</div>
@@ -57,7 +57,7 @@ function getTipHTML (node) {
         </div>
       </div>
     </div>`
-  const chat_html = `<div class="tip-div">
+  const chat_html = `<div class="tip-div" style="zoom:${zoom}">
       <div class="tip-head chat-head-bg chat-border">即时通讯</div>
       <div class="tip-content chat-content-bg chat-border">
 
@@ -73,11 +73,11 @@ function getTipHTML (node) {
             </div>
             <div class="common-line">
               <div class="title">开始时间：</div>
-              <div class="desc normal">${info.startTime || none}</div>
+              <div class="desc normal">${splitDate(info.startTime) || none}</div>
             </div>
             <div class="common-line">
               <div class="title">结束时间：</div>
-              <div class="desc normal">${info.endTime || none}</div>
+              <div class="desc normal">${splitDate(info.endTime) || none}</div>
             </div>
           </div>
         </div>
@@ -98,7 +98,7 @@ function getTipHTML (node) {
         </div>
       </div>
     </div>`
-  const meet_html = `<div class="tip-div">
+  const meet_html = `<div class="tip-div" style="zoom:${zoom}">
       <div class="tip-head meet-head-bg meet-border">会议</div>
       <div class="tip-content meet-content-bg meet-border">
 
@@ -122,7 +122,7 @@ function getTipHTML (node) {
             </div>
             <div class="common-line">
               <div class="title">参会时间：</div>
-              <div class="desc normal">${info.startTime || none}</div>
+              <div class="desc normal">${splitDate(info.startTime) || none}</div>
             </div>
           </div>
         </div>
@@ -142,7 +142,7 @@ function getTipHTML (node) {
         </div>
       </div>
     </div>`
-  const tool_html = `<div class="tip-div">
+  const tool_html = `<div class="tip-div" style="zoom:${zoom}">
       <div class="tip-head tool-head-bg tool-border">工具</div>
       <div class="tip-content tool-content-bg tool-border">
 
@@ -162,7 +162,7 @@ function getTipHTML (node) {
             </div>
             <div class="common-line">
               <div class="title">创建时间：</div>
-              <div class="desc normal">${info.startTime || none}</div>
+              <div class="desc normal">${splitDate(info.startTime) || none}</div>
             </div>
           </div>
         </div>
@@ -297,6 +297,16 @@ function trans4Secret (secret) {
       break;
   }
   return result
+}
+
+function splitDate (descDate) {
+  if (!descDate) { return null }
+  const arr = descDate.split(" ")
+  if (arr.length) {
+    return arr[0]
+  } else {
+    return descDate
+  }
 }
 
 export default getTipHTML

@@ -1,10 +1,10 @@
 <template>
   <el-table
     :data="tableData"
-    style="width: 100%"
+    :style="{width:'100%',zoom:zoom}"
   >
     <el-table-column
-      prop="ind"
+      prop="index"
       label="序号"
       width="50"
     >
@@ -18,31 +18,44 @@
 </template>
 
 <script>
+import { useMockData } from "../../config/index";
 export default {
   components: {},
+  props: {
+    zoom: {
+      type: Number,
+      default: 1.0,
+    },
+    data: {
+      type: Array,
+      default: () => []
+    }
+  },
   data () {
     return {
-      tableData: [{
-        ind: 1,
+      tableData: [],
+      mockdata: [{
+        index: 1,
         name: '小电流控制大电流系统',
       }, {
-        ind: 2,
+        index: 2,
         name: '低电压控制高电压系统',
       }, {
-        ind: 3,
+        index: 3,
         name: '隔离控制与被控制电路',
       }, {
-        ind: 4,
+        index: 4,
         name: '电磁式继电器(EMRs)',
       },]
     }
   },
-  computed: {
-
+  mounted () {
+    this.tableData = useMockData ? this.mockdata : this.data
   },
-
-  methods: {
-
+  watch: {
+    data (val) {
+      this.tableData = useMockData ? this.mockdata : val
+    }
   }
 }
 

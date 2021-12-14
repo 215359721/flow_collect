@@ -1,5 +1,5 @@
 const WIDTH = 200 //节点总宽度
-const HEIGHT = 60 //节点总高度
+const HEIGHT = 63 //节点总高度
 const TASK_COLOR = '#58b431'//任务主色
 const MEET_COLOR = '#04d4dc'//会议主色
 const CHAT_COLOR = '#3e8acb'//即时通讯主色
@@ -14,7 +14,7 @@ const MEET_SVG = require('../../assets/svg/meet.svg')
 const CHAT_SVG = require('../../assets/svg/chat.svg')
 const TOOL_SVG = require('../../assets/svg/tool.svg')
 const IMG_SIZE = 42
-const getName = (node) => { return `${node.creatorName || '暂无'}` }
+const getName = (node, field = "creatorName") => { return `${node[field] || '暂无'}` }
 //阴影
 const shadow = () => {
   return `shadowColor:'#999',shadowBlur:3,shadowOffsetX:2,shadowOffsetY:2,`
@@ -56,7 +56,7 @@ const task_node_style6 = (node) => {
             fontSize:15,
             fill: '#fff',
             }}draggable="true">
-            ${getName(node)}
+            ${getName(node, "executor")}
           </text>
         </rect>
         ${breakLine(node)}

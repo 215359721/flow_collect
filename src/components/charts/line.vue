@@ -14,6 +14,14 @@ export default {
     height: {
       type: Number,
       default: 300,
+    },
+    zoom: {
+      type: Number,
+      default: 1.0
+    },
+    data:{
+      type:Array,
+      default:()=>[]
     }
   },
   data () {

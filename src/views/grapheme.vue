@@ -1,6 +1,9 @@
 <template>
   <div class="main-page">
-    <div class="opt-level">
+    <div
+      class="opt-level"
+      :style="{zoom:zoom}"
+    >
       <el-form
         :model="form"
         ref="form"
@@ -98,6 +101,7 @@
     ></div>
     <div
       v-else
+      :style="{zoom:zoom}"
       class="el-empty"
     >
       <img src="../assets/image/single.png">
@@ -107,41 +111,66 @@
     <div
       v-show="areaShow"
       class="left-area"
-      :style="{width:boxWidth+'px'}"
+      :style="{width:boxWidth+'px',top:70*zoom+'px'}"
     >
       <div
         class="left-box"
-        :style="{height:win.height-200 +'px'}"
+        :style="{height:boxHeight +'px'}"
       >
-
+        <span :style="{zoom:zoom}">语义总览分布</span>
+        <pie-l
+          :zoom="zoom"
+          :data="pieData"
+          ref="pie"
+        />
+      </div>
+      <div
+        class="left-box"
+        :style="{height:boxHeight +'px'}"
+      >
+        <span :style="{zoom:zoom}">语义词汇数历年数量</span>
+        <bar-l
+          :zoom="zoom"
+          :data="barData"
+          ref="bar"
+        />
       </div>
     </div>
     <!-- 右侧区域 -->
     <div
       v-show="areaShow"
       class="right-area"
-      :style="{height:win.height+20+'px',width:boxWidth+'px'}"
+      :style="{height:win.height+20+'px',width:boxWidth+'px',top:50*zoom+'px'}"
     >
       <div
         class="right-box"
         :style="{height:boxHeight +'px'}"
       >
-        相关文章
-        <table-s />
+        <span :style="{zoom:zoom}">相关文章</span>
+        <table-s
+          :data="articleData"
+          :zoom="zoom"
+        />
       </div>
       <div
         class="right-box"
         :style="{height: boxHeight+'px'}"
       >
-        相关度Top
-        <top-x ref="topx" />
+        <span :style="{zoom:zoom}">相关度Top</span>
+        <top-x
+          :zoom="zoom"
+          ref="topx"
+        />
       </div>
       <div
         class="right-box"
         :style="{height:boxHeight +'px'}"
       >
-        关键词趋势
-        <line-x ref="line" />
+        <span :style="{zoom:zoom}">关键词趋势</span>
+        <line-x
+          :zoom="zoom"
+          ref="line"
+        />
       </div>
     </div>
   </div>
@@ -157,10 +186,12 @@ import loading from "../utils/loading";
 // import graphemeTreeData from "../mock/grapheme-tree";
 import { showTooltip } from "../data/tree-tooltip";
 import innerCss from "../data/insertCss";
+import { getchartDataWithPie, getchartDataWithBar, getchartDataWithArticle } from "../api/api.js";
 import { getTreeNode, getKeywordsList } from "../api/api.js";
 import { createUuid } from "../utils/common.js";
 import custNode from "../data/task_node";
 import { baseUrl } from "../config";
+import { getWinZoom } from "../utils/device"
 import { debounce } from "../utils/common";
 // eslint-disable-next-line no-unused-vars
 import { useMockData, isNewUI } from "../config/index";
@@ -169,10 +200,12 @@ import nodeNewUI from '../data/newNode/tree_node_newUI'
 import topX from '../components/charts/topx.vue'
 import tableS from '../components/charts/table.vue'
 import lineX from '../components/charts/line.vue'
+import pieL from '../components/charts/pie.vue'
+import barL from '../components/charts/bar.vue'
 insertCss(innerCss);
 
 export default {
-  components: { topX, tableS, lineX },
+  components: { topX, tableS, lineX, pieL, barL },
   data () {
     return {
       //window对象
@@ -182,6 +215,7 @@ export default {
       },
       sourceData: {}, //数据源
       graph: null, //graph全局对象
+      zoom: 1.0,
       rankDir: "LR", //当前布局方式
       canvasCenter: [0, 0], //画布中心
       toolBar: null, //工具栏
@@ -226,7 +260,13 @@ export default {
       list: [],
       loading: false,
       firstLoading: true,
-      //右侧
+      //左侧图表
+      pieData: [],
+      barData: [],
+      //右侧图表
+      articleData: [],
+      topData: [],
+      lineData: [],
       areaShow: false,
       boxWidth: 0,
       boxHeight: 0,
@@ -234,10 +274,36 @@ export default {
   },
   computed: {},
   created () {
+    this.zoom = getWinZoom()
     this.getParams();
+    this.requestLeftData()
   },
   methods: {
+    async requestLeftData () {
+      if (!useMockData) {
+        const rspPie = await getchartDataWithPie()
+        const rspBar = await getchartDataWithBar()
+        const rspArt = await getchartDataWithArticle('航天')
+        this.barData = eval("(" + rspBar.data + ")")
+        this.pieData = eval("(" + rspPie.data + ")")
+        const arcList = JSON.parse(rspArt.data.msg)
+        this.articleData = []
+        arcList.hits.forEach((item, index) => {
+          const obj = {
+            index: (index + 1),
+            id: item._source.docid,
+            name: item._source.docname
+          }
+          this.articleData.push(obj)
+        })
+      }
+      console.log('柱状图:', this.barData)
+      console.log('饼图:', this.pieData)
+      console.log('文章:', this.articleData)
+    },
+    async reqeustRightData () {
 
+    },
     // 获取初始树节点
     async getTreeNode () {
       if (!this.selectNode) {
@@ -483,7 +549,7 @@ export default {
         },
         defaultEdge: {
           type: "cubic-horizontal",
-          color: "#cccccc",
+          color: "#888",
           style: {
             lineWidth: 1
           }
@@ -549,7 +615,7 @@ export default {
       this.graph.render();
       this.graph.fitCenter();
       // this.graph.layout(true);
-      this.graph.zoom(1.2, {
+      this.graph.zoom(this.zoom * 1.2, {
         x: this.win.width / 2,
         y: this.win.height / 2
       });
@@ -596,7 +662,7 @@ export default {
     // 初始化小地图
     initMiniMap () {
       this.minimap = new G6.Minimap({
-        size: [250, 150]
+        size: [this.boxWidth - 30 * this.zoom, this.boxHeight - 30 * this.zoom]
       });
     },
     // 初始化工具栏
@@ -620,7 +686,7 @@ export default {
     },
     // 初始化窗口
     initWindow () {
-      console.log('初始化窗口')
+      console.log('初始化窗口zoom:', this.zoom)
       this.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 70;
       this.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 70;
       this.canvasCenter = [this.win.width / 2, this.win.height / 2];
@@ -676,7 +742,7 @@ export default {
               path: item.img,
               desc: item.explain
             };
-            outDiv.innerHTML = showTooltip(data);
+            outDiv.innerHTML = showTooltip(data, this.zoom);
             return outDiv;
           } else {
             return "关系节点";
@@ -710,7 +776,7 @@ export default {
             const url =
               "http://" +
               window.location.host +
-              "/grapheme?keyWord=" +
+              "/#/grapheme?keyWord=" +
               encodeURIComponent(item.getModel().name);
             window.open(url);
           }
@@ -897,15 +963,18 @@ export default {
       this.renderCharts()
     },
     renderCharts () {
-      this.$refs.topx.initChart(this.boxWidth - 50, this.boxHeight - 30)
-      this.$refs.line.initChart(this.boxWidth - 50, this.boxHeight - 30)
+      this.$refs.topx.initChart(this.boxWidth - 50 * this.zoom, this.boxHeight - 30 * this.zoom)
+      this.$refs.line.initChart(this.boxWidth - 50 * this.zoom, this.boxHeight - 30 * this.zoom)
+      this.$refs.pie.initChart(this.boxWidth - 50 * this.zoom, this.boxHeight - 30 * this.zoom)
+      this.$refs.bar.initChart(this.boxWidth - 50 * this.zoom, this.boxHeight - 30 * this.zoom)
       this.areaShow = true
     },
     async getParams () {
       const firstLoading = window.location.href.indexOf("?") === -1;
       if (!firstLoading) {
-        let urlParams = window.location.search.substring(1);
-        this.form.keyWord = decodeURIComponent(urlParams).split("=")[1];
+        let queryObj = this.$route.query
+        this.form.keyWord = queryObj.keyWord || '';
+        console.log('keyWord:', this.form.keyWord)
         this.handleSearch();
       }
     }

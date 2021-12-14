@@ -484,7 +484,7 @@ const block_node = (node) => {
           height:${tipHei},
           radius:6,
           fill:'#edf2fc',
-          marginTop:${node.height - tipHei - 5},
+          marginTop:${node.tipy + 3},
           marginLeft:${(node.width - tipWid) / 2}
         }}draggable="true">
           <text style={{

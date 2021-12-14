@@ -1,7 +1,10 @@
 /* eslint-disable no-unused-vars */
 <template>
   <div class="main-page">
-    <div class="opt-div">
+    <div
+      class="opt-div"
+      :style="{zoom:zoom}"
+    >
       <!-- 功能按钮 -->
       <div class="move-group">
         <el-button
@@ -121,6 +124,15 @@
         </el-option>
       </el-select>
       <el-radio-group
+        v-model="fontMode"
+        size="mini"
+        style="margin-top:5px;"
+        @change="fontChange"
+      >
+        <el-radio-button label="default">默认</el-radio-button>
+        <el-radio-button label="dark">深色</el-radio-button>
+      </el-radio-group>
+      <el-radio-group
         v-if="false"
         v-model="dataType"
         size="mini"
@@ -132,19 +144,29 @@
       </el-radio-group>
     </div>
     <!-- 分辨率信息 -->
-    <div class="cur-num cur-resolving un-sel">
+    <div
+      class="cur-num cur-resolving un-sel"
+      :style="{zoom:zoom}"
+    >
       <div
         class="mr5"
         v-if="graph"
-      >screen：{{win.width}} * {{win.height}} 【{{graph.getZoom().toFixed(3)}}】</div>
+      >
+        <!-- screen：{{win.width}} * {{win.height}} 【{{graph.getZoom().toFixed(3)}}】 -->
+        screen：{{win.innerWidth}} * {{win.innerHeight}} 【{{win.innerZoom.toFixed(3)}}】
+      </div>
     </div>
     <!-- 网格信息 -->
-    <div class="cur-num cur-grid un-sel">
+    <div
+      class="cur-num cur-grid un-sel"
+      :style="{zoom:zoom}"
+    >
       <div class="mr5">gird：{{gird.width}} * {{Math.floor(gird.height)}}</div>
     </div>
     <!-- 指示器 -->
     <div
       class="cur-num un-sel"
+      :style="{zoom:zoom}"
       v-if="graph"
     >
       <div class="mr5">V：{{version}}</div>
@@ -153,7 +175,7 @@
     <!-- 部门竖线 -->
     <div
       class="dep-line"
-      :style="{height:canvas.height+'px'}"
+      :style="{height:canvas.height+'px',borderRight:(2.1*zoom)+'px dotted #e6e6e6',left:(dep_left_wid*zoom)+'px'}"
     />
     <!-- 泳道横线 -->
     <div v-if="(curDep === 'all')">
@@ -162,13 +184,14 @@
         :key="'yd_'+index"
         class="line"
         :hei="Math.floor((canvas.height/dep_num))*(index+1)"
-        :style="{top:(Math.floor((canvas.height/dep_num))*(index+1)-2)+'px'}"
+        :style="{top:(Math.floor((canvas.height/dep_num))*(index+1)-2)+'px',borderTop: (2.1*zoom)+'px dotted #e6e6e6'}"
       />
     </div>
     <div v-else>
-      <div 
+      <div
         class="line"
-        :style="{top:canvas.height+'px'}" />
+        :style="{top:canvas.height+'px'}"
+      />
     </div>
     <!-- 部门名称 -->
     <div v-if="(curDep === 'all')">
@@ -176,15 +199,15 @@
         v-for="(item,index) in depData"
         :key="index"
         class="dep-name un-sel"
-        :style="{height:Math.floor(canvas.height/dep_num-2)+'px',top:(Math.floor(canvas.height/dep_num) * index)+'px'}"
+        :style="{width:(dep_left_wid*zoom)+'px',height:Math.floor(canvas.height/dep_num-2)+'px',top:(Math.floor(canvas.height/dep_num) * index)+'px'}"
         @click="depClick(item.name)"
-      >{{item.name}}</div>
+      ><span :style="{zoom:zoom}">{{item.name}}</span></div>
     </div>
-    <div 
+    <div
       v-else
       class="dep-name un-sel"
-      :style="{height:canvas.height+'px',top:'0px'}"
-      >
+      :style="{width:(dep_left_wid*zoom)+'px',height:canvas.height+'px',top:'0px'}"
+    >
       <div>{{curDepName}}</div>
     </div>
     <div
@@ -207,6 +230,7 @@
         :show-stops="false"
         :range="false"
         class="time-bar"
+        :style="{zoom:zoom}"
         @change="changeSilder"
       />
     </div>
@@ -311,9 +335,10 @@ import innerCss from "../data/insertCss";
 import mock_mainData from "../mock/FinishData/mainData";
 import mock_xyData from "../mock/FinishData/xyData";
 import { useMockData, useExColor, isNewUI } from "../config/index";
-import { saView } from "../utils/service"
+// eslint-disable-next-line no-unused-vars
+import { getWinWidth, getWinHeight, getWinZoom } from "../utils/device"
 import { getUpdateNodesPositionList, getNewEdgesList, splitStr, debounce, isDuringDate } from "../utils/common";
-import { getXYdata, getMainData,getDataByDep, modifyNodesPosition, addMark, addLink, } from "../api/api";
+import { getXYdata, getMainData, getDataByDep, modifyNodesPosition, addMark, addLink, } from "../api/api";
 insertCss(innerCss);
 let _that = null;
 const CONFIG = window._SERVERCONF
@@ -323,7 +348,7 @@ export default {
   components: {},
   data () {
     return {
-      win: { height: 0, width: 0 }, //window对象
+      win: { height: 0, width: 0, innerWidth: 0, innerZoom: 0 }, //window对象
       canvas: { height: 0, width: 0, offset_hei: 40 }, //画布对象
       sourceData: {}, //数据源
       graph: null, //graph全局对象
@@ -344,6 +369,7 @@ export default {
       dataType: "real", //数据形式
       nodeStyle: "default", //节点样式
       editMode: false,//编辑模式开关
+      fontMode: 'default',//字体颜色模式(default-默认|dark-深色)
       configId: 1, //配置id（1-内网台式机，2-会议室大屏）
       //部门
       depData: [
@@ -353,9 +379,10 @@ export default {
         { name: "部门4" },
         { name: "部门5" }
       ], //部门数据
-      curDep:'all',//当前显示数据的部门
-      curDepName:'',//当前显示数据部门名称
+      curDep: 'all',//当前显示数据的部门
+      curDepName: '',//当前显示数据部门名称
       dep_num: 5, //部门数量
+      dep_left_wid: 92,//部门宽度
       //网格信息
       gird: {},
       //配置
@@ -436,16 +463,16 @@ export default {
       if (useMockData) {
         responseData = mock_mainData;
       } else {
-        if(this.curDep === 'all'){
+        if (this.curDep === 'all') {
           responseData = await getMainData(this.config.type);
           console.log("请求全局节点数据:", responseData);
-        }else{
-          const arr = this.depData.filter(item=>{
+        } else {
+          const arr = this.depData.filter(item => {
             return (item.id === this.curDep)
           })
           this.curDepName = arr[0].name || ''
           console.log(`请求部门：${this.curDepName}`)
-          responseData = await getDataByDep(this.config.type,this.curDep,this.curDepName)
+          responseData = await getDataByDep(this.config.type, this.curDep, this.curDepName)
         }
       }
       //开始初始化
@@ -589,7 +616,8 @@ export default {
         _that.graph.setAutoPaint(true);
       });
       //监听：canvas点击
-      this.graph.on("canvas:click", () => {
+      this.graph.on("canvas:click", (e) => {
+        alert('canvas点击:' + e.x)
         _that.clearAllStats();
       });
       //监听：画布拖拽完成
@@ -681,6 +709,10 @@ export default {
         getContent (e) {
           const item = e.item.getModel();
           let con = ``;
+          let jumpStr = '<button class="btn btn-small submit bounce-left" fnname="jumpInfo">跳转详情</button>'
+          if ((item.icon === 'task') || ((item.icon === 'MeetingInfo') && (item.detailInfo) && (item.detailInfo.status !== '6'))) {
+            jumpStr = ''
+          }
           if (item.method === "block") {
             //背景节点无右键菜单
             con = ``;
@@ -690,7 +722,7 @@ export default {
               <button class="btn btn-small submit bounce-left" fnname="copynode">显示节点ID</button>
               <button class="btn btn-small submit bounce-left" fnname="showMark">查看批注</button>
               <button class="btn btn-small submit bounce-left" fnname="showNodeRelation">查看关系</button>
-              <button class="btn btn-small submit bounce-left" fnname="jumpInfo">跳转详情</button>
+              ${jumpStr}
             </div>`;
           } else {
             con = `
@@ -698,7 +730,7 @@ export default {
               <button class="btn btn-small submit bounce-left" fnname="copynode">显示节点ID</button>
               <button class="btn btn-small submit bounce-left" fnname="addMark">添加批注</button>
               <button class="btn btn-small submit bounce-left" fnname="showNodeRelation">查看关系</button>
-              <button class="btn btn-small submit bounce-left" fnname="jumpInfo">跳转详情</button>
+              ${jumpStr}
             </div>`;
           }
           return con;
@@ -712,11 +744,10 @@ export default {
             query: { nodeId: cur.id }
           });
           console.log("curOptNode:", _that.curOptNode);
-          const openWindowOption = `top=0,left=0,toolbar=no,menubar=no,fullscreen=yes,width=${window.screen.availWidth-10},height=${window.screen.availHeight-30}`
+          const openWindowOption = `top=0,left=0,toolbar=no,menubar=no,width=${window.screen.availWidth - 10},height=${window.screen.availHeight - 30}`
           switch (target.getAttribute("fnname")) {
             case "copynode":
-              // alert("节点ID:" + cur.id)
-              console.log(saView)
+              alert("节点ID:" + cur.id)
               break;
             case "addMark":
               _that.addMarkShow = true;
@@ -729,8 +760,8 @@ export default {
               window.open(page.href, cur.label, openWindowOption);
               break;
             case "jumpInfo":
-              window.openURL('asp://shellapp/task')
-            break;
+              this.jumpDetailInfo(cur)
+              break;
             default:
               break;
           }
@@ -742,6 +773,38 @@ export default {
         // 在哪些类型的元素上响应
         itemTypes: ["node"]
       });
+    },
+    jumpDetailInfo (node) {
+      let meetingNum = node.detailInfo.meetingNum
+      let innerId = node.detailInfo.innerId
+      let ASP_MEET_BASE_URL = "https://meet.bjsasc.com:8443"
+      // eslint-disable-next-line no-undef
+      let meetingUrl = ASP_MEET_BASE_URL + `/#/meeting?code=${asp.usersrc.curLoginUser.userLoginName}&num=${meetingNum}&innerId=${innerId}&userid=${asp.user.uerid}`
+      let appId = node.detailInfo.appId
+      let nativeappurl = 'asp://nativeapp/' + appId
+
+      if (node.detailInfo) {
+        switch (node.icon) {
+          case 'MeetingInfo':
+            console.log(meetingUrl, 'meetingUrl')
+            window.open(meetingUrl)
+            break;
+          // case 'Im':
+          // case 'im':
+          //   appId = node.detailInfo.chatId
+          //   break;
+          case 'App':
+
+            console.log('跳转:' + nativeappurl)
+            window.openURL(nativeappurl)
+            break
+          default:
+            break;
+        }
+
+      } else {
+        alert('无详情节点数据')
+      }
     },
     /**
      * 初始化小地图
@@ -789,7 +852,7 @@ export default {
               outDiv.innerHTML = model.label + `(${model.x},${model.y})`;
             } else {
               //普通节点
-              outDiv.innerHTML = isNewUI ? getTipHTML(model) : getTooTipHTML(model)
+              outDiv.innerHTML = isNewUI ? getTipHTML(model, this.zoom) : getTooTipHTML(model)
             }
           }
           return outDiv;
@@ -825,7 +888,7 @@ export default {
     /**
      * 切换部门显示
      */
-    changeDep(val){
+    changeDep (val) {
       localStorage.setItem('show-dep', val)
       this.reloadPage()
     },
@@ -899,6 +962,7 @@ export default {
           // x: 100 + _that.gird.gap * (4 * index) + _that.node_wid * (4 * index),
           x: 100 + index * this.gird.width,
           y: 0,
+          tipy: _that.dep_num * CONFIG.grid_height_flow,
           width: _that.gird.width,
           height: _that.canvas.height + _that.canvas.offset_hei
         };
@@ -952,8 +1016,8 @@ export default {
       });
       console.log("【批注数据】", this.markNodes);
       console.log("【all节点数据】", data);
-      data.nodes.forEach((node)=>{
-        console.log(node.label+'|y:【'+node.y+'】')
+      data.nodes.forEach((node) => {
+        console.log(node.label + '|x:【' + node.x + '】' + '|y:【' + node.y + '】')
       })
       return data;
     },
@@ -1205,6 +1269,13 @@ export default {
       }
     },
     /**
+     * 字体颜色模式切换
+     */
+    fontChange (val) {
+      localStorage.setItem('font-mode', val)
+      this.reloadPage()
+    },
+    /**
      * 部门点击过滤
      */
     depClick (depName) {
@@ -1243,7 +1314,7 @@ export default {
      */
     changeSilder (val) {
       const descNode = this.graph.findById("week_" + val);
-      console.log('descNode:', descNode)
+      console.log('descNode:', descNode._cfg.model.x)
       if (descNode) {
         const nodeInfo = descNode._cfg.model;
         this.$message({
@@ -1253,6 +1324,18 @@ export default {
       } else {
         this.$message.warning("无更多数据");
       }
+    },
+    /**
+     * 移动到指定点(横坐标)
+     */
+    // eslint-disable-next-line no-unused-vars
+    moveTo (x, sec = 1) {
+      const offsetY = CONFIG.move_offset_y
+      const xp = 0 - (x - 170)
+      this.graph.moveTo(xp, 0 - offsetY, true, {
+        duration: sec * 1000
+      });
+      // this.graph.translate(xp,0)
     },
     /**
      * 周移动
@@ -1280,16 +1363,6 @@ export default {
           break;
       }
       this.changeSilder(this.curWeek);
-    },
-    /**
-     * 移动到指定点(横坐标)
-     */
-    moveTo (x, sec = 1) {
-      const offsetX = CONFIG.move_offset_x
-      const offsetY = CONFIG.move_offset_y
-      this.graph.moveTo(0 - (x - 197 + offsetX), 0 - offsetY, true, {
-        duration: sec * 1000
-      });
     },
     /**
      * 时间轴格式化提示
@@ -1366,13 +1439,18 @@ export default {
      */
     initWindow () {
       _that = this;
+      this.win.innerWidth = getWinWidth()
+      this.win.innerHeight = getWinHeight()
+      this.win.innerZoom = getWinZoom()
+
       this.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 0;
       this.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10;
       this.canvas.width = this.win.width;
-      // this.zoom = this.win.height / 988
+      this.zoom = this.win.innerZoom
       this.gird.height = this.gird.height * this.zoom
       // this.canvas.height = this.win.height - this.timeBarHei
       this.canvas.height = this.dep_num * this.gird.height;
+      this.canvas.offset_hei = this.canvas.offset_hei * this.zoom
       console.log("winWid:" + this.win.width + ",winHei:" + this.win.height + ",zoom:" + this.zoom);
       console.log("CanvasWid:" + this.canvas.width + ",CanvasHei:" + this.canvas.height + ",zoom:" + this.zoom);
 
@@ -1390,7 +1468,7 @@ export default {
         console.log('窗口大小改变:' + newWidth + '*' + newHeight)
         _that.graph.changeSize(newWidth, newHeight)
       }, 500))
-      
+
     },
     /**
      * 初始化配置
@@ -1407,12 +1485,13 @@ export default {
       //读取配置
       this.nodeStyle = localStorage.getItem('node-style') || 'default'
       this.curDep = localStorage.getItem('show-dep') || 'all'
-      if((this.nodeStyle === 'type3')|| (this.nodeStyle === 'type4') || (this.nodeStyle === 'type5') || ((this.nodeStyle === 'type6'))){
+      this.fontMode = localStorage.getItem('font-mode') || 'default'
+      if ((this.nodeStyle === 'type3') || (this.nodeStyle === 'type4') || (this.nodeStyle === 'type5') || ((this.nodeStyle === 'type6'))) {
         //大图标
-        this.config.type = (this.curDep === 'all')?'1':'101'
-      }else{
+        this.config.type = (this.curDep === 'all') ? '1' : '101'
+      } else {
         //小图标
-        this.config.type = (this.curDep === 'all')?'0':'100'
+        this.config.type = (this.curDep === 'all') ? '0' : '100'
       }
     },
     /**
@@ -1435,7 +1514,7 @@ export default {
     reloadPage () {
       setTimeout(() => {
         location.reload();
-      }, 1000);
+      }, 500);
     }
   }
 };

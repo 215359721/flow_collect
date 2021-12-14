@@ -1,9 +1,11 @@
+const fontMode = localStorage.getItem('font-mode')
 const WIDTH = 200 //节点总宽度
 const HEIGHT = 63 //节点总高度
-const TASK_FONT_COLOR = '#339933'//任务文字颜色
-const MEET_FONT_COLOR = '#0099cc'//会议文字颜色
-const CHAT_FONT_COLOR = '#006699'//即时通讯文字颜色
-const TOOL_FONT_COLOR = '#cc6600'//工具文字颜色
+const DARK_FONT = '#000'
+const TASK_FONT_COLOR = (fontMode === 'dark')?DARK_FONT:'#339933'//任务文字颜色
+const MEET_FONT_COLOR = (fontMode === 'dark')?DARK_FONT:'#0099cc'//会议文字颜色
+const CHAT_FONT_COLOR = (fontMode === 'dark')?DARK_FONT:'#006699'//即时通讯文字颜色
+const TOOL_FONT_COLOR = (fontMode === 'dark')?DARK_FONT:'#cc6600'//工具文字颜色
 const TAKS_BG_COLOR = '#094d16'
 const MEET_BG_COLOR = '#055184'
 const CHAT_BG_COLOR = '#040473'
@@ -18,7 +20,7 @@ const TASK_SVG = require('../../assets/svg/task.svg')
 const MEET_SVG = require('../../assets/svg/meet.svg')
 const CHAT_SVG = require('../../assets/svg/chat.svg')
 const TOOL_SVG = require('../../assets/svg/tool.svg')
-const getName = (node) => { return `${node.creatorName || '暂无'}` }
+const getName = (node, field = "creatorName") => { return `${node[field] || '暂无'}` }
 //阴影
 const shadow = () => {
   return `shadowColor:'#999',shadowBlur:3,shadowOffsetX:2,shadowOffsetY:2,`
@@ -52,12 +54,12 @@ const task_node_style5 = (node) => {
         </rect>
         <text style={{
           marginTop: -35,
-          marginLeft: ${(getName(node).length > 2) ? -10 : -13},
+          marginLeft: ${(getName(node, "executor").length > 2) ? -10 : -13},
           fontWeight: '550',
           fontSize:15,
           fill: ${TASK_FONT_COLOR},
           }}draggable="true">
-          ${getName(node)}
+          ${getName(node, "executor")}
         </text>
         ${breakLine(node, TASK_FONT_COLOR)}
       </image>
@@ -187,7 +189,7 @@ const tool_node_style5 = (node) => {
     </group>`
   return jsx
 }
-const breakLine = (node, color = '#ff0000') => {
+const breakLine = (node, color = '#fff') => {
   // eslint-disable-next-line no-control-regex
   var reg = /[^\x00-\xff]/g
   let textArr = []
