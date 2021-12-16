@@ -4,7 +4,6 @@
 
 <script>
 import { Chart } from '@antv/g2';
-import { useMockData} from "../../config/index";
 export default {
   components: {},
   props: {
@@ -19,10 +18,6 @@ export default {
     zoom: {
       type: Number,
       default: 1.0
-    },
-    data:{
-      type:Array,
-      default:()=>[]
     }
   },
   data () {
@@ -30,15 +25,15 @@ export default {
   },
   computed: {},
   methods: {
-    initChart (wid, hei) {
+    initChart (wid, hei,data) {
       console.log('bar-图表宽高:' + wid + "|" + hei)
       document.getElementById('content-bar').innerHTML = ''
       const mockdata = [
-        { year: '2017 年', sales: 15000 },
-        { year: '2018 年', sales: 19000 },
-        { year: '2019 年', sales: 21000 },
-        { year: '2020 年', sales: 22000 },
-        { year: '2021 年', sales: 24500 },
+        { name: '电气设备', value: 0.9 },
+        { name: '继电器', value: 0.5 },
+        { name: '微功率继电器', value: 0.45 },
+        { name: '逆功率继电器', value: 0.75 },
+        { name: '大功率继电器', value: 0.2 },
       ];
       const chart = new Chart({
         container: 'content-bar',
@@ -46,18 +41,18 @@ export default {
         width: wid, // 指定图表宽度
         height: hei, // 指定图表高度
       });
-      chart.data(useMockData?mockdata:this.data);
+      console.log('bar-data:',data)
+      chart.data(data);
       chart.scale('sales', {
         nice: true,
       });
 
-
       chart.tooltip({
         showMarkers: false
       });
-      chart.interaction('active-region');
+      // chart.interaction('active-region');
 
-      chart.interval().position('year*sales');
+      chart.interval().position('name*value');
 
       chart.render();
     },

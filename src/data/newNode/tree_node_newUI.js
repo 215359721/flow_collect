@@ -94,7 +94,6 @@ const treeNode_big =
 
 //树自定义关系节点
 const rela_node = (node) => {
-  console.log(node.name)
   return `<group>
       <circle style={{
         r:20,

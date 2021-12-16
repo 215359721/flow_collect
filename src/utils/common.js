@@ -1,4 +1,5 @@
 import G6 from "@antv/g6";
+
 //获得已更新节点集合
 const getUpdateNodesPositionList = function (moveList, curMoveNode) {
   if (moveList.length) {
@@ -71,6 +72,15 @@ const fittingString = (str, maxWidth, fontSize) => {
   return res;
 };
 
+const midyfyClassWithZoom = (domName, curZoom) => {
+  const dom = document.getElementsByClassName(domName)[0]
+  dom.style.zoom = curZoom
+};
+
+const openFile = () => {
+  console.log('openFile');
+};
+
 export function createUuid (length) {
   let str = Math.random().toString(36).substr(2)
   if (str.length >= length) {
@@ -87,4 +97,6 @@ export {
   debounce,
   isDuringDate,
   fittingString,
+  midyfyClassWithZoom,
+  openFile,
 }

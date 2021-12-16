@@ -13,6 +13,7 @@ var base_ip_yyw = 'http://api.bjsasc.com'
 var cfg_type = 1
 //泳道图网格-宽
 var grid_width_flow = 840
+// var grid_width_flow = 1880
 //泳道图网格-高
 var grid_height_flow = 180
 //泳道图网格-间距

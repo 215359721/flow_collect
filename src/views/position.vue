@@ -323,6 +323,7 @@ import insertCss from "insert-css";
 // eslint-disable-next-line no-unused-vars
 import getTooTipHTML from "../data/tooTip";
 import getTipHTML from "../data/toolTipNew"
+import { getRightMenuHTML, jumpDetailInfo } from '../data/rightMenu'
 import nodeNewUI from '../data/newNode/cust_node_newUI'
 import nodeSt3 from '../data/newNode/cust_node_3'
 import nodeSt4 from '../data/newNode/cust_node_4'
@@ -338,7 +339,7 @@ import { useMockData, useExColor, isNewUI } from "../config/index";
 // eslint-disable-next-line no-unused-vars
 import { getWinWidth, getWinHeight, getWinZoom } from "../utils/device"
 import { getUpdateNodesPositionList, getNewEdgesList, splitStr, debounce, isDuringDate } from "../utils/common";
-import { getXYdata, getMainData, getDataByDep, modifyNodesPosition, addMark, addLink, } from "../api/api";
+import { getXYdata, getMainData, getDataByDep, modifyNodesPosition, addMark, addLink, getFileUrl } from "../api/api";
 insertCss(innerCss);
 let _that = null;
 const CONFIG = window._SERVERCONF
@@ -382,7 +383,7 @@ export default {
       curDep: 'all',//当前显示数据的部门
       curDepName: '',//当前显示数据部门名称
       dep_num: 5, //部门数量
-      dep_left_wid: 92,//部门宽度
+      dep_left_wid: 97,//部门宽度
       //网格信息
       gird: {},
       //配置
@@ -656,6 +657,23 @@ export default {
         _that.saveDisabled =
           _that.addEdgesList.length === 0 && _that.nodeMoveList.length === 0;
       });
+      //监听：tooltip点击
+      this.graph.on("tooltipchange", item => {
+        if (item.action === "show") {
+          const dom = document.getElementsByClassName('single-file')
+          if (dom.length) {
+            for (let i = 0; i < dom.length; i++) {
+              dom[i].onclick = async (e) => {
+                const fileId = e.target.id
+                const fileName = e.target.innerText
+                console.log(fileId + ":" + fileName)
+                const rspFile = await getFileUrl(fileId)
+                console.log(rspFile.data.url)
+              }
+            }
+          }
+        }
+      })
       //监听：增加连线
       this.graph.on("aftercreateedge", e => {
         const curEdge = {
@@ -708,40 +726,14 @@ export default {
       this.rightMenu = new G6.Menu({
         getContent (e) {
           const item = e.item.getModel();
-          let con = ``;
-          let jumpStr = '<button class="btn btn-small submit bounce-left" fnname="jumpInfo">跳转详情</button>'
-          if ((item.icon === 'task') || ((item.icon === 'MeetingInfo') && (item.detailInfo) && (item.detailInfo.status !== '6'))) {
-            jumpStr = ''
-          }
-          if (item.method === "block") {
-            //背景节点无右键菜单
-            con = ``;
-          } else if (item.notes !== "") {
-            con = `
-            <div class="left-menu">
-              <button class="btn btn-small submit bounce-left" fnname="copynode">显示节点ID</button>
-              <button class="btn btn-small submit bounce-left" fnname="showMark">查看批注</button>
-              <button class="btn btn-small submit bounce-left" fnname="showNodeRelation">查看关系</button>
-              ${jumpStr}
-            </div>`;
-          } else {
-            con = `
-            <div class="left-menu">
-              <button class="btn btn-small submit bounce-left" fnname="copynode">显示节点ID</button>
-              <button class="btn btn-small submit bounce-left" fnname="addMark">添加批注</button>
-              <button class="btn btn-small submit bounce-left" fnname="showNodeRelation">查看关系</button>
-              ${jumpStr}
-            </div>`;
-          }
-          return con;
+          return getRightMenuHTML(item, 'position', _that.zoom)
         },
         handleMenuClick: (target, item) => {
-          // console.log(target, item)
           _that.curOptNode = item;
           const cur = this.curOptNode._cfg.model;
           const page = _that.$router.resolve({
             path: "/auto",
-            query: { nodeId: cur.id }
+            query: { nodeId: cur.id, icon: cur.icon }
           });
           console.log("curOptNode:", _that.curOptNode);
           const openWindowOption = `top=0,left=0,toolbar=no,menubar=no,width=${window.screen.availWidth - 10},height=${window.screen.availHeight - 30}`
@@ -757,10 +749,10 @@ export default {
               _that.markObj.content = "";
               break;
             case "showNodeRelation":
-              window.open(page.href, cur.label, openWindowOption);
+              window.open(page.href, '模型与数据驱动的一体化协同设计平台-' + cur.label, openWindowOption);
               break;
             case "jumpInfo":
-              this.jumpDetailInfo(cur)
+              jumpDetailInfo(cur)
               break;
             default:
               break;
@@ -773,38 +765,6 @@ export default {
         // 在哪些类型的元素上响应
         itemTypes: ["node"]
       });
-    },
-    jumpDetailInfo (node) {
-      let meetingNum = node.detailInfo.meetingNum
-      let innerId = node.detailInfo.innerId
-      let ASP_MEET_BASE_URL = "https://meet.bjsasc.com:8443"
-      // eslint-disable-next-line no-undef
-      let meetingUrl = ASP_MEET_BASE_URL + `/#/meeting?code=${asp.usersrc.curLoginUser.userLoginName}&num=${meetingNum}&innerId=${innerId}&userid=${asp.user.uerid}`
-      let appId = node.detailInfo.appId
-      let nativeappurl = 'asp://nativeapp/' + appId
-
-      if (node.detailInfo) {
-        switch (node.icon) {
-          case 'MeetingInfo':
-            console.log(meetingUrl, 'meetingUrl')
-            window.open(meetingUrl)
-            break;
-          // case 'Im':
-          // case 'im':
-          //   appId = node.detailInfo.chatId
-          //   break;
-          case 'App':
-
-            console.log('跳转:' + nativeappurl)
-            window.openURL(nativeappurl)
-            break
-          default:
-            break;
-        }
-
-      } else {
-        alert('无详情节点数据')
-      }
     },
     /**
      * 初始化小地图

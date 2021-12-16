@@ -1,7 +1,7 @@
 const none = '暂无'
 const defaultHead = require('../assets/image/newUI/bigHead.png')
 function getTipHTML (node, zoom = 1.0) {
-  // console.log('getTipHTML', node)
+  console.log('getTipHTML-node', node)
   const info = node.detailInfo || {}
   let result = ``
   const task_html = `<div class="tip-div" style="zoom:${zoom}">
@@ -10,8 +10,8 @@ function getTipHTML (node, zoom = 1.0) {
         
         <div class="top-box">
           <div class="left">
-            <img class="big-head" src="${node.creatorPhotoUrl || defaultHead}">
-            <div class="user-name bold">${node.creatorName || none}</div>
+            <img class="big-head" src="${node.executorPhotoUrl || defaultHead}">
+            <div class="user-name bold">${info.executor || none}</div>
           </div>
           <div class="right">
             <div class="common-line lineheight20">
@@ -174,6 +174,17 @@ function getTipHTML (node, zoom = 1.0) {
         </div>
       </div>
     </div>`
+  const data_html = `<div class="tip-div" style="zoom:${zoom}">
+    <div class="tip-head data-head-bg data-border">数据详情</div>
+    <div class="tip-content data-content-bg data-border">
+      <div class="file-line">
+        <div class="title bold">数据列表：</div>
+        <div class="file-box">
+          ${getFilePart(info.inPuts || [])}
+        </div>
+      </div>
+    </div>
+  </div>`
   switch (node.icon) {
     case 'task':
       result = task_html
@@ -185,6 +196,10 @@ function getTipHTML (node, zoom = 1.0) {
     case 'im':
       result = chat_html
       break;
+    case "DataPacket":
+    case "document":
+      result = data_html
+      break;
     default:
       result = tool_html
       break;
@@ -192,12 +207,13 @@ function getTipHTML (node, zoom = 1.0) {
   return result
 }
 
+
 function getFilePart (fileArray) {
   let content = ''
   // console.log('fileArray:', fileArray)
   if (fileArray.length) {
     for (let i = 0; i < fileArray.length; i++) {
-      content += '<span class="single-file link">' + (fileArray[i].fileName || fileArray[i].filename) || none + '</span>'
+      content += '<span class="single-file link" id="'+fileArray[i].fileId+'">' + (fileArray[i].fileName || fileArray[i].filename) || none + '</span>'
       if (i < fileArray.length - 1) {
         content += '<br/>'
       }

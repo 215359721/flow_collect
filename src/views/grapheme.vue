@@ -115,24 +115,12 @@
     >
       <div
         class="left-box"
-        :style="{height:boxHeight +'px'}"
+        :style="{height:boxHeight*2 +'px'}"
       >
-        <span :style="{zoom:zoom}">语义总览分布</span>
-        <pie-l
+        <span :style="{zoom:zoom}">高频搜索词汇排行</span>
+        <rank-l
           :zoom="zoom"
-          :data="pieData"
-          ref="pie"
-        />
-      </div>
-      <div
-        class="left-box"
-        :style="{height:boxHeight +'px'}"
-      >
-        <span :style="{zoom:zoom}">语义词汇数历年数量</span>
-        <bar-l
-          :zoom="zoom"
-          :data="barData"
-          ref="bar"
+          ref="rank"
         />
       </div>
     </div>
@@ -144,9 +132,9 @@
     >
       <div
         class="right-box"
-        :style="{height:boxHeight +'px'}"
+        :style="{height:boxHeight*2 +'px',overflowY:'auto'}"
       >
-        <span :style="{zoom:zoom}">相关文章</span>
+        <span :style="{zoom:zoom}">{{curWord}} 相关文章Top10</span>
         <table-s
           :data="articleData"
           :zoom="zoom"
@@ -156,20 +144,10 @@
         class="right-box"
         :style="{height: boxHeight+'px'}"
       >
-        <span :style="{zoom:zoom}">相关度Top</span>
-        <top-x
+        <span :style="{zoom:zoom}">相关度</span>
+        <bar-r
           :zoom="zoom"
-          ref="topx"
-        />
-      </div>
-      <div
-        class="right-box"
-        :style="{height:boxHeight +'px'}"
-      >
-        <span :style="{zoom:zoom}">关键词趋势</span>
-        <line-x
-          :zoom="zoom"
-          ref="line"
+          ref="bar"
         />
       </div>
     </div>
@@ -186,26 +164,24 @@ import loading from "../utils/loading";
 // import graphemeTreeData from "../mock/grapheme-tree";
 import { showTooltip } from "../data/tree-tooltip";
 import innerCss from "../data/insertCss";
-import { getchartDataWithPie, getchartDataWithBar, getchartDataWithArticle } from "../api/api.js";
+import { getchartDataWithArticle } from "../api/api.js";
 import { getTreeNode, getKeywordsList } from "../api/api.js";
 import { createUuid } from "../utils/common.js";
 import custNode from "../data/task_node";
 import { baseUrl } from "../config";
 import { getWinZoom } from "../utils/device"
-import { debounce } from "../utils/common";
+import { debounce, midyfyClassWithZoom } from "../utils/common";
 // eslint-disable-next-line no-unused-vars
 import { useMockData, isNewUI } from "../config/index";
 import mock_treeData from "../mock/FinishData/treeData";
 import nodeNewUI from '../data/newNode/tree_node_newUI'
-import topX from '../components/charts/topx.vue'
 import tableS from '../components/charts/table.vue'
-import lineX from '../components/charts/line.vue'
-import pieL from '../components/charts/pie.vue'
-import barL from '../components/charts/bar.vue'
+import rankL from '../components/charts/rank.vue'
+import barR from '../components/charts/bar.vue'
 insertCss(innerCss);
 
 export default {
-  components: { topX, tableS, lineX, pieL, barL },
+  components: { tableS, rankL, barR },
   data () {
     return {
       //window对象
@@ -226,6 +202,7 @@ export default {
       childNodes: [],
       isRender: false,
       selectNode: undefined,
+      curWord: '',
       form: {
         level: 2,
         keyWord: "功率继电器",
@@ -266,6 +243,7 @@ export default {
       //右侧图表
       articleData: [],
       topData: [],
+      xgdData: [],
       lineData: [],
       areaShow: false,
       boxWidth: 0,
@@ -276,16 +254,37 @@ export default {
   created () {
     this.zoom = getWinZoom()
     this.getParams();
-    this.requestLeftData()
   },
   methods: {
-    async requestLeftData () {
+    //获得相关度图表数据
+    getXgdList (data) {
+      this.xgdData = []
+      if (data.children.length) {
+        data.children.forEach(edge => {
+          const xgd = edge.xgd
+          if (edge.children.length) {
+            edge.children.forEach(node => {
+              const item = {
+                name: node.name,
+                value: xgd,
+              }
+              this.xgdData.push(item)
+            })
+          }
+        });
+      }
+      console.log('相关度数据:', this.xgdData)
+      this.$refs.bar.initChart(this.boxWidth - 50 * this.zoom, this.boxHeight - 30 * this.zoom, this.xgdData)
+    },
+    //拉取右侧图表数据
+    getRightData () {
+      this.requestArticleData()
+    },
+    //根据关键词搜索相关文章
+    async requestArticleData () {
       if (!useMockData) {
-        const rspPie = await getchartDataWithPie()
-        const rspBar = await getchartDataWithBar()
-        const rspArt = await getchartDataWithArticle('航天')
-        this.barData = eval("(" + rspBar.data + ")")
-        this.pieData = eval("(" + rspPie.data + ")")
+        // console.log('文章关键词:',this.curWord)
+        const rspArt = await getchartDataWithArticle(this.curWord)
         const arcList = JSON.parse(rspArt.data.msg)
         this.articleData = []
         arcList.hits.forEach((item, index) => {
@@ -297,21 +296,17 @@ export default {
           this.articleData.push(obj)
         })
       }
-      console.log('柱状图:', this.barData)
-      console.log('饼图:', this.pieData)
-      console.log('文章:', this.articleData)
-    },
-    async reqeustRightData () {
-
+      // console.log('文章:', this.articleData)
     },
     // 获取初始树节点
     async getTreeNode () {
       if (!this.selectNode) {
-        console.log("获取初始树节点-搜索节点");
         const params = {
           layer: this.form.level,
           type: this.form.keyWord
         };
+        this.curWord = this.form.keyWord
+        console.log("获取初始树节点-搜索节点", params);
         let res = '', resData = ''
         if (useMockData) {
           resData = mock_treeData
@@ -322,17 +317,19 @@ export default {
         this.sourceData = this.initData(resData);
         this.centerNode = this.sourceData;
       } else {
-        console.log("获取初始树节点-点击节点");
         const params = {
           layer: this.form.level,
           type: this.selectNode.getModel().name
         };
+        this.curWord = this.selectNode.getModel().name
+        console.log("获取初始树节点-点击节点", params);
         const res = await getTreeNode(params);
         this.childNodes = res.data;
         if (this.childNodes && this.childNodes.children.length) {
           await this.recursionConcat(this.sourceData);
         }
       }
+      this.getRightData()
     },
     // 递归拼接children
     recursionConcat (data) {
@@ -345,12 +342,34 @@ export default {
         processedData = data;
       }
       processedData.map(async item => {
+        if (item.type === "custTree_rela_newUI") {
+          if (item.name === '范畴') {
+            item.xgd = 0.9
+          }
+          if (item.name === 'F') {
+            item.xgd = 0.8
+          }
+          if (item.name === 'D') {
+            item.xgd = 0.7
+          }
+          if (item.name === 'Z') {
+            item.xgd = 0.6
+          }
+          if (item.name === 'S') {
+            item.xgd = 0.5
+          }
+          if (item.name === 'C') {
+            item.xgd = 0.4
+          }
+        }
         if (item.id === this.selectNode.getModel().id) {
           const formateData = await this.initData(this.childNodes);
           item.children = formateData.children;
           this.isRender = true;
+
         } else {
           if (item.children && item.children.length) {
+            if (item.type === "custTree_rela_newUI") { console.log(item.name) }
             this.recursionConcat(item.children);
           }
         }
@@ -365,9 +384,11 @@ export default {
         this.selectNode.getModel().type === "custTree_node" &&
         !this.selectNode.getModel().children.length
       ) {
+        console.log('拉取新数据')
         await this.getTreeNode(this.selectNode);
       }
       if (this.isRender && !this.selectNode.getModel().collapsed) {
+        console.log('折叠数据')
         this.graph.changeData(this.sourceData);
         this.graph.fitCenter();
         this.graph.zoom(1.2, {
@@ -376,6 +397,8 @@ export default {
         });
       }
       console.log("聚焦节点：", this.selectNode.getModel());
+      this.getXgdList(this.selectNode.getModel())
+      this.curWord = this.selectNode.getModel().name
       this.graph.focusItem(this.selectNode.getModel().id, true, {
         duration: 400
       });
@@ -386,6 +409,7 @@ export default {
       this.graph.setItemState(this.selectNode._cfg.id, "dark", false);
       this.graph.setItemState(this.selectNode._cfg.id, "highlight", true);
       loading.hide();
+      this.getRightData()
     },
     // 辐射树node点击事件
     async handleRadiaNodeClick (event) {
@@ -620,6 +644,7 @@ export default {
         y: this.win.height / 2
       });
       console.log("初始化G6脑图树【完成】", this.sourceData);
+      this.getXgdList(this.sourceData)
       this.graph.on("node:click", this.handleMindNodeClick);
       // 监听：canvas点击
       this.graph.on("canvas:click", () => {
@@ -628,6 +653,8 @@ export default {
       this.graph.on("canvas:drag", () => {
         // this.areaShow = false
       });
+      //更新class
+      midyfyClassWithZoom('g6-component-toolbar', this.zoom)
     },
     // 切换布局
     changeLayout (val) {
@@ -662,7 +689,7 @@ export default {
     // 初始化小地图
     initMiniMap () {
       this.minimap = new G6.Minimap({
-        size: [this.boxWidth - 30 * this.zoom, this.boxHeight - 30 * this.zoom]
+        size: [this.boxWidth - 35 * this.zoom, this.boxHeight - 30 * this.zoom]
       });
     },
     // 初始化工具栏
@@ -692,8 +719,8 @@ export default {
       this.canvasCenter = [this.win.width / 2, this.win.height / 2];
       this.initJsxNode();
       const _that = this
-      this.boxWidth = this.win.width * 0.25
-      this.boxHeight = this.win.height / 3.5
+      this.boxWidth = 400 * this.zoom
+      this.boxHeight = this.win.height / 3.3
       //监听窗口改变
       window.addEventListener('resize', debounce(() => {
         _that.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 70;
@@ -718,7 +745,6 @@ export default {
     },
     // 初始化tooltip
     initToolTip () {
-      console.log('初始化tooltip')
       this.toolTip = new G6.Tooltip({
         offsetX: 10,
         offsetY: 10,
@@ -832,10 +858,29 @@ export default {
           //关系节点
           item.id = createUuid(32);
           item.type = "custTree_rela_newUI";
+          if (item.name === '范畴') {
+            item.xgd = 0.9
+          }
+          if (item.name === 'F') {
+            item.xgd = 0.8
+          }
+          if (item.name === 'D') {
+            item.xgd = 0.7
+          }
+          if (item.name === 'Z') {
+            item.xgd = 0.6
+          }
+          if (item.name === 'S') {
+            item.xgd = 0.5
+          }
+          if (item.name === 'C') {
+            item.xgd = 0.4
+          }
         } else {
           item.id = createUuid(32);
           item.size = 40;
           if (item.name === "范畴") {
+            item.xgd = 0.9
             item.icon = {
               show: true,
               img: require("../assets/image/fc.png"),
@@ -844,6 +889,7 @@ export default {
               cursor: "pointer"
             };
           } else if (item.name === "F") {
+            item.xgd = 0.8
             item.icon = {
               show: true,
               img: require("../assets/image/F.png"),
@@ -852,6 +898,7 @@ export default {
               cursor: "pointer"
             };
           } else if (item.name === "D") {
+            item.xgd = 0.7
             item.icon = {
               show: true,
               img: require("../assets/image/D.png"),
@@ -860,6 +907,7 @@ export default {
               cursor: "pointer"
             };
           } else if (item.name === "Z") {
+            item.xgd = 0.6
             item.icon = {
               show: true,
               img: require("../assets/image/Z.png"),
@@ -868,6 +916,7 @@ export default {
               cursor: "pointer"
             };
           } else if (item.name === "S") {
+            item.xgd = 0.5
             item.icon = {
               show: true,
               img: require("../assets/image/S.png"),
@@ -876,6 +925,7 @@ export default {
               cursor: "pointer"
             };
           } else if (item.name === "C") {
+            item.xgd = 0.4
             item.icon = {
               show: true,
               img: require("../assets/image/C.png"),
@@ -963,10 +1013,8 @@ export default {
       this.renderCharts()
     },
     renderCharts () {
-      this.$refs.topx.initChart(this.boxWidth - 50 * this.zoom, this.boxHeight - 30 * this.zoom)
-      this.$refs.line.initChart(this.boxWidth - 50 * this.zoom, this.boxHeight - 30 * this.zoom)
-      this.$refs.pie.initChart(this.boxWidth - 50 * this.zoom, this.boxHeight - 30 * this.zoom)
-      this.$refs.bar.initChart(this.boxWidth - 50 * this.zoom, this.boxHeight - 30 * this.zoom)
+      this.$refs.rank.initChart(this.boxWidth - 50 * this.zoom, this.boxHeight * 2 - (30 * this.zoom))
+
       this.areaShow = true
     },
     async getParams () {
@@ -974,7 +1022,8 @@ export default {
       if (!firstLoading) {
         let queryObj = this.$route.query
         this.form.keyWord = queryObj.keyWord || '';
-        console.log('keyWord:', this.form.keyWord)
+        // console.log('keyWord:', this.form.keyWord)
+        this.curWord = this.form.keyWord
         this.handleSearch();
       }
     }

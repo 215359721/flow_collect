@@ -22,6 +22,14 @@ export const getDataById = (nodeId) => {
 export const modifyNodesPosition = (data) => {
   return request({ url: `/graph/updateNodeCoord`, method: 'post', data })
 }
+//根据文件ID获得文件url
+export const getFileUrl = (fileId) => {
+  return request({ url: `/fss/cloudStorageURL?fileId=${fileId}`, method: 'get', })
+}
+//关系图更新全量节点
+export const modifyRelationPos = (data) => {
+  return request({ url: `/graph/addNodeLogCoord`, method: 'post', data })
+}
 //添加批注
 export const addMark = (data) => {
   return request({ url: `/graph/addNote`, method: 'post', data })
@@ -62,7 +70,7 @@ export function getKeywordsList (params) {
 
 //【语义网】通过关键词获得相关文章列表（right-1）
 export const getchartDataWithArticle = (keyword) => {
-  return request({ url: `/meeting/fss/storage/content?from=0&size=5&owners=meeting&userId=rootadmin0001&keyword=${keyword}`, method: 'post', baseURL: SERVER_CONF.base_ip_yyw })
+  return request({ url: `/meeting/fss/storage/content?from=0&size=15&owners=meeting&userId=rootadmin0001&keyword=${keyword}`, method: 'post', baseURL: SERVER_CONF.base_ip_yyw })
 }
 
 //【语义网】获得饼图数据

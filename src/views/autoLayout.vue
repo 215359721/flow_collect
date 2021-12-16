@@ -1,6 +1,9 @@
 <template>
   <div class="main-page">
-    <div class="opt-div">
+    <div
+      class="opt-div"
+      :style="{zoom:zoom}"
+    >
       <!-- 布局切换 -->
       <el-button
         style="width:60px;"
@@ -58,11 +61,12 @@
 
     <div
       class="cur-num"
-      style="width:200px;"
+      :style="{zoom:zoom,width:180+'px'}"
       v-if="graph"
     >
-      <div class="mr5">zoom：{{curZoom}}</div>
-      <div>layout：{{curLayout}}</div>
+      <div class="mr5">zoom：{{zoom}}</div>
+      <!-- <div>layout：{{curLayout}}</div> -->
+      <div>【{{useLocalPostion?'手动布局':'自动布局'}}】</div>
     </div>
     <div id="canvasDiv"></div>
   </div>
@@ -75,6 +79,7 @@ import G6 from "@antv/g6";
 import insertCss from "insert-css";
 import loading from "../utils/loading";
 import getTipHTML from "../data/toolTipNew"
+import { getRightMenuHTML, jumpDetailInfo } from '../data/rightMenu'
 import getTooTipHTML from "../data/tooTip";
 // eslint-disable-next-line no-unused-vars
 import realData from "../mock/realData";
@@ -92,14 +97,15 @@ import chatNode from "../data/chat_node";
 import dataNode from "../data/data_node";
 import nodeNewUI from '../data/newNode/layout_node_newUI'
 import innerCss from "../data/insertCss";
-import { getDataById } from "../api/api";
+import { getDataById,modifyRelationPos,getFileUrl } from "../api/api";
 import { useMockData, isNewUI } from "../config/index";
-import { debounce } from "../utils/common";
+import { debounce, midyfyClassWithZoom } from "../utils/common";
 import mock_layoutData from "../mock/FinishData/layoutData";
 // eslint-disable-next-line no-unused-vars
 import mock_detailData from "../mock/FinishData/detailData";
 import nodeSt5 from '../data/newNode/cust_node_5'
-import nodeDataSt5 from '../data/newNode/cust_node_data'
+import nodeDataSt2 from '../data/newNode/cust_node_data2'
+import { getWinZoom } from "../utils/device"
 insertCss(innerCss);
 let _that = null;
 
@@ -112,6 +118,7 @@ export default {
         height: 0,
         width: 0
       },
+      queryData:{},//query数据
       sourceData: {}, //数据源
       graph: null, //graph全局对象
       showType: "simple", //显示模式（all、normal、simple）
@@ -122,12 +129,13 @@ export default {
       lineType: "polyline", //线条样式(line,polyline,quadratic,cubic,arc)
       lineColor: "#888888", //线条颜色
       lineThick: 2, //线条粗细
+      curOptNode: null, //当前操作的节点
       toolTip: "", //提示框内容
       toolBar: null, //工具栏
       minimap: null, //小地图
       rightMenu: null, //右键菜单
       curLayout: "dagre", //当前布局
-      curZoom: 1.0, //当前缩放率
+      zoom: 1.0, //当前缩放率
       //-------
       useLocalPostion: false,//是否使用本地坐标or采用自动布局
       nodePositionList: [],//全量节点坐标集合
@@ -148,9 +156,9 @@ export default {
         this.sourceData = this.initData(outerData);
       } else {
         //真实数据
-        const queryData = this.$route.query
-        console.log("queryData:", queryData);
-        if (!queryData.nodeId) {
+        this.queryData = this.$route.query
+        console.log("queryData:", this.queryData);
+        if (!this.queryData.nodeId) {
           alert('没有对应的初始节点！')
           return
         }
@@ -159,18 +167,18 @@ export default {
           // responseData = mock_detailData
           responseData = mock_layoutData
         } else {
-          responseData = await getDataById(queryData.nodeId);
+          responseData = await getDataById(this.queryData.nodeId);
         }
         console.log("全量数据:", responseData.data);
-        this.sourceData = this.initData(responseData.data);
-        this.useLocalPostion = Boolean(this.sourceData.local)
+        this.useLocalPostion = Boolean(responseData.data.nodes[0].x)
         console.log('【useLocalPostion】', this.useLocalPostion)
-
-        this.sourceData.edges.forEach(data => {
-          console.log('label:' + data.label)
-        })
+        console.log(`当前布局采用:【${this.useLocalPostion?'手动布局':'自动布局'}】`);
+        this.sourceData = this.initData(responseData.data);
+        // this.sourceData.edges.forEach(data => {
+        //   console.log('label:' + data.label)
+        // })
       }
-      // this.initMenu();
+      this.initMenu();
       this.initToolBar();
       this.initMiniMap();
       this.initToolTip();
@@ -194,7 +202,7 @@ export default {
         rankdir: this.rankDir,
         align: this.align,
         sortByCombo: true,
-        nodesepFunc: () => 150,//纵向间距
+        nodesepFunc: () => 50,//纵向间距
         ranksepFunc: () => 30,//横向间距
       }
       if (this.useLocalPostion) { currentLayout = {} }
@@ -210,7 +218,7 @@ export default {
         animate: true,
         enabledStack: true,
         minZoom: 0.05,
-        maxZoom: 1.5,
+        maxZoom: 10.0,
         modes: {
           default: [
             "drag-canvas",
@@ -221,7 +229,7 @@ export default {
             "collapse-expand-combo"
           ] //'drag-canvas', 'zoom-canvas', 'drag-node'
         },
-        plugins: [this.toolTip, this.minimap, this.toolBar],
+        plugins: [this.toolTip, this.minimap, this.toolBar, this.rightMenu],
         layout: currentLayout,
         //默认节点设置
         defaultNode: {
@@ -300,7 +308,7 @@ export default {
       //--------测试数据end--------
       this.graph.data(this.sourceData);
       this.graph.render();
-      this.curZoom = this.graph.getZoom().toFixed(2);
+      this.graph.zoomTo(this.zoom);
 
       //聚焦到指定节点
       // setTimeout(() => {
@@ -325,7 +333,7 @@ export default {
         //   "}"
         // );
         //聚焦item
-        _that.graph.focusItem(item);
+        // _that.graph.focusItem(item);
         //---高亮---
         _that.graph.setAutoPaint(false);
         _that.graph.getNodes().forEach(function (node) {
@@ -350,6 +358,26 @@ export default {
           _that.graph.collapseExpandCombo(e.item);
         }
       });
+      //监听：tooltip点击
+      this.graph.on("tooltipchange", item=>{
+        if(item.action === "show"){
+          const dom = document.getElementsByClassName('single-file')
+          if(dom.length){
+            for (let i = 0; i < dom.length; i++) {
+              dom[i].onclick=async(e)=>{
+                const fileId = e.target.id
+                const fileName = e.target.innerText
+                console.log(fileId+":"+fileName)
+                const rspFile = await getFileUrl(fileId)
+                console.log(rspFile.data.url)
+              }
+            }
+          }
+        }
+      })
+      //更新class
+      midyfyClassWithZoom('g6-minimap', this.zoom)
+      midyfyClassWithZoom('g6-component-toolbar', this.zoom)
     },
     filtNodeAndEdge (graph, item) {
       graph.getEdges().forEach(function (edge) {
@@ -377,13 +405,27 @@ export default {
         const model = item._cfg.model
         console.log(model.id + ":  " + model.x + "," + model.y)
         const obj = {
+          nodeClassId:model.icon,
           nodeId: model.id,
           nodeX: model.x,
           nodeY: model.y,
+          startNodeClassId:this.queryData.icon,
+          startNodeId:this.queryData.nodeId,
         }
         this.nodePositionList.push(obj)
       })
-
+      console.log('修改节点上送:',this.nodePositionList);
+      if (this.nodePositionList.length) {
+        const responseData = await modifyRelationPos(this.nodePositionList);
+        console.log(responseData);
+        if (responseData.data.code === 200) {
+          this.$message.success("关系保存成功");
+        } else {
+          this.$message.error("关系保存失败");
+        }
+      }else{
+        this.$message.warning("您未做任何更改");
+      }
     },
     /**
      * 切换布局
@@ -483,18 +525,39 @@ export default {
      */
     initMenu () {
       this.rightMenu = new G6.Menu({
-        getContent () {
-          return `
-          <div class="left-menu">
-            <button class="menu-btn">功能1</button>
-            <button class="menu-btn">功能2</button>
-            <button class="menu-btn">功能3</button>
-            
-            <button class="menu-btn">功能4</button>
-          </div>`;
+        getContent (e) {
+          const item = e.item.getModel();
+          return getRightMenuHTML(item, 'auto', _that.zoom)
         },
         handleMenuClick: (target, item) => {
-          console.log(target, item);
+          _that.curOptNode = item;
+          const cur = this.curOptNode._cfg.model;
+          const page = _that.$router.resolve({
+            path: "/auto",
+            query: { nodeId: cur.id }
+          });
+          console.log("curOptNode:", _that.curOptNode);
+          const openWindowOption = `top=0,left=0,toolbar=no,menubar=no,width=${window.screen.availWidth - 10},height=${window.screen.availHeight - 30}`
+          switch (target.getAttribute("fnname")) {
+            case "copynode":
+              alert("节点ID:" + cur.id)
+              break;
+            case "addMark":
+              _that.addMarkShow = true;
+              break;
+            case "showMark":
+              _that.showMarkVisiable = true;
+              _that.markObj.content = "";
+              break;
+            case "showNodeRelation":
+              window.open(page.href, cur.label, openWindowOption);
+              break;
+            case "jumpInfo":
+              jumpDetailInfo(cur)
+              break;
+            default:
+              break;
+          }
         },
         // 需要加上父级容器的 padding-left 16 与自身偏移量 10
         offsetX: 16 + 10,
@@ -527,14 +590,15 @@ export default {
       this.toolTip = new G6.Tooltip({
         offsetX: 0,
         offsetY: 0,
-        fixToNode: [1, 0.5],
+        // fixToNode: [1, 0.5],
+        trigger: "click",
         // 允许出现 tooltip 的 item 类型
-        itemTypes: ["node", "edge"],
+        itemTypes: ["node"],
         shouldBegin: e => {
           const model = e.item.getModel();
-          if ((model.icon === "document") || (model.icon === "DataPacket")) {
-            return false;
-          }
+          // if ((model.icon === "document") || (model.icon === "DataPacket")) {
+          //   return false;
+          // }
           return true;
         },
         // 自定义 tooltip 内容
@@ -545,7 +609,7 @@ export default {
           const model = e.item.getModel();
           // const pos = e.item.getBBox()
           if (e.item.getType() === "node") {
-            outDiv.innerHTML = isNewUI ? getTipHTML(model) : getTooTipHTML(model);
+            outDiv.innerHTML = getTipHTML(model, this.zoom);
           }
           if ((e.item.getType() === "edge") && (model.label !== '')) {
             outDiv.innerHTML = model.label
@@ -559,10 +623,11 @@ export default {
      */
     initWindow () {
       _that = this;
+      this.zoom = getWinZoom().toFixed(2)
       this.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10;
       this.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 10;
       this.canvasCenter = [this.win.width / 2, this.win.height / 2];
-      console.log("winWid:" + this.win.width + ",winHei:" + this.win.height);
+      console.log("winWid:" + this.win.width + ",winHei:" + this.win.height + ",zoom:" + this.zoom);
       //监听窗口改变
       window.addEventListener('resize', debounce(() => {
         _that.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10;
@@ -608,10 +673,12 @@ export default {
         switch (element.icon) {
           case "data":
           case "document"://数据
-            element.type = "custNode_data_style5"
+            element.type = "custNode_data_style2"
+            element.size = [60, 60]
             break;
           case "DataPacket"://数据包
-            element.type = "custNode_data_group_style5";
+            element.type = "custNode_data_group_style2";
+            element.size = [60, 60]
             break;
           case "chat":
           case "im"://即时通讯
@@ -627,7 +694,8 @@ export default {
             element.type = "custNode_tool_style5"
             break;
           default:
-            element.type = "custNode_data_style5"
+            element.type = "custNode_data_style2"
+            element.size = [60, 60]
             break;
         }
       });
@@ -729,11 +797,11 @@ export default {
       G6.registerNode("custNode_tool_style5", {
         jsx: nodeSt5.tool_node_style5
       });
-      G6.registerNode("custNode_data_style5", {
-        jsx: nodeDataSt5.data_node_style5
+      G6.registerNode("custNode_data_style2", {
+        jsx: nodeDataSt2.data_node_style2
       });
-      G6.registerNode("custNode_data_group_style5", {
-        jsx: nodeDataSt5.data_group_node_style5
+      G6.registerNode("custNode_data_group_style2", {
+        jsx: nodeDataSt2.data_group_node_style2
       });
     },
     /**
@@ -773,6 +841,7 @@ export default {
 @import "./main.less";
 @import "./toolTip/tooltip.less";
 @import "./toolTip/color.less";
+@import "../assets/css/btn.css";
 </style>
 <style>
 .g6-component-tooltip {
