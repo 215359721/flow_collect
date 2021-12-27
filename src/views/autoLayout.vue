@@ -8,7 +8,7 @@
       <el-button
         style="width:60px;"
         size="mini"
-        type="danger"
+        type="warning"
         @click="reloadPage"
       >刷新</el-button>
       <el-dropdown
@@ -43,6 +43,7 @@
       </el-radio-group>
       <!-- 数据源切换 -->
       <el-radio-group
+        v-if="false"
         v-model="curDataSource"
         size="mini"
         class="mt5"
@@ -52,7 +53,13 @@
         <el-radio-button label="real">真实数据</el-radio-button>
       </el-radio-group>
       <el-button
-        type="primary"
+        type="info"
+        style="width:100px;margin-top:5px;"
+        size="mini"
+        @click="setConf"
+      >参数配置</el-button>
+      <el-button
+        type="danger"
         style="width:100px;margin-top:5px;"
         size="mini"
         @click="commitChanges"
@@ -64,11 +71,15 @@
       :style="{zoom:zoom,width:180+'px'}"
       v-if="graph"
     >
-      <div class="mr5">zoom：{{zoom}}</div>
+      <div class="mr5">zoom：{{zoom.toFixed(2)}}</div>
       <!-- <div>layout：{{curLayout}}</div> -->
       <div>【{{useLocalPostion?'手动布局':'自动布局'}}】</div>
     </div>
     <div id="canvasDiv"></div>
+    <config-s
+      :isShow="showConf"
+      :zoom="zoom"
+    />
   </div>
 </template>
 
@@ -80,7 +91,6 @@ import insertCss from "insert-css";
 import loading from "../utils/loading";
 import getTipHTML from "../data/toolTipNew"
 import { getRightMenuHTML, jumpDetailInfo } from '../data/rightMenu'
-import getTooTipHTML from "../data/tooTip";
 // eslint-disable-next-line no-unused-vars
 import realData from "../mock/realData";
 // eslint-disable-next-line no-unused-vars
@@ -97,10 +107,13 @@ import chatNode from "../data/chat_node";
 import dataNode from "../data/data_node";
 import nodeNewUI from '../data/newNode/layout_node_newUI'
 import innerCss from "../data/insertCss";
-import { getDataById,modifyRelationPos,getFileUrl } from "../api/api";
+import { getDataById, modifyRelationPos } from "../api/api";
 import { useMockData, isNewUI } from "../config/index";
+import { ChatService, saView } from '../utils/service'
 import { debounce, midyfyClassWithZoom } from "../utils/common";
 import mock_layoutData from "../mock/FinishData/layoutData";
+import commonMixins from '../mixins/commonMixin'
+import configS from '../components/config.vue'
 // eslint-disable-next-line no-unused-vars
 import mock_detailData from "../mock/FinishData/detailData";
 import nodeSt5 from '../data/newNode/cust_node_5'
@@ -110,7 +123,8 @@ insertCss(innerCss);
 let _that = null;
 
 export default {
-  components: {},
+  components: { configS },
+  mixins: [commonMixins],
   data () {
     return {
       //window对象
@@ -118,7 +132,7 @@ export default {
         height: 0,
         width: 0
       },
-      queryData:{},//query数据
+      queryData: {},//query数据
       sourceData: {}, //数据源
       graph: null, //graph全局对象
       showType: "simple", //显示模式（all、normal、simple）
@@ -128,7 +142,7 @@ export default {
       align: undefined, //当前对齐方式
       lineType: "polyline", //线条样式(line,polyline,quadratic,cubic,arc)
       lineColor: "#888888", //线条颜色
-      lineThick: 2, //线条粗细
+      lineThick: 4, //线条粗细
       curOptNode: null, //当前操作的节点
       toolTip: "", //提示框内容
       toolBar: null, //工具栏
@@ -136,6 +150,7 @@ export default {
       rightMenu: null, //右键菜单
       curLayout: "dagre", //当前布局
       zoom: 1.0, //当前缩放率
+      showConf: false,//配置
       //-------
       useLocalPostion: false,//是否使用本地坐标or采用自动布局
       nodePositionList: [],//全量节点坐标集合
@@ -172,7 +187,7 @@ export default {
         console.log("全量数据:", responseData.data);
         this.useLocalPostion = Boolean(responseData.data.nodes[0].x)
         console.log('【useLocalPostion】', this.useLocalPostion)
-        console.log(`当前布局采用:【${this.useLocalPostion?'手动布局':'自动布局'}】`);
+        console.log(`当前布局采用:【${this.useLocalPostion ? '手动布局' : '自动布局'}】`);
         this.sourceData = this.initData(responseData.data);
         // this.sourceData.edges.forEach(data => {
         //   console.log('label:' + data.label)
@@ -210,11 +225,11 @@ export default {
         container: "canvasDiv",
         width: this.win.width,
         height: this.win.height,
-        groupByTypes: true,
-        fitView: false,
-        fitViewPadding: 0,
+        // groupByTypes: true,
+        // fitView: false,
+        // fitViewPadding: 0,
         fitCenter: true,
-        linkCenter: false,
+        // linkCenter: false,
         animate: true,
         enabledStack: true,
         minZoom: 0.05,
@@ -294,7 +309,7 @@ export default {
         },
         edgeStateStyles: {
           highlight: {
-            lineWidth: 3,
+            lineWidth: this.lineThick,
             stroke: "#ff3300"
           }
         }
@@ -309,12 +324,18 @@ export default {
       this.graph.data(this.sourceData);
       this.graph.render();
       this.graph.zoomTo(this.zoom);
+      // this.graph.fitCenter();
+      // this.graph.zoom(this.zoom, {
+      //   x: this.graph.getWidth() / 1.7,
+      //   y: this.graph.getHeight() / 1.7
+      // });
+
 
       //聚焦到指定节点
       // setTimeout(() => {
-      //   const item = _that.graph.findById("2");
+      //   const item = _that.graph.findById(this.queryData.nodeId);
       //   _that.graph.focusItem(item);
-      // }, 1000);
+      // }, 100);
       loading.hide();
 
       //监听：节点单击
@@ -359,17 +380,22 @@ export default {
         }
       });
       //监听：tooltip点击
-      this.graph.on("tooltipchange", item=>{
-        if(item.action === "show"){
+      this.graph.on("tooltipchange", item => {
+        if (item.action === "show") {
           const dom = document.getElementsByClassName('single-file')
-          if(dom.length){
+          if (dom.length) {
             for (let i = 0; i < dom.length; i++) {
-              dom[i].onclick=async(e)=>{
+              dom[i].onclick = async (e) => {
                 const fileId = e.target.id
                 const fileName = e.target.innerText
-                console.log(fileId+":"+fileName)
-                const rspFile = await getFileUrl(fileId)
-                console.log(rspFile.data.url)
+                console.log("[" + fileId + "]:[" + fileName + "]")
+                ChatService.downloadFile(fileId, fileName).then(res => {
+                  let filePath = res.body
+                  console.log('res:', res)
+                  console.log("filePath:" + filePath)
+                  console.log('saView:', saView)
+                  saView.shell.openItem(filePath)
+                })
               }
             }
           }
@@ -405,16 +431,16 @@ export default {
         const model = item._cfg.model
         console.log(model.id + ":  " + model.x + "," + model.y)
         const obj = {
-          nodeClassId:model.icon,
+          nodeClassId: model.icon,
           nodeId: model.id,
           nodeX: model.x,
           nodeY: model.y,
-          startNodeClassId:this.queryData.icon,
-          startNodeId:this.queryData.nodeId,
+          startNodeClassId: this.queryData.icon,
+          startNodeId: this.queryData.nodeId,
         }
         this.nodePositionList.push(obj)
       })
-      console.log('修改节点上送:',this.nodePositionList);
+      console.log('修改节点上送:', this.nodePositionList);
       if (this.nodePositionList.length) {
         const responseData = await modifyRelationPos(this.nodePositionList);
         console.log(responseData);
@@ -423,7 +449,7 @@ export default {
         } else {
           this.$message.error("关系保存失败");
         }
-      }else{
+      } else {
         this.$message.warning("您未做任何更改");
       }
     },
@@ -594,13 +620,13 @@ export default {
         trigger: "click",
         // 允许出现 tooltip 的 item 类型
         itemTypes: ["node"],
-        shouldBegin: e => {
-          const model = e.item.getModel();
-          // if ((model.icon === "document") || (model.icon === "DataPacket")) {
-          //   return false;
-          // }
-          return true;
-        },
+        // shouldBegin: e => {
+        //   const model = e.item.getModel();
+        //   if ((model.icon === "document") || (model.icon === "DataPacket")) {
+        //     return false;
+        //   }
+        //   return true;
+        // },
         // 自定义 tooltip 内容
         getContent: e => {
           const outDiv = document.createElement("div");
@@ -623,7 +649,7 @@ export default {
      */
     initWindow () {
       _that = this;
-      this.zoom = getWinZoom().toFixed(2)
+      this.zoom = getWinZoom()
       this.win.height = (document.documentElement.clientHeight || document.body.clientHeight) - 10;
       this.win.width = (document.documentElement.clientWidth || document.body.clientWidth) - 10;
       this.canvasCenter = [this.win.width / 2, this.win.height / 2];
@@ -827,6 +853,12 @@ export default {
       }
       this.getMainData();
       loading.hide();
+    },
+    /**
+     * 参数配置
+     */
+    setConf () {
+      this.showConf = new Boolean(true)
     },
     /**
      * 刷新页面

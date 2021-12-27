@@ -77,7 +77,7 @@ function getTipHTML (node, zoom = 1.0) {
             </div>
             <div class="common-line">
               <div class="title">结束时间：</div>
-              <div class="desc normal">${splitDate(info.endTime) || none}</div>
+              <div class="desc normal">${splitDate(info.endTime) || '未结束'}</div>
             </div>
           </div>
         </div>
@@ -172,11 +172,49 @@ function getTipHTML (node, zoom = 1.0) {
           <div class="title bold">工具介绍：</div>
           <div class="content normal tool-max">${info.name || none}</div>
         </div>
+        <div class="file-line">
+          <div class="title bold">文件：</div>
+          <div class="file-box">
+            ${getFilePart(info.inPuts || [])}
+          </div>
+        </div>
       </div>
     </div>`
-  const data_html = `<div class="tip-div" style="zoom:${zoom}">
+  const data_html = `<div class="tip-div" style="height:100px;zoom:${zoom}">
     <div class="tip-head data-head-bg data-border">数据详情</div>
     <div class="tip-content data-content-bg data-border">
+      <div class="file-line">
+        <div class="title bold">数据列表：</div>
+        <div class="file-box">
+          ${getFilePart(info.inPuts || [])}
+        </div>
+      </div>
+    </div>
+  </div>`
+  const data_packet_html = `<div class="tip-div" style="zoom:${zoom}">
+    <div class="tip-head data-head-bg data-border">数据包</div>
+    <div class="tip-content data-content-bg data-border">
+      <div class="top-box">
+        <div class="left">
+          <img class="big-head" src="${info.creatorIcon || defaultHead}">
+          <div class="user-name bold">${info.creator || none}</div>
+        </div>
+        <div class="right">
+          <div class="common-line">
+            <div class="title">包名称：</div>
+            <div class="desc bold">${node.label || none}</div>
+          </div>
+          <div class="common-line">
+            <div class="title">创建人：</div>
+            <div class="desc normal">${splitDate(info.creator) || none}</div>
+          </div>
+          <div class="common-line">
+            <div class="title">创建时间：</div>
+            <div class="desc normal">${splitDate(info.createTime) || none}</div>
+          </div>
+        </div>
+      </div>
+      <div class="sep-line chat-line"></div>
       <div class="file-line">
         <div class="title bold">数据列表：</div>
         <div class="file-box">
@@ -197,6 +235,8 @@ function getTipHTML (node, zoom = 1.0) {
       result = chat_html
       break;
     case "DataPacket":
+      result = data_packet_html
+      break;
     case "document":
       result = data_html
       break;
@@ -213,7 +253,7 @@ function getFilePart (fileArray) {
   // console.log('fileArray:', fileArray)
   if (fileArray.length) {
     for (let i = 0; i < fileArray.length; i++) {
-      content += '<span class="single-file link" id="'+fileArray[i].fileId+'">' + (fileArray[i].fileName || fileArray[i].filename) || none + '</span>'
+      content += `<span class="single-file link" id="${fileArray[i].fileId}">${(fileArray[i].fileName || fileArray[i].filename) || none}</span>`
       if (i < fileArray.length - 1) {
         content += '<br/>'
       }
@@ -316,7 +356,8 @@ function trans4Secret (secret) {
 }
 
 function splitDate (descDate) {
-  if (!descDate) { return null }
+  // console.log(`${typeof(descDate)}`,descDate)
+  if (!descDate || (typeof (descDate) !== 'string')) { return null }
   const arr = descDate.split(" ")
   if (arr.length) {
     return arr[0]

@@ -9,6 +9,12 @@
       <div class="move-group">
         <el-button
           type="primary"
+          icon="el-icon-place"
+          size="mini"
+          @click="goWeek('start')"
+        >回首周</el-button>
+        <el-button
+          type="primary"
           icon="el-icon-back"
           size="mini"
           @click="goWeek('prv')"
@@ -22,7 +28,7 @@
         <el-button
           style="width:60px;"
           size="mini"
-          type="danger"
+          type="warning"
           @click="reloadPage"
         >刷新</el-button>
       </div>
@@ -36,17 +42,11 @@
           style="width:100px;margin-top:5px;"
         ></el-input-number>
         <el-button
-          type="primary"
+          type="info"
           style="width:100px;margin-top:5px;"
           size="mini"
-          @click="goWeek('start')"
-        >回起点</el-button>
-        <el-button
-          type="primary"
-          style="width:100px;margin-top:5px;"
-          size="mini"
-          @click="goWeek('point')"
-        >去指定周</el-button>
+          @click="setConf"
+        >参数配置</el-button>
         <el-switch
           v-model="editMode"
           active-text="编辑模式"
@@ -56,6 +56,7 @@
         >
         </el-switch>
         <el-button
+          v-if="false"
           type="danger"
           style="width:100px;margin-top:5px;"
           size="mini"
@@ -63,75 +64,6 @@
           @click="commitChanges"
         >保存更改</el-button>
       </div>
-      <el-select
-        v-model="nodeStyle"
-        placeholder="请选择"
-        style="width:130px;margin-top:5px;"
-        @change="changeNodeStyle"
-      >
-        <el-option
-          label="默认"
-          value="default"
-        >
-        </el-option>
-        <el-option
-          label="样式1"
-          value="type1"
-        >
-        </el-option>
-        <el-option
-          label="样式2"
-          value="type2"
-        >
-        </el-option>
-        <el-option
-          label="样式3"
-          value="type3"
-        >
-        </el-option>
-        <el-option
-          label="样式4"
-          value="type4"
-        >
-        </el-option>
-        <el-option
-          label="样式5"
-          value="type5"
-        >
-        </el-option>
-        <el-option
-          label="样式6"
-          value="type6"
-        >
-        </el-option>
-      </el-select>
-      <el-select
-        v-model="curDep"
-        style="width:130px;margin-top:5px;"
-        @change="changeDep"
-      >
-        <el-option
-          label="全部"
-          value="all"
-        >
-        </el-option>
-        <el-option
-          v-for="(item,index) in depData"
-          :key="index"
-          :label="item.name"
-          :value="item.id"
-        >
-        </el-option>
-      </el-select>
-      <el-radio-group
-        v-model="fontMode"
-        size="mini"
-        style="margin-top:5px;"
-        @change="fontChange"
-      >
-        <el-radio-button label="default">默认</el-radio-button>
-        <el-radio-button label="dark">深色</el-radio-button>
-      </el-radio-group>
       <el-radio-group
         v-if="false"
         v-model="dataType"
@@ -183,8 +115,8 @@
         v-for="(item,index) in dep_num"
         :key="'yd_'+index"
         class="line"
-        :hei="Math.floor((canvas.height/dep_num))*(index+1)"
-        :style="{top:(Math.floor((canvas.height/dep_num))*(index+1)-2)+'px',borderTop: (2.1*zoom)+'px dotted #e6e6e6'}"
+        :hei="Math.floor(gird.height)*(index+1)"
+        :style="{top:(Math.floor(gird.height)*(index+1)-2)+'px',borderTop: (2.1*zoom)+'px dotted #e6e6e6'}"
       />
     </div>
     <div v-else>
@@ -208,11 +140,11 @@
       class="dep-name un-sel"
       :style="{width:(dep_left_wid*zoom)+'px',height:canvas.height+'px',top:'0px'}"
     >
-      <div>{{curDepName}}</div>
+      <div :style="{zoom:zoom,width:'10px'}">{{curDepName}}</div>
     </div>
     <div
       class="dep-bottom"
-      :style="{height:canvas.offset_hei+'px',top:canvas.height+'px'}"
+      :style="{height:canvas.offset_hei+2+'px',width:dep_left_wid*zoom+'px',top:canvas.height-2+'px'}"
     ></div>
     <!-- 时间轴 -->
     <div
@@ -230,7 +162,6 @@
         :show-stops="false"
         :range="false"
         class="time-bar"
-        :style="{zoom:zoom}"
         @change="changeSilder"
       />
     </div>
@@ -312,6 +243,11 @@
         >追加批注</el-button>
       </div>
     </el-drawer>
+    <config-s
+      :isShow="showConf"
+      :zoom="zoom"
+      :depData="depData"
+    />
   </div>
 </template>
 
@@ -336,17 +272,20 @@ import innerCss from "../data/insertCss";
 import mock_mainData from "../mock/FinishData/mainData";
 import mock_xyData from "../mock/FinishData/xyData";
 import { useMockData, useExColor, isNewUI } from "../config/index";
+import configS from '../components/config.vue'
+import commonMixins from '../mixins/commonMixin'
 // eslint-disable-next-line no-unused-vars
 import { getWinWidth, getWinHeight, getWinZoom } from "../utils/device"
-import { getUpdateNodesPositionList, getNewEdgesList, splitStr, debounce, isDuringDate } from "../utils/common";
-import { getXYdata, getMainData, getDataByDep, modifyNodesPosition, addMark, addLink, getFileUrl } from "../api/api";
+import { ChatService, saView } from '../utils/service'
+import { getUpdateNodesPositionList, getNewEdgesList, splitStr, debounce, isDuringDate, midyfyClassWithZoom } from "../utils/common";
+import { getXYdata, getMainData, getDataByDepAuto, modifyNodesPosition, addMark, addLink } from "../api/api";
 insertCss(innerCss);
 let _that = null;
-const CONFIG = window._SERVERCONF
 
 export default {
   // eslint-disable-next-line vue/no-unused-components
-  components: {},
+  components: { configS },
+  mixins: [commonMixins],
   data () {
     return {
       win: { height: 0, width: 0, innerWidth: 0, innerZoom: 0 }, //window对象
@@ -366,11 +305,13 @@ export default {
       start_x: 100, //起始点X
       node_wid: 150, //单个节点宽度
       node_hei: 50, //单个节点高度
+      weekInfoWidth: 420,//周统计信息默认宽度
       curOptNode: null, //当前操作的节点
       dataType: "real", //数据形式
       nodeStyle: "default", //节点样式
       editMode: false,//编辑模式开关
       fontMode: 'default',//字体颜色模式(default-默认|dark-深色)
+      clickMode:'default',//泳道图节点点击效果(show_hide-显示&隐藏|default-透明度)
       configId: 1, //配置id（1-内网台式机，2-会议室大屏）
       //部门
       depData: [
@@ -380,13 +321,14 @@ export default {
         { name: "部门4" },
         { name: "部门5" }
       ], //部门数据
-      curDep: 'all',//当前显示数据的部门
+      curDep: '5',//当前显示数据的部门
       curDepName: '',//当前显示数据部门名称
       dep_num: 5, //部门数量
       dep_left_wid: 97,//部门宽度
       //网格信息
       gird: {},
       //配置
+      showConf: false,
       config: { type: 0, lineBrokenOffset: 20 },
       //时间轴
       timeBar: null, //时间轴
@@ -450,16 +392,20 @@ export default {
         responseData = await getXYdata();
       }
       this.depData = responseData.data.Y;
-      this.timeBarData = responseData.data.X;
+      // this.timeBarData = responseData.data.X;
       this.dep_num = this.depData.length;
       console.log(`部门数据(${this.dep_num}):`, this.depData);
-      console.log(`时间轴数据(${this.timeBarData.length}):`, this.timeBarData);
       this.requestMainData();
     },
     /**
      * 请求全局节点数据
      */
     async requestMainData () {
+      const arr = this.depData.filter(item => {
+        return (item.id === this.curDep)
+      })
+      this.curDepName = arr[0].name || ''
+      console.log(`请求部门：${this.curDepName}`)
       let responseData = {};
       if (useMockData) {
         responseData = mock_mainData;
@@ -468,14 +414,13 @@ export default {
           responseData = await getMainData(this.config.type);
           console.log("请求全局节点数据:", responseData);
         } else {
-          const arr = this.depData.filter(item => {
-            return (item.id === this.curDep)
-          })
-          this.curDepName = arr[0].name || ''
-          console.log(`请求部门：${this.curDepName}`)
-          responseData = await getDataByDep(this.config.type, this.curDep, this.curDepName)
+
+          // responseData = await getDataByDep(this.config.type, this.curDep, this.curDepName)
+          responseData = await getDataByDepAuto(this.curDep, this.curDepName)
         }
       }
+      this.timeBarData = responseData.data.weekInfo
+      console.log(`时间轴数据(${this.timeBarData.length}):`, this.timeBarData);
       //开始初始化
       this.initWindow();
       this.sourceData = this.initData(responseData.data);
@@ -601,16 +546,19 @@ export default {
           return;
         }
         console.log('节点点击:', item._cfg.model)
+        
         //---高亮---
         _that.graph.setAutoPaint(false);
         _that.graph.getNodes().forEach(function (node) {
           _that.graph.clearItemStates(node);
           if (!node._cfg.model.method) {
             _that.graph.setItemState(node, "dark", true);
+            _that.setVisiable(node,'hide')
           }
         });
         _that.graph.setItemState(item, "dark", false);
         _that.graph.setItemState(item, "highlight", true);
+        _that.setVisiable(item,'show')
         //递归节点
         _that.filtNodeAndEdge(_that.graph, item);
         _that.graph.paint();
@@ -618,24 +566,34 @@ export default {
       });
       //监听：canvas点击
       this.graph.on("canvas:click", (e) => {
-        alert('canvas点击:' + e.x)
+        console.log('canvas点击:' + e.x + ',' + e.y)
         _that.clearAllStats();
       });
       //监听：画布拖拽完成
-      this.graph.on("canvas:dragend", e => {
+      this.graph.on("canvas:dragend", () => {
         // console.log('=========画布拖拽完成=========', e)
-        const of_x = e.x - e.canvasX
-        const moveWeek = Math.floor(of_x / _that.gird.width) + 1
-        // console.log(`of_x:${of_x},week:${moveWeek}`)
-        if (_that.curWeek !== moveWeek) {
-          //周改变
-          _that.curWeek = moveWeek
-          const weekObj = this.timeBarData.filter(item => {
-            return (item.weekNo === _that.curWeek)
-          })
-          // console.log('weekObj', weekObj)
-          if (_that.curWeek && weekObj.length) {
-            this.$message({ message: `第${_that.curWeek}周，${weekObj[0].begin} 至 ${weekObj[0].end}`, });
+        const of_x = this.graph.getPointByClient(100 * this.zoom, 0).x
+        const arr = this.timeBarData.filter(item => {
+          // console.log('left-x:'+of_x+'|start_x_week:'+item.start_x_week+'|end_x_week:'+item.end_x_week)
+          return ((item.start_x_week < of_x) && (of_x < item.end_x_week))
+        })
+        // console.log('arr:',arr[0].weekNo)
+        if (arr.length) {
+          const moveWeek = arr[0].weekNo
+          // console.log(`of_x:${of_x},week:${moveWeek}`)
+          if (_that.curWeek !== moveWeek) {
+            //周改变
+            _that.curWeek = moveWeek
+            const weekObj = this.timeBarData.filter(item => {
+              return (item.weekNo === _that.curWeek)
+            })
+            // console.log('weekObj', weekObj)
+            if (_that.curWeek && weekObj.length) {
+              this.$message({ message: `第${_that.curWeek}周，${weekObj[0].begin} 至 ${weekObj[0].end}` });
+              setTimeout(() => {
+                midyfyClassWithZoom('el-message', _that.zoom)
+              }, 100);
+            }
           }
         }
       });
@@ -666,9 +624,14 @@ export default {
               dom[i].onclick = async (e) => {
                 const fileId = e.target.id
                 const fileName = e.target.innerText
-                console.log(fileId + ":" + fileName)
-                const rspFile = await getFileUrl(fileId)
-                console.log(rspFile.data.url)
+                console.log("[" + fileId + "]:[" + fileName + "]")
+                ChatService.downloadFile(fileId, fileName).then(res => {
+                  let filePath = res.body
+                  console.log('res:', res)
+                  console.log("filePath:" + filePath)
+                  console.log('saView:', saView)
+                  saView.shell.openItem(filePath)
+                })
               }
             }
           }
@@ -701,29 +664,70 @@ export default {
         _that.saveDisabled =
           _that.addEdgesList.length === 0 && _that.nodeMoveList.length === 0;
       });
+      midyfyClassWithZoom('el-slider__marks', _that.zoom)
+      midyfyClassWithZoom('el-slider__button', _that.zoom)
+      midyfyClassWithZoom('el-slider__bar', _that.zoom)
+      midyfyClassWithZoom('el-slider__stop', _that.zoom)
     },
     filtNodeAndEdge (graph, item) {
       graph.getEdges().forEach(function (edge) {
         if (edge.getSource() === item) {
           graph.setItemState(edge.getTarget(), "dark", false);
           graph.setItemState(edge.getTarget(), "highlight", true);
+          _that.setVisiable(edge.getTarget(),'show')
           graph.setItemState(edge, "highlight", true);
+          _that.setVisiable(edge,'show')
           edge.toFront();
         } else if (edge.getTarget() === item) {
           graph.setItemState(edge.getSource(), "dark", false);
           graph.setItemState(edge.getSource(), "highlight", true);
+          _that.setVisiable(edge.getSource(),'show')
           graph.setItemState(edge, "highlight", true);
+          _that.setVisiable(edge,'show')
           edge.toFront();
         } else {
           graph.setItemState(edge, "highlight", false);
+          _that.setVisiable(edge,'hide')
         }
       });
+    },
+    /**
+     * 节点显示|隐藏
+     */
+    setVisiable(item,opt='show'){
+      if(this.clickMode === 'show_hide'){
+        if(opt==='show'){
+          item.show()
+        }else{
+          item.hide()
+        }
+      }
+    },
+    /**
+     * 参数配置
+     */
+    setConf () {
+      this.showConf = new Boolean(true)
+      setTimeout(() => {
+        midyfyClassWithZoom('el-select-dropdown', _that.zoom)
+      }, 100);
+      // console.log('setConf')
+      // const clienX = 100 * this.zoom
+      // const pos = this.graph.getPointByClient(clienX, 0)
+      // alert(pos.x + ',' + pos.y)
     },
     /**
      * 初始化右键菜单
      */
     initMenu () {
       this.rightMenu = new G6.Menu({
+        shouldBegin: e => {
+          const model = e.item.getModel();
+          if ((model.method === "block") || (model.method === "line")) {
+            return false;
+          }
+          return true;
+        },
         getContent (e) {
           const item = e.item.getModel();
           return getRightMenuHTML(item, 'position', _that.zoom)
@@ -736,7 +740,7 @@ export default {
             query: { nodeId: cur.id, icon: cur.icon }
           });
           console.log("curOptNode:", _that.curOptNode);
-          const openWindowOption = `top=0,left=0,toolbar=no,menubar=no,width=${window.screen.availWidth - 10},height=${window.screen.availHeight - 30}`
+          const openWindowOption = `top=0,left=0,toolbar=no,menubar=no,width=${window.screen.availWidth - 0},height=${window.screen.availHeight - 0}`
           switch (target.getAttribute("fnname")) {
             case "copynode":
               alert("节点ID:" + cur.id)
@@ -795,7 +799,7 @@ export default {
         itemTypes: ["node", "edge"],
         shouldBegin: e => {
           const model = e.item.getModel();
-          if ((model.method === "block") || (model.method === "line1")) {
+          if ((model.method === "block") || (model.method === "line")) {
             return false;
           }
           return true;
@@ -827,30 +831,18 @@ export default {
       that.graph.setAutoPaint(false);
       that.graph.getEdges().forEach(function (edge) {
         that.graph.clearItemStates(edge);
+        that.setVisiable(edge,'show')
         edge.toBack();
       });
       that.graph.getNodes().forEach(function (node) {
         that.graph.clearItemStates(node);
+        that.setVisiable(node,'show')
         if (node._cfg.model.method === "block") {
           node.toBack();
         }
       });
       that.graph.paint();
       that.graph.setAutoPaint(true);
-    },
-    /**
-     * 切换节点样式
-     */
-    changeNodeStyle (val) {
-      localStorage.setItem('node-style', val)
-      this.reloadPage()
-    },
-    /**
-     * 切换部门显示
-     */
-    changeDep (val) {
-      localStorage.setItem('show-dep', val)
-      this.reloadPage()
     },
     /**
      * 数据形式改变
@@ -891,45 +883,72 @@ export default {
       }
       this.graph.changeData(this.sourceData);
     },
-
+    /**
+     * 时间轴数据填充数据详情
+     */
+    fillTimeBarWithInfo (data) {
+      if (data && data.weekInfo) {
+        const weekInfo = data.weekInfo
+        this.timeBarData.forEach((time_bar_item) => {
+          weekInfo.forEach(week_info_item => {
+            if (week_info_item.weekNo === time_bar_item.weekNo) {
+              time_bar_item.start_x_week = week_info_item.start_x_week
+              time_bar_item.end_x_week = week_info_item.end_x_week
+              time_bar_item.tj = week_info_item.tj
+            }
+          });
+        })
+      }
+      console.log('最新时间轴数据:', this.timeBarData)
+    },
     /**
      * 初始化节点
      */
     initData (data) {
+      // this.fillTimeBarWithInfo(data)
       this.timeBarData.forEach((element, index) => {
-        const weekObj = {
-          id: "week_" + element.weekNo,
-          label:
-            "第" + element.weekNo + "周，" + element.begin + "至" + element.end,
-          method: "line",
-          begin: element.begin,
-          end: element.end,
-          // x: 100 + _that.gird.gap * (4 * index) + _that.node_wid * (4 * index),
-          x: 100 + index * this.gird.width,
-          y: 0,
-          width: 1,
-          height: _that.canvas.height + _that.canvas.offset_hei,
-          color: this.timeBarData.length === index + 1 ? "red" : "#e6e6e6",
-          dotline: this.timeBarData.length !== index + 1
-        };
-        const blockObj = {
-          id: "block_" + element.weekNo,
-          index: index,
-          label: `第${element.weekNo}周，${element.begin}至${element.end}`,
-          method: "block",
-          begin: element.begin,
-          end: element.end,
-          // x: 100 + _that.gird.gap * (4 * index) + _that.node_wid * (4 * index),
-          x: 100 + index * this.gird.width,
-          y: 0,
-          tipy: _that.dep_num * CONFIG.grid_height_flow,
-          width: _that.gird.width,
-          height: _that.canvas.height + _that.canvas.offset_hei
-        };
-        data.nodes.push(weekObj);
-        if (useExColor) {
-          data.nodes.unshift(blockObj);
+        if (element.start_x_week) {
+          const weekObj = {
+            id: "week_" + element.weekNo,
+            index: index,
+            weekNo: element.weekNo,
+            label:
+              "第" + element.weekNo + "周，" + element.begin + "至" + element.end,
+            method: "line",
+            begin: element.begin,
+            end: element.end,
+            // x: 100 + index * this.gird.width,
+            x: element.start_x_week,
+            y: 0,
+            width: 1,
+            infoWidth: this.weekInfoWidth,
+            detail: element.tj,
+            innerHei: this.__CONFIG.grid_width * 5,
+            height: _that.canvas.height + _that.canvas.offset_hei * this.zoom,
+            color: this.timeBarData.length === index + 1 ? "red" : "#e6e6e6",
+            dotline: this.timeBarData.length !== index + 1
+          };
+          const blockObj = {
+            id: "block_" + element.weekNo,
+            index: index,
+            label: `第${element.weekNo}周，${element.begin}至${element.end}`,
+            method: "block",
+            begin: element.begin,
+            end: element.end,
+            // x: 100 + index * this.gird.width,
+            x: element.start_x_week,
+            y: 0,
+            innerHei: this.__CONFIG.grid_width * 5,
+            tipy: _that.dep_num * this.__CONFIG.grid_height,
+            width: Number(element.end_x_week - element.start_x_week),
+            height: _that.canvas.height + _that.canvas.offset_hei * this.zoom
+          };
+          data.nodes.push(weekObj);
+          if (useExColor) {
+            data.nodes.unshift(blockObj);
+          }
         }
+
       });
       //遍历节点
       this.markNodes = [];
@@ -975,10 +994,12 @@ export default {
         _that.timeBarMarks[i + 1] = element.begin;
       });
       console.log("【批注数据】", this.markNodes);
-      console.log("【all节点数据】", data);
-      data.nodes.forEach((node) => {
-        console.log(node.label + '|x:【' + node.x + '】' + '|y:【' + node.y + '】')
-      })
+      // console.log("【all节点数据】", data);
+      // data.nodes.forEach((node) => {
+      //   if (node.method === 'line') {
+      //     console.log(node.label + '|height:' + node.height)
+      //   }
+      // })
       return data;
     },
     /**
@@ -1096,7 +1117,7 @@ export default {
         jsx: nodeNewUI.tool_node
       });
       G6.registerNode("custNode_line_new", {
-        jsx: nodeNewUI.line_node
+        jsx: nodeNewUI.overview_node
       });
       G6.registerNode("custNode_block_new", {
         jsx: nodeNewUI.block_node
@@ -1187,6 +1208,9 @@ export default {
       if (e) {
         //编辑模式
         this.$message.warning("切换为【编辑模式】");
+        setTimeout(() => {
+          midyfyClassWithZoom('el-message', _that.zoom)
+        }, 100);
         _that.graph.updateBehavior(
           "drag-canvas",
           { allowDragOnItem: false },
@@ -1208,6 +1232,10 @@ export default {
       } else {
         //浏览模式
         this.$message.warning("切换为【浏览模式】");
+        setTimeout(() => {
+          midyfyClassWithZoom('el-message', _that.zoom)
+        }, 100);
+
         _that.graph.updateBehavior(
           "drag-canvas",
           { allowDragOnItem: true },
@@ -1227,13 +1255,6 @@ export default {
           "default"
         );
       }
-    },
-    /**
-     * 字体颜色模式切换
-     */
-    fontChange (val) {
-      localStorage.setItem('font-mode', val)
-      this.reloadPage()
     },
     /**
      * 部门点击过滤
@@ -1274,28 +1295,44 @@ export default {
      */
     changeSilder (val) {
       const descNode = this.graph.findById("week_" + val);
-      console.log('descNode:', descNode._cfg.model.x)
+      console.log('当前周:' + val + '|x:' + descNode._cfg.model.x)
       if (descNode) {
         const nodeInfo = descNode._cfg.model;
         this.$message({
           message: `第${val}周，${nodeInfo.begin} 至 ${nodeInfo.end}`,
         });
+        setTimeout(() => {
+          midyfyClassWithZoom('el-message', _that.zoom)
+        }, 100);
         this.moveTo(nodeInfo.x);
       } else {
         this.$message.warning("无更多数据");
+        setTimeout(() => {
+          midyfyClassWithZoom('el-message', _that.zoom)
+        }, 100);
       }
     },
     /**
      * 移动到指定点(横坐标)
      */
     // eslint-disable-next-line no-unused-vars
-    moveTo (x, sec = 1) {
-      const offsetY = CONFIG.move_offset_y
-      const xp = 0 - (x - 170)
-      this.graph.moveTo(xp, 0 - offsetY, true, {
-        duration: sec * 1000
-      });
-      // this.graph.translate(xp,0)
+    moveTo (x) {
+      const left_conner_point = this.graph.getPointByClient(100 * this.zoom, 0)
+      console.log('left-x:' + left_conner_point.x + '|week-x:', x)
+      let i = 1;
+      const offsetX = 2
+      const speed = 10
+      const total_range = x - left_conner_point.x + offsetX
+      const step = 20
+
+      // console.log('移动到第' + this.curWeek + '周,最左侧X坐标:' + left_conner_point.x)
+      let timmer = window.setInterval(() => {
+        i++;
+        this.graph.translate(-(total_range / step * this.zoom), 0)
+        if (i > step) {
+          window.clearInterval(timmer)
+        }
+      }, speed);
     },
     /**
      * 周移动
@@ -1305,6 +1342,9 @@ export default {
         case "prv": //上一周
           if (this.curWeek === 1) {
             this.$message.warning("没有更多上周数据");
+            setTimeout(() => {
+              midyfyClassWithZoom('el-message', _that.zoom)
+            }, 100);
             return;
           } else {
             this.curWeek = this.curWeek - 1;
@@ -1339,6 +1379,9 @@ export default {
     async commitMark () {
       if (this.markObj.content === "") {
         this.$message.warning("请输入批注内容");
+        setTimeout(() => {
+          midyfyClassWithZoom('el-message', _that.zoom)
+        }, 100);
         return;
       }
       const cur = this.curOptNode._cfg.model;
@@ -1354,6 +1397,9 @@ export default {
       const responseData = await addMark(requestData);
       if (responseData.data.code === 200) {
         this.$message.success("批注添加成功");
+        setTimeout(() => {
+          midyfyClassWithZoom('el-message', _that.zoom)
+        }, 100);
         const addData = responseData.data.data;
         if (this.curOptNode._cfg.model.notes === "") {
           this.curOptNode._cfg.model.notes = [];
@@ -1365,6 +1411,9 @@ export default {
         // this.reloadPage();
       } else {
         this.$message.error("批注添加失败");
+        setTimeout(() => {
+          midyfyClassWithZoom('el-message', _that.zoom)
+        }, 100);
       }
     },
     /**
@@ -1378,9 +1427,15 @@ export default {
         console.log(rsp_node);
         if (rsp_node.data.code === 200) {
           this.$message.success("节点信息保存成功");
+          setTimeout(() => {
+            midyfyClassWithZoom('el-message', _that.zoom)
+          }, 100);
           // this.reloadPage();
         } else {
           this.$message.error("节点信息保存失败");
+          setTimeout(() => {
+            midyfyClassWithZoom('el-message', _that.zoom)
+          }, 100);
         }
       }
       if (this.addEdgesList.length) {
@@ -1388,9 +1443,15 @@ export default {
         console.log(rsp_edge);
         if (rsp_edge.data.code === 200) {
           this.$message.success("关系保存成功");
+          setTimeout(() => {
+            midyfyClassWithZoom('el-message', _that.zoom)
+          }, 100);
           // this.reloadPage();
         } else {
           this.$message.error("关系保存失败");
+          setTimeout(() => {
+            midyfyClassWithZoom('el-message', _that.zoom)
+          }, 100);
         }
       }
     },
@@ -1434,18 +1495,18 @@ export default {
      * 初始化配置
      */
     initConfig () {
-      console.log('配置：', CONFIG)
-      this.version = CONFIG.base_version || '0.0.0'
-      this.config.type = CONFIG.cfg_type || '0'
+      this.version = this.__CONFIG.version || '0.0.0'
+      this.config.type = this.__CONFIG.cfg_type || '1'
       this.gird = {
-        width: CONFIG.grid_width_flow,
-        height: CONFIG.grid_height_flow,
-        gap: CONFIG.grid_gap_flow,
+        width: this.__CONFIG.grid_width,
+        height: this.__CONFIG.grid_height,
       }
       //读取配置
-      this.nodeStyle = localStorage.getItem('node-style') || 'default'
-      this.curDep = localStorage.getItem('show-dep') || 'all'
-      this.fontMode = localStorage.getItem('font-mode') || 'default'
+      this.nodeStyle = this.__CONFIG.node_style || 'default'
+      this.curDep = this.__CONFIG.cur_dep || '5'
+      this.fontMode = this.__CONFIG.font_mode || 'default'
+      this.clickMode = this.__CONFIG.click_mode || 'default'
+      this.weekInfoWidth = this.__CONFIG.week_info_width || 420
       if ((this.nodeStyle === 'type3') || (this.nodeStyle === 'type4') || (this.nodeStyle === 'type5') || ((this.nodeStyle === 'type6'))) {
         //大图标
         this.config.type = (this.curDep === 'all') ? '1' : '101'

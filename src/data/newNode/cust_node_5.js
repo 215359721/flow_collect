@@ -1,4 +1,6 @@
-const fontMode = localStorage.getItem('font-mode')
+import {defaultConfig} from '../../config/index'
+const CONFIG = JSON.parse(localStorage.getItem('config')) || defaultConfig
+const fontMode = CONFIG.font_mode
 const WIDTH = 200 //节点总宽度
 const HEIGHT = 63 //节点总高度
 const DARK_FONT = '#000'

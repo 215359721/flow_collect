@@ -1,0 +1,50 @@
+// 覆盖element-ui样式
+.el-loading-spinner i {
+    color: #fff !important;
+    font-size: 30px;
+  }
+.el-loading-spinner .el-loading-text {
+    color: #fff !important;
+    font-size: 16px;
+    font-weight: bold;
+}
+.el-loading-spinner .circular {
+  width: 42px;
+  height: 42px;
+  display: none;
+}
+.el-loading-spinner {
+  /* 图片替换为你自定义的即可 */
+  background: url("../image/casc.png")
+    no-repeat;
+  background-size: 60px 60px;
+  width: 60px !important;
+  height: 60px !important;
+  position: relative;
+  top: 50%;
+  left: 50%;
+  -webkit-animation: rounds 1s cubic-bezier(0.455, 0.030, 0.515, 0.955) infinite both;
+	animation: rounds 1s cubic-bezier(0.455, 0.030, 0.515, 0.955) infinite both;
+}
+
+/*图片水平旋转动画*/
+@-webkit-keyframes rounds {
+  0% {
+    -webkit-transform: rotateY(0);
+            transform: rotateY(0);
+  }
+  100% {
+    -webkit-transform: rotateY(-180deg);
+            transform: rotateY(-180deg);
+  }
+}
+@keyframes rounds {
+  0% {
+    -webkit-transform: rotateY(0);
+            transform: rotateY(0);
+  }
+  100% {
+    -webkit-transform: rotateY(-180deg);
+            transform: rotateY(-180deg);
+  }
+}

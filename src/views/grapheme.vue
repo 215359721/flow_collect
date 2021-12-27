@@ -74,6 +74,12 @@
             @click="handleSearch"
           >查询</el-button>
           <el-button
+            type="info"
+            style="width:100px;margin-top:5px;"
+            size="mini"
+            @click="setConf"
+          >参数配置</el-button>
+          <el-button
             type="primary"
             size="mini"
             @click="areaShow = !areaShow"
@@ -151,6 +157,10 @@
         />
       </div>
     </div>
+    <config-s
+      :isShow="showConf"
+      :zoom="zoom"
+    />
   </div>
 </template>
 
@@ -168,9 +178,10 @@ import { getchartDataWithArticle } from "../api/api.js";
 import { getTreeNode, getKeywordsList } from "../api/api.js";
 import { createUuid } from "../utils/common.js";
 import custNode from "../data/task_node";
-import { baseUrl } from "../config";
 import { getWinZoom } from "../utils/device"
 import { debounce, midyfyClassWithZoom } from "../utils/common";
+import commonMixins from '../mixins/commonMixin'
+import configS from '../components/config.vue'
 // eslint-disable-next-line no-unused-vars
 import { useMockData, isNewUI } from "../config/index";
 import mock_treeData from "../mock/FinishData/treeData";
@@ -180,8 +191,10 @@ import rankL from '../components/charts/rank.vue'
 import barR from '../components/charts/bar.vue'
 insertCss(innerCss);
 
+
 export default {
-  components: { tableS, rankL, barR },
+  components: { tableS, rankL, barR,configS },
+  mixins: [commonMixins],
   data () {
     return {
       //window对象
@@ -198,6 +211,7 @@ export default {
       minimap: null, //小地图
       toolTip: "", //提示框内容
       rightMenu: null, //右键菜单
+      showConf: false,//配置
       isShow: false,
       childNodes: [],
       isRender: false,
@@ -205,7 +219,7 @@ export default {
       curWord: '',
       form: {
         level: 2,
-        keyWord: "功率继电器",
+        keyWord: "",
         layout: "mind"
       },
       levelOptions: [
@@ -248,12 +262,17 @@ export default {
       areaShow: false,
       boxWidth: 0,
       boxHeight: 0,
+      //已经存在的列表
+      hasShowList:'',
     };
   },
   computed: {},
   created () {
     this.zoom = getWinZoom()
     this.getParams();
+  },
+  mounted(){
+    this.form.keyWord = this.__CONFIG.yyw_defword
   },
   methods: {
     //获得相关度图表数据
@@ -303,7 +322,8 @@ export default {
       if (!this.selectNode) {
         const params = {
           layer: this.form.level,
-          type: this.form.keyWord
+          type: this.form.keyWord,
+          hasShowList:this.hasShowList,
         };
         this.curWord = this.form.keyWord
         console.log("获取初始树节点-搜索节点", params);
@@ -314,16 +334,19 @@ export default {
           res = await getTreeNode(params);
           resData = res.data
         }
+        this.hasShowList = resData.shown || ''
         this.sourceData = this.initData(resData);
         this.centerNode = this.sourceData;
       } else {
         const params = {
           layer: this.form.level,
-          type: this.selectNode.getModel().name
+          type: this.selectNode.getModel().name,
+          hasShowList:this.hasShowList,
         };
         this.curWord = this.selectNode.getModel().name
         console.log("获取初始树节点-点击节点", params);
         const res = await getTreeNode(params);
+        this.hasShowList = res.data.shown || ''
         this.childNodes = res.data;
         if (this.childNodes && this.childNodes.children.length) {
           await this.recursionConcat(this.sourceData);
@@ -534,6 +557,7 @@ export default {
         container: container,
         width: this.win.width,
         height: this.win.height,
+        linkCenter: true,
         modes: {
           default: [
             {
@@ -575,12 +599,12 @@ export default {
           type: "cubic-horizontal",
           color: "#888",
           style: {
-            lineWidth: 1
+            lineWidth: 3
           }
         },
         layout: {
-          type: "mindmap",
-          direction: "H",
+          type: ((this.__CONFIG.yyw_pos==="hor")?"mindmap":"compactBox"),//mindmap,compactBox
+          direction: "TB",//（H\V）
           getHeight: () => {
             return 90;
           },
@@ -588,7 +612,7 @@ export default {
             return 50;
           },
           getVGap: () => {
-            return 10;
+            return 40;
           },
           getHGap: node => {
             if (node.type === "edge") {
@@ -749,6 +773,7 @@ export default {
         offsetX: 10,
         offsetY: 10,
         fixToNode: [1, 0.5],
+        // trigger: "click",
         // 允许出现 tooltip 的 item 类型
         itemTypes: ["node"],
         // 是否允许tooltip出现
@@ -834,6 +859,12 @@ export default {
       });
       return data;
     },
+    /**
+     * 参数配置
+     */
+    setConf () {
+      this.showConf = new Boolean(true)
+    },
     // 初始化数据
     initData (data) {
       let processedData;
@@ -852,7 +883,7 @@ export default {
           if (!item.img) {
             item.img = require("../assets/image/logo.png");
           } else {
-            item.img = baseUrl + item.img
+            item.img = this.__CONFIG.yyw_path + '/aspsemantic' + item.img
           }
         } else if ((item.type === "edge") && isNewUI) {
           //关系节点

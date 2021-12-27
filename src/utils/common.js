@@ -73,8 +73,14 @@ const fittingString = (str, maxWidth, fontSize) => {
 };
 
 const midyfyClassWithZoom = (domName, curZoom) => {
-  const dom = document.getElementsByClassName(domName)[0]
-  dom.style.zoom = curZoom
+  const dom = document.getElementsByClassName(domName)
+  if (dom.length) {
+    // console.log(`dom-length:${dom.length}:`, dom)
+    for (let i = 0; i < dom.length; i++) {
+      dom[i].style.zoom = curZoom
+    }
+  }
+
 };
 
 const openFile = () => {

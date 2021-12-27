@@ -1,6 +1,6 @@
 
 //当前部署版本号
-var base_version = '12_13_02'
+var base_version = '12_18_02'
 //是否启用缩放
 var ues_scale = 1
 //网络请求超时时间
@@ -12,8 +12,8 @@ var base_ip_yyw = 'http://api.bjsasc.com'
 //配置项
 var cfg_type = 1
 //泳道图网格-宽
-var grid_width_flow = 840
-// var grid_width_flow = 1880
+// var grid_width_flow = 840
+var grid_width_flow = 1880
 //泳道图网格-高
 var grid_height_flow = 180
 //泳道图网格-间距

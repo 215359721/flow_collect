@@ -453,7 +453,7 @@ const line_node = (node) => {
   const jsx = `
     <group>
       <rect style={{
-        width: ${node.width},
+        width: ${node.width * 200},
         height:${node.height},
       }}>
       <path style={{
@@ -468,6 +468,129 @@ const line_node = (node) => {
     `
   return jsx
 }
+//周总览节点
+const overview_node = (node) => {
+  const node_wid = node.infoWidth
+  const detail = node.detail
+  const jsx = `
+    <group>
+      <rect style={{
+        width: ${node_wid},
+        height:${node.innerHei},
+        fill: ${(node.index % 2 === 0) ? '#1d1dc0' : '#11992c'},
+      }} draggable="true">
+      <path style={{
+        fill: ${node.color},
+        stroke: ${node.color},
+        path:'M 0,0 v${node.height}',
+        lineWidth:${node.width + 1},
+        ${node.dotline ? "lineDash:[2,2]," : ""}
+      }}></path>
+        <rect style={{
+          width: ${node_wid},
+          height:'200',
+          fill: ${(node.index % 2 === 0) ? '#040473' : '#094d16'},
+        }} draggable="true">
+          <text style={{
+            fill:'#ddd',
+            textAlign:'center',
+            fontSize:35,
+            fontWeight:'500',
+            marginTop:80,
+            marginLeft:210,
+          }} draggable="true"
+          >第${node.weekNo}周</text>
+          <text style={{
+            fill:'#ddd',
+            textAlign:'center',
+            fontSize:25,
+            fontWeight:'400',
+            marginTop:120,
+            marginLeft:210,
+          }} draggable="true"
+          >（${node.begin} 至 ${node.end}）</text>
+        </rect>
+        ${view_each_line(node, node_wid, { 
+          title: '即时通讯', 
+          times: '研讨'+getMark(detail.im,'zs')+'次', 
+          persons: getMark(detail.im,'renci')+'人次', 
+          outs: '输出物'+getMark(detail.im,'shuchuwu')+'项' 
+        })}
+        ${view_each_line(node, node_wid, { 
+          title: '在线会议', 
+          times: '召开'+getMark(detail.MeetingInfo,'zs')+'次', 
+          persons: getMark(detail.MeetingInfo,'renci')+'人次', 
+          outs: '输出物'+getMark(detail.MeetingInfo,'shuchuwu')+'项' 
+        })}
+        ${view_each_line(node, node_wid, { 
+          title: '协同任务', 
+          times: '执行'+getMark(detail.task,'zs')+'次', 
+          persons: getMark(detail.task,'renci')+'人次', 
+          outs: '输出物'+getMark(detail.task,'shuchuwu')+'项' 
+        })}
+        ${view_each_line(node, node_wid, { 
+          title: '文档协同', 
+          times: '编制'+getMark(detail.App_doc,'zs')+'次', 
+          persons: getMark(detail.App_doc,'renci')+'人次', 
+          outs: '输出物'+getMark(detail.App_doc,'shuchuwu')+'项' 
+        })}
+        ${view_each_line(node, node_wid, { 
+          title: '工具软件', 
+          times: '应用'+getMark(detail.App,'zs')+'次', 
+          persons: getMark(detail.App,'renci')+'人次', 
+          outs: '输出物'+getMark(detail.App,'shuchuwu')+'项' 
+        })}
+        ${view_each_line(node, node_wid, { 
+          title: '合计统计', 
+          times: '合计'+(
+            getMark(detail.im,'zs')+
+            getMark(detail.MeetingInfo,'zs')+
+            getMark(detail.task,'zs')+
+            getMark(detail.App_doc,'zs')+
+            getMark(detail.App,'zs'))+'次', 
+          persons: (
+            getMark(detail.im,'renci')+
+            getMark(detail.MeetingInfo,'renci')+
+            getMark(detail.task,'renci')+
+            getMark(detail.App_doc,'renci')+
+            getMark(detail.App,'renci'))+'人次', 
+          outs: '输出物'+(
+            getMark(detail.im,'shuchuwu')+
+            getMark(detail.MeetingInfo,'shuchuwu')+
+            getMark(detail.task,'shuchuwu')+
+            getMark(detail.App_doc,'shuchuwu')+
+            getMark(detail.App,'shuchuwu'))+'项' 
+        })}
+      </rect>
+    </group>
+    `
+  return jsx
+}
+
+const getMark = (obj,mark)=>{
+  let result = 0
+  if(obj){
+    result = Number(obj[mark])
+  }
+  return result
+}
+
+const view_each_line = (node, width, context = { title: '即时通讯', times: '研讨0次', persons: '0人次', outs: '输出物0项' }) => {
+  return `
+  <rect style={{
+    width: ${width},
+    height:100,
+    marginTop:30,
+    marginLeft:0,
+  }} draggable="true">
+    <text style={{fill:'#ddd',fontSize:30,marginTop:30,marginLeft:10,fontWeight:'500',}} draggable="true">${context.title.substr(0, 2)}</text>
+    <text style={{fill:'#ddd',fontSize:30,marginTop:50,marginLeft:10,fontWeight:'500',}} draggable="true">${context.title.substr(2, 2)}</text>
+    <text style={{fill:'#fff',fontSize:20,marginTop:15,marginLeft:90,fontWeight:'400',}} draggable="true">${context.times}</text>
+    <text style={{fill:'#fff',fontSize:20,marginTop:0,marginLeft:200,fontWeight:'400',}} draggable="true">${context.persons}</text>
+    <text style={{fill:'#fff',fontSize:20,marginTop:-15,marginLeft:295,fontWeight:'400',}} draggable="true">${context.outs}</text>
+  <rect>`
+}
+
 //块节点（背景）
 const block_node = (node) => {
   const tipWid = 280
@@ -476,23 +599,23 @@ const block_node = (node) => {
     <group>
       <rect style={{
         width: ${node.width},
-        height:${node.height},
-        fill: ${(node.index % 2 === 0) ? '#fff' : '#f7f7f7'},
+        height:${node.innerHei},
+        fill: ${(node.index % 2 === 0) ? '#CEE1FD' : '#D0EBD0'},
       }}draggable="true">
         <rect style={{
           width: ${tipWid},
           height:${tipHei},
           radius:6,
           fill:'#edf2fc',
-          marginTop:${node.tipy + 3},
-          marginLeft:${(node.width - tipWid) / 2}
+          marginTop:${node.tipy + 6},
+          marginLeft:${(node.width - tipWid) / 2 + 205}
         }}draggable="true">
           <text style={{
             fill:'#909399',
             textAlign: 'center',
             fontSize:13,
-            marginTop:6,
-            marginLeft:${(node.width - tipWid) / 2 + 145}}}>${node.label}</text>
+            marginTop:7,
+            marginLeft:${(node.width - tipWid) / 2 + 350}}}>${node.label}</text>
         </rect>
       </rect>
     </group>
@@ -555,5 +678,6 @@ const node = {
   tool_node_ver,
   line_node,
   block_node,
+  overview_node,
 }
 export default node

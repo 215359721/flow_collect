@@ -1,6 +1,7 @@
 
 import request from '../utils/request'
-const SERVER_CONF = window._SERVERCONF
+import {defaultConfig} from '../config/index'
+const SERVER_CONF = JSON.parse(localStorage.getItem('config')) || defaultConfig
 
 //获得部门&时间轴信息
 export const getXYdata = () => {
@@ -13,6 +14,9 @@ export const getMainData = (typeid) => {
 //获得某个部门的关系全图
 export const getDataByDep = (typeid, depId, depName) => {
   return request({ url: `/graph/getDepartmentGraph?configId=${typeid}&deptId=${depId}&deptName=${depName}`, method: 'get', })
+}
+export const getDataByDepAuto = (depId, depName) => {
+  return request({ url: `/graph/getDepartmentGraphAuto?deptId=${depId}&deptName=${depName}`, method: 'get', })
 }
 //根据节点id获得关系全图
 export const getDataById = (nodeId) => {
@@ -46,22 +50,28 @@ export const modifyMark = (data) => {
 export const addLink = (data) => {
   return request({ url: `/graph/addNoteLink`, method: 'post', data })
 }
+//跳转文档协同
+export const jumpFile = (id,fileId,filename,userid,username) => {
+  return request({ url: `template?id=${id}&code=${id}&fileId=${fileId}&fileName=${filename}&userId==${userid}&userName=${username}&openType=test`, method: 'get', baseURL:'http://192.168.1.42:8080/'})
+}
 
 
 //【语义网】获得树节点数据
-export function getTreeNode (params) {
+export function getTreeNode (data) {
   return request({
-    baseURL: SERVER_CONF.base_ip_yyw,
-    url: '/aspsemantic/aspowl/analysis/tree',
-    method: 'GET',
-    params
+    baseURL: SERVER_CONF.yyw_path,
+    url: `/aspsemantic/aspowl/analysis/tree?layer=${data.layer || ''}&type=${data.type || ''}`,
+    method: 'post',
+    data:{
+      hasShowList:data.hasShowList
+    }
   })
 }
 
 //【语义网】获得关键词列表
 export function getKeywordsList (params) {
   return request({
-    baseURL: SERVER_CONF.base_ip_yyw,
+    baseURL: SERVER_CONF.yyw_path,
     url: '/aspsemantic/aspowl/nameLike',
     method: 'GET',
     params
@@ -70,20 +80,20 @@ export function getKeywordsList (params) {
 
 //【语义网】通过关键词获得相关文章列表（right-1）
 export const getchartDataWithArticle = (keyword) => {
-  return request({ url: `/meeting/fss/storage/content?from=0&size=15&owners=meeting&userId=rootadmin0001&keyword=${keyword}`, method: 'post', baseURL: SERVER_CONF.base_ip_yyw })
+  return request({ url: `/meeting/fss/storage/content?from=0&size=15&owners=meeting&userId=rootadmin0001&keyword=${keyword}`, method: 'post', baseURL: SERVER_CONF.yyw_path })
 }
 
 //【语义网】获得饼图数据
 export const getchartDataWithPie = () => {
-  return request({ url: `/meeting/knowledge/show/sectorGraph`, method: 'post', baseURL: SERVER_CONF.base_ip_yyw })
+  return request({ url: `/meeting/knowledge/show/sectorGraph`, method: 'post', baseURL: SERVER_CONF.yyw_path })
 }
 
 //【语义网】获得柱状图数据
 export const getchartDataWithBar = () => {
-  return request({ url: `/meeting/knowledge/show/barGraph`, method: 'post', baseURL: SERVER_CONF.base_ip_yyw })
+  return request({ url: `/meeting/knowledge/show/barGraph`, method: 'post', baseURL: SERVER_CONF.yyw_path })
 }
 
 //【语义网】获得折线图数据
 export const getchartDataWithLine = () => {
-  return request({ url: `/meeting`, method: 'post', baseURL: SERVER_CONF.base_ip_yyw })
+  return request({ url: `/meeting`, method: 'post', baseURL: SERVER_CONF.yyw_path })
 }

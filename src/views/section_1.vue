@@ -11,7 +11,7 @@
       <el-dropdown
         size="mini"
         split-button
-        type="primary"
+        type="warning"
         class="mt5"
         @command="changeLayout"
       >

@@ -1,5 +1,6 @@
+import {defaultConfig} from '../config/index'
 let windowWidth = 0, windowHeight = 0, windowZoom = 1.0
-const CONFIG = window._SERVERCONF
+const CONFIG = JSON.parse(localStorage.getItem('config')) || defaultConfig
 const getWinWidth = function () {
   windowWidth = (document.documentElement.clientWidth) || (document.body.clientWidth);
   return windowWidth
@@ -10,12 +11,12 @@ const getWinHeight = function () {
   return windowHeight
 }
 
-const getWinZoom = function (standard = 980) {
+const getWinZoom = function (standard = (CONFIG.scale_base || 1000)) {
   windowWidth = (document.documentElement.clientWidth) || (document.body.clientWidth);
   windowHeight = (document.documentElement.clientHeight) || (document.body.clientHeight);
   console.log('windowWidth:' + windowWidth + "|windowHeight:" + windowHeight + "|ues_scale:" + CONFIG.ues_scale)
   windowZoom = windowHeight / standard;
-  if (CONFIG.ues_scale) {
+  if (CONFIG.use_scale) {
     return windowZoom
   } else {
     return 1.0

@@ -11,6 +11,7 @@ export default {
 }
 </script>
 <style>
+@import url("./assets/css/element-ui-conver.less");
 body {
   margin: 0px !important;
 }

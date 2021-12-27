@@ -29,19 +29,19 @@ export default {
       // console.log('rank-图表宽高:' + wid + "|" + hei)
       document.getElementById('content-rank').innerHTML = ''
       const data = [
-        { type: '电机托盘', value: 48 },
-        { type: '长柄螺丝', value: 109 },
-        { type: '接地设备', value: 230 },
-        { type: '机电装置', value: 430 },
-        { type: '电机', value: 567 },
-        { type: '接地装置', value: 655 },
-        { type: '绝缘子', value: 783 },
-        { type: '功率设备', value: 967 },
-        { type: '耦合器', value: 1067 },
-        { type: '电气设备', value: 1288 },
-        { type: '航天器', value: 1439 },
-        { type: '断路器', value: 1567 },
-        { type: '继电器', value: 1873 },
+        { type: '电机托盘', value: 48, col:'100'},
+        { type: '长柄螺丝', value: 109, col:'100'},
+        { type: '接地设备', value: 230, col:'100'},
+        { type: '机电装置', value: 430, col:'200'},
+        { type: '电机', value: 567, col:'200'},
+        { type: '接地装置', value: 655, col:'200'},
+        { type: '绝缘子', value: 783, col:'300'},
+        { type: '功率设备', value: 967, col:'300'},
+        { type: '耦合器', value: 1067, col:'300'},
+        { type: '电气设备', value: 1288, col:'400'},
+        { type: '航天器', value: 1439, col:'400'},
+        { type: '断路器', value: 1567, col:'500'},
+        { type: '继电器', value: 1873, col:'500'},
       ];
       const chart = new Chart({
         container: 'content-rank',
@@ -78,6 +78,7 @@ export default {
       chart
         .interval()
         .position('type*value')
+        .color('col',['#1A73e8','#1A73e8','#1aad19','#1aad19','#cc0000'])
         .size(26)
         .label('value', {
           style: {
