@@ -184,9 +184,9 @@ function getTipHTML (node, zoom = 1.0) {
     <div class="tip-head data-head-bg data-border">数据详情</div>
     <div class="tip-content data-content-bg data-border">
       <div class="file-line">
-        <div class="title bold">数据列表：</div>
+        <div class="title bold">数据信息：</div>
         <div class="file-box">
-          ${getFilePart(info.inPuts || [])}
+          ${getFilePart([{ "fileName": node.label || '暂无', "fileType": "docx", "fileId": node.id || '' }])}
         </div>
       </div>
     </div>
@@ -196,7 +196,7 @@ function getTipHTML (node, zoom = 1.0) {
     <div class="tip-content data-content-bg data-border">
       <div class="top-box">
         <div class="left">
-          <img class="big-head" src="${info.creatorIcon || defaultHead}">
+          <img class="big-head" src="${node.creatorPhotoUrl || defaultHead}">
           <div class="user-name bold">${info.creator || none}</div>
         </div>
         <div class="right">
