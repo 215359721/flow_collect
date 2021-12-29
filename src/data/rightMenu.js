@@ -66,7 +66,7 @@ const jumpDetailInfo = (node) => {
         } else {
           console.log('文档协同')
           const openWindowOption = `top=0,left=0,width=${window.screen.availWidth - 0},height=${window.screen.availHeight - 0}`
-          const url = CONFIG.editdoc_url + `/template?id=${node.id}&code=${node.id}&fileId=${node.detailInfo.inPuts[0].fileId}&fileName=${node.detailInfo.inPuts[0].fileName}&userId==${asp.user.uerid}&userName=${asp.usersrc.curLoginUser.userLoginName}&openType=test`
+          const url = CONFIG.editdoc_url + `/template?id=${node.id}&code=${node.id}&fileId=${node.detailInfo.inPuts[0].fileId}&fileName=${node.detailInfo.inPuts[0].fileName}&userId=${asp.user.uerid}&userName=${asp.usersrc.curLoginUser.userLoginName}&openType=test`
           window.open(url, `模型与数据驱动的一体化协同设计平台-${node.detailInfo.inPuts[0].fileName}`, openWindowOption);
         }
 

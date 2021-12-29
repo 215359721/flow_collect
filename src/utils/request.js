@@ -1,11 +1,12 @@
 import axios from 'axios'
 import { Message } from 'element-ui'
 import loading from './loading'
-import {defaultConfig} from '../config/index'
+import { defaultConfig } from '../config/index'
 axios.defaults.headers.common['Content-Type'] = 'application/json;charset=utf-8'
 axios.defaults.headers.common['x-requested-with'] = 'XMLHttpRequest'
 axios.defaults.withCredentials = true
 const SERVER_CONF = JSON.parse(localStorage.getItem('config')) || defaultConfig
+console.log('服务器超时时间:', SERVER_CONF.timeout)
 // 创建axios实例
 const service = axios.create({
   // axios中请求配置有baseURL选项，表示请求URL公共部分

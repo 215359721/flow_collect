@@ -62,13 +62,32 @@
                 </el-input>
               </div>
             </div>
-            <!-- 启用缩放 -->
+            <!-- 适配分辨率 -->
             <div class="each">
               <div class="left">适配分辨率：</div>
               <div class="right">
                 <el-switch
                   style="display: block"
                   v-model="config.use_scale"
+                  active-color="#13ce66"
+                  inactive-color="#ff4949"
+                  active-text="on"
+                  inactive-text="off"
+                >
+                </el-switch>
+                <el-input
+                  class="no-border"
+                  clearable
+                />
+              </div>
+            </div>
+            <!-- 显示屏幕信息 -->
+            <div class="each">
+              <div class="left">显示屏幕信息：</div>
+              <div class="right">
+                <el-switch
+                  style="display: block"
+                  v-model="config.show_info"
                   active-color="#13ce66"
                   inactive-color="#ff4949"
                   active-text="on"
@@ -138,7 +157,7 @@
                     value="type6"
                   >
                   </el-option>
-                </el-select>  
+                </el-select>
               </div>
             </div>
             <!-- 部门显示 -->
@@ -343,7 +362,7 @@
 
 <script>
 import { midyfyClassWithZoom } from "../utils/common";
-import {defaultConfig} from '../config/index'
+import { defaultConfig } from '../config/index'
 export default {
   props: {
     isShow: {
@@ -354,8 +373,8 @@ export default {
       type: Number,
       default: 1.0
     },
-    depData:{
-      type:Array,
+    depData: {
+      type: Array,
       default: () => []
     }
   },
@@ -365,23 +384,24 @@ export default {
       showWindow: false,
       config: {
         version: '1.0.0',//版本号
-        timeout: 20,//网络请求超时时间
+        timeout: 60,//网络请求超时时间
         cfg_type: 1,//配置项
         flow_path: 'http://api.bjsasc.com/graph',//流程图地址
         yyw_path: 'http://api.bjsasc.com',//语义网地址
         grid_width: 1880,//网格宽度
         grid_height: 180,//网格高度
-        week_info_width:420,//周统计信息网格宽度
+        week_info_width: 420,//周统计信息网格宽度
         use_scale: true,//启用缩放
-        scale_base:1000,//缩放基准值
+        show_info: false,//显示屏幕信息
+        scale_base: 1000,//缩放基准值
         meet_url: 'https://meet.bjsasc.com:8443',//会议跳转地址
-        editdoc_url:'http://192.168.1.42:8080',//协同编辑地址
-        node_style:'type5',//节点样式
-        cur_dep:'5',//当前显示部门
-        font_mode:'dark',//节点文字颜色(default-默认|dark-深色)
-        click_mode:'default',//泳道图节点点击效果(show_hide-显示&隐藏|default-透明度)
-        yyw_pos:'vor',//语义网排列方式(hor-横向|vor-纵向)
-        yyw_defword:'功率继电器',//语义网默认搜索关键词
+        editdoc_url: 'http://192.168.1.42:8080',//协同编辑地址
+        node_style: 'type5',//节点样式
+        cur_dep: '5',//当前显示部门
+        font_mode: 'dark',//节点文字颜色(default-默认|dark-深色)
+        click_mode: 'default',//泳道图节点点击效果(show_hide-显示&隐藏|default-透明度)
+        yyw_pos: 'vor',//语义网排列方式(hor-横向|vor-纵向)
+        yyw_defword: '功率继电器',//语义网默认搜索关键词
       }
     }
   },
@@ -404,7 +424,7 @@ export default {
   },
   methods: {
     //语义网排列方式切换
-    yywPosChange(val){
+    yywPosChange (val) {
       this.yyw_pos = val
     },
     //字体颜色模式切换

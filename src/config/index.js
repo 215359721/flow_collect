@@ -3,7 +3,7 @@ const useExColor = 1 //泳道UI是否使用交替行
 const isNewUI = 1 //是否使用新节点UI
 const defaultConfig = {
   version: '1.0.0',//版本号
-  timeout: 20,//网络请求超时时间
+  timeout: 60,//网络请求超时时间
   cfg_type: 1,//配置项
   flow_path: 'http://api.bjsasc.com/graph',//流程图地址
   yyw_path: 'http://api.bjsasc.com',//语义网地址
@@ -12,6 +12,7 @@ const defaultConfig = {
   week_info_width: 420,//周统计信息网格宽度
   scale_base: 1000,//缩放基准值
   use_scale: true,//启用缩放
+  show_info: false,//显示屏幕信息
   meet_url: 'https://meet.bjsasc.com:8443',//会议跳转地址
   editdoc_url: 'http://192.168.1.42:8080',//协同编辑地址
   node_style: 'type5',//节点样式

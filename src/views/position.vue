@@ -3,7 +3,7 @@
   <div class="main-page">
     <div
       class="opt-div"
-      :style="{zoom:zoom}"
+      :style="{zoom:zoom,top:(showInfo?55:10)+'px'}"
     >
       <!-- 功能按钮 -->
       <div class="move-group">
@@ -78,6 +78,7 @@
     <!-- 分辨率信息 -->
     <div
       class="cur-num cur-resolving un-sel"
+      v-if="showInfo"
       :style="{zoom:zoom}"
     >
       <div
@@ -91,6 +92,7 @@
     <!-- 网格信息 -->
     <div
       class="cur-num cur-grid un-sel"
+      v-if="showInfo"
       :style="{zoom:zoom}"
     >
       <div class="mr5">gird：{{gird.width}} * {{Math.floor(gird.height)}}</div>
@@ -98,8 +100,8 @@
     <!-- 指示器 -->
     <div
       class="cur-num un-sel"
+      v-if="showInfo && graph"
       :style="{zoom:zoom}"
-      v-if="graph"
     >
       <div class="mr5">V：{{version}}</div>
       <div>当前周：{{curWeek}}</div>
@@ -310,8 +312,9 @@ export default {
       dataType: "real", //数据形式
       nodeStyle: "default", //节点样式
       editMode: false,//编辑模式开关
+      showInfo: false,//显示详情信息标识
       fontMode: 'default',//字体颜色模式(default-默认|dark-深色)
-      clickMode:'default',//泳道图节点点击效果(show_hide-显示&隐藏|default-透明度)
+      clickMode: 'default',//泳道图节点点击效果(show_hide-显示&隐藏|default-透明度)
       configId: 1, //配置id（1-内网台式机，2-会议室大屏）
       //部门
       depData: [
@@ -546,19 +549,19 @@ export default {
           return;
         }
         console.log('节点点击:', item._cfg.model)
-        
+
         //---高亮---
         _that.graph.setAutoPaint(false);
         _that.graph.getNodes().forEach(function (node) {
           _that.graph.clearItemStates(node);
           if (!node._cfg.model.method) {
             _that.graph.setItemState(node, "dark", true);
-            _that.setVisiable(node,'hide')
+            _that.setVisiable(node, 'hide')
           }
         });
         _that.graph.setItemState(item, "dark", false);
         _that.graph.setItemState(item, "highlight", true);
-        _that.setVisiable(item,'show')
+        _that.setVisiable(item, 'show')
         //递归节点
         _that.filtNodeAndEdge(_that.graph, item);
         _that.graph.paint();
@@ -674,31 +677,31 @@ export default {
         if (edge.getSource() === item) {
           graph.setItemState(edge.getTarget(), "dark", false);
           graph.setItemState(edge.getTarget(), "highlight", true);
-          _that.setVisiable(edge.getTarget(),'show')
+          _that.setVisiable(edge.getTarget(), 'show')
           graph.setItemState(edge, "highlight", true);
-          _that.setVisiable(edge,'show')
+          _that.setVisiable(edge, 'show')
           edge.toFront();
         } else if (edge.getTarget() === item) {
           graph.setItemState(edge.getSource(), "dark", false);
           graph.setItemState(edge.getSource(), "highlight", true);
-          _that.setVisiable(edge.getSource(),'show')
+          _that.setVisiable(edge.getSource(), 'show')
           graph.setItemState(edge, "highlight", true);
-          _that.setVisiable(edge,'show')
+          _that.setVisiable(edge, 'show')
           edge.toFront();
         } else {
           graph.setItemState(edge, "highlight", false);
-          _that.setVisiable(edge,'hide')
+          _that.setVisiable(edge, 'hide')
         }
       });
     },
     /**
      * 节点显示|隐藏
      */
-    setVisiable(item,opt='show'){
-      if(this.clickMode === 'show_hide'){
-        if(opt==='show'){
+    setVisiable (item, opt = 'show') {
+      if (this.clickMode === 'show_hide') {
+        if (opt === 'show') {
           item.show()
-        }else{
+        } else {
           item.hide()
         }
       }
@@ -831,12 +834,12 @@ export default {
       that.graph.setAutoPaint(false);
       that.graph.getEdges().forEach(function (edge) {
         that.graph.clearItemStates(edge);
-        that.setVisiable(edge,'show')
+        that.setVisiable(edge, 'show')
         edge.toBack();
       });
       that.graph.getNodes().forEach(function (node) {
         that.graph.clearItemStates(node);
-        that.setVisiable(node,'show')
+        that.setVisiable(node, 'show')
         if (node._cfg.model.method === "block") {
           node.toBack();
         }
@@ -1507,6 +1510,7 @@ export default {
       this.fontMode = this.__CONFIG.font_mode || 'default'
       this.clickMode = this.__CONFIG.click_mode || 'default'
       this.weekInfoWidth = this.__CONFIG.week_info_width || 420
+      this.showInfo = this.__CONFIG.show_info
       if ((this.nodeStyle === 'type3') || (this.nodeStyle === 'type4') || (this.nodeStyle === 'type5') || ((this.nodeStyle === 'type6'))) {
         //大图标
         this.config.type = (this.curDep === 'all') ? '1' : '101'

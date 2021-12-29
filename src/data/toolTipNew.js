@@ -170,7 +170,7 @@ function getTipHTML (node, zoom = 1.0) {
         <div class="sep-line tool-line"></div>
         <div class="desc-line">
           <div class="title bold">工具介绍：</div>
-          <div class="content normal tool-max">${info.name || none}</div>
+          <div class="content normal tool-max">${info.description || none}</div>
         </div>
         <div class="file-line">
           <div class="title bold">文件：</div>

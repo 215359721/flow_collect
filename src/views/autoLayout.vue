@@ -2,7 +2,7 @@
   <div class="main-page">
     <div
       class="opt-div"
-      :style="{zoom:zoom}"
+      :style="{zoom:zoom,top:(showInfo?55:10)+'px'}"
     >
       <!-- 布局切换 -->
       <el-button
@@ -69,7 +69,7 @@
     <div
       class="cur-num"
       :style="{zoom:zoom,width:180+'px'}"
-      v-if="graph"
+      v-if="showInfo && graph"
     >
       <div class="mr5">zoom：{{zoom.toFixed(2)}}</div>
       <!-- <div>layout：{{curLayout}}</div> -->
@@ -151,6 +151,7 @@ export default {
       curLayout: "dagre", //当前布局
       zoom: 1.0, //当前缩放率
       showConf: false,//配置
+      showInfo: false,//显示详情信息标识
       //-------
       useLocalPostion: false,//是否使用本地坐标or采用自动布局
       nodePositionList: [],//全量节点坐标集合
@@ -661,6 +662,7 @@ export default {
         console.log('窗口大小改变:' + _that.win.width + '*' + _that.win.height)
         _that.graph.changeSize(_that.win.width, _that.win.height)
       }, 500))
+      this.showInfo = this.__CONFIG.show_info
     },
     /**
      * 清空焦点高亮
