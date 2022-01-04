@@ -1,4 +1,4 @@
-const useMockData = 0 //是否使用本地mock数据
+const useMockData = 1 //是否使用本地mock数据
 const useExColor = 1 //泳道UI是否使用交替行
 const isNewUI = 1 //是否使用新节点UI
 const defaultConfig = {

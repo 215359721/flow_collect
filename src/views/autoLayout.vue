@@ -1,24 +1,9 @@
 <template>
   <div class="main-page">
-    <div
-      class="opt-div"
-      :style="{zoom:zoom,top:(showInfo?55:10)+'px'}"
-    >
+    <div class="opt-div" :style="{zoom:zoom,top:(showInfo?55:10)+'px'}">
       <!-- 布局切换 -->
-      <el-button
-        style="width:60px;"
-        size="mini"
-        type="warning"
-        @click="reloadPage"
-      >刷新</el-button>
-      <el-dropdown
-        v-if="false"
-        size="mini"
-        split-button
-        type="primary"
-        class="mt5"
-        @command="changeLayout"
-      >
+      <el-button style="width:60px;" size="mini" type="warning" @click="reloadPage">刷新</el-button>
+      <el-dropdown v-if="false" size="mini" split-button type="primary" class="mt5" @command="changeLayout">
         布局切换
         <el-dropdown-menu slot="dropdown">
           <el-dropdown-item command="dagre">dagre层次</el-dropdown-item>
@@ -30,56 +15,27 @@
         </el-dropdown-menu>
       </el-dropdown>
       <!-- 精简模式切换 -->
-      <el-radio-group
-        v-if="false"
-        v-model="showType"
-        size="mini"
-        class="mt5"
-        @change="showTypeChange"
-      >
+      <el-radio-group v-if="false" v-model="showType" size="mini" class="mt5" @change="showTypeChange">
         <el-radio-button label="all">详细</el-radio-button>
         <el-radio-button label="normal">概要</el-radio-button>
         <el-radio-button label="simple">精简</el-radio-button>
       </el-radio-group>
       <!-- 数据源切换 -->
-      <el-radio-group
-        v-if="false"
-        v-model="curDataSource"
-        size="mini"
-        class="mt5"
-        @change="dataSourceChange"
-      >
+      <el-radio-group v-if="false" v-model="curDataSource" size="mini" class="mt5" @change="dataSourceChange">
         <el-radio-button label="mock">测试数据</el-radio-button>
         <el-radio-button label="real">真实数据</el-radio-button>
       </el-radio-group>
-      <el-button
-        type="info"
-        style="width:100px;margin-top:5px;"
-        size="mini"
-        @click="setConf"
-      >参数配置</el-button>
-      <el-button
-        type="danger"
-        style="width:100px;margin-top:5px;"
-        size="mini"
-        @click="commitChanges"
-      >保存更改</el-button>
+      <el-button type="info" style="width:100px;margin-top:5px;" size="mini" @click="setConf">参数配置</el-button>
+      <el-button type="danger" style="width:100px;margin-top:5px;" size="mini" @click="commitChanges">保存更改</el-button>
     </div>
 
-    <div
-      class="cur-num"
-      :style="{zoom:zoom,width:180+'px'}"
-      v-if="showInfo && graph"
-    >
+    <div class="cur-num" :style="{zoom:zoom,width:180+'px'}" v-if="showInfo && graph">
       <div class="mr5">zoom：{{zoom.toFixed(2)}}</div>
       <!-- <div>layout：{{curLayout}}</div> -->
       <div>【{{useLocalPostion?'手动布局':'自动布局'}}】</div>
     </div>
     <div id="canvasDiv"></div>
-    <config-s
-      :isShow="showConf"
-      :zoom="zoom"
-    />
+    <config-s :isShow="showConf" :zoom="zoom" />
   </div>
 </template>
 

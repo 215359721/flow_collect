@@ -1,54 +1,16 @@
 <template>
   <div class="main-page">
-    <div
-      class="opt-level"
-      :style="{zoom:zoom}"
-    >
-      <el-form
-        :model="form"
-        ref="form"
-        inline
-        label-width="120px"
-      >
-        <el-form-item
-          id="keyWord"
-          prop="keyWord"
-        >
-          <el-select
-            size="mini"
-            v-model="form.keyWord"
-            filterable
-            clearable
-            remote
-            reserve-keyword
-            placeholder="请输入关键词"
-            :remote-method="remoteMethod"
-            :loading="loading"
-          >
-            <el-option
-              v-for="item in keyWordOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            >
+    <div class="opt-level" :style="{zoom:zoom}">
+      <el-form :model="form" ref="form" inline label-width="120px">
+        <el-form-item id="keyWord" prop="keyWord">
+          <el-select size="mini" v-model="form.keyWord" filterable clearable remote reserve-keyword placeholder="请输入关键词" :remote-method="remoteMethod" :loading="loading">
+            <el-option v-for="item in keyWordOptions" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item
-          prop="level"
-          v-if="false"
-        >
-          <el-select
-            size="mini"
-            v-model="form.level"
-            placeholder="请选择"
-          >
-            <el-option
-              v-for="item in levelOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            >
+        <el-form-item prop="level" v-if="false">
+          <el-select size="mini" v-model="form.level" placeholder="请选择">
+            <el-option v-for="item in levelOptions" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
         </el-form-item>
@@ -68,30 +30,10 @@
           </el-select>
         </el-form-item> -->
         <el-form-item>
-          <el-button
-            type="primary"
-            size="mini"
-            @click="handleSearch"
-          >查询</el-button>
-          <el-button
-            type="info"
-            style="width:100px;margin-top:5px;"
-            size="mini"
-            @click="setConf"
-          >参数配置</el-button>
-          <el-button
-            type="primary"
-            size="mini"
-            @click="areaShow = !areaShow"
-          >{{areaShow?'隐藏详情':'显示详情'}}</el-button>
-          <el-dropdown
-            size="mini"
-            v-if="false"
-            split-button
-            type="primary"
-            @command="changeLayout"
-            :style="{marginLeft:'10px'}"
-          >
+          <el-button type="primary" size="mini" @click="handleSearch">查询</el-button>
+          <el-button type="info" style="width:100px;margin-top:5px;" size="mini" @click="setConf">参数配置</el-button>
+          <el-button type="primary" size="mini" @click="areaShow = !areaShow">{{areaShow?'隐藏详情':'显示详情'}}</el-button>
+          <el-dropdown size="mini" v-if="false" split-button type="primary" @command="changeLayout" :style="{marginLeft:'10px'}">
             布局切换
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item command="radiation">语义网辐射树</el-dropdown-item>
@@ -101,66 +43,30 @@
         </el-form-item>
       </el-form>
     </div>
-    <div
-      id="graphemeDiv"
-      v-if="isShow"
-    ></div>
-    <div
-      v-else
-      :style="{zoom:zoom}"
-      class="el-empty"
-    >
+    <div id="graphemeDiv" v-if="isShow"></div>
+    <div v-else :style="{zoom:zoom}" class="el-empty">
       <img src="../assets/image/single.png">
       <label>暂无数据</label>
     </div>
     <!-- 左侧区域 -->
-    <div
-      v-show="areaShow"
-      class="left-area"
-      :style="{width:boxWidth+'px',top:70*zoom+'px'}"
-    >
-      <div
-        class="left-box"
-        :style="{height:boxHeight*2 +'px'}"
-      >
+    <div v-show="areaShow" class="left-area" :style="{width:boxWidth+'px',top:70*zoom+'px'}">
+      <div class="left-box" :style="{height:boxHeight*2 +'px'}">
         <span :style="{zoom:zoom}">高频搜索词汇排行</span>
-        <rank-l
-          :zoom="zoom"
-          ref="rank"
-        />
+        <rank-l :zoom="zoom" ref="rank" />
       </div>
     </div>
     <!-- 右侧区域 -->
-    <div
-      v-show="areaShow"
-      class="right-area"
-      :style="{height:win.height+20+'px',width:boxWidth+'px',top:50*zoom+'px'}"
-    >
-      <div
-        class="right-box"
-        :style="{height:boxHeight*2 +'px',overflowY:'auto'}"
-      >
+    <div v-show="areaShow" class="right-area" :style="{height:win.height+20+'px',width:boxWidth+'px',top:50*zoom+'px'}">
+      <div class="right-box" :style="{height:boxHeight*2 +'px',overflowY:'auto'}">
         <span :style="{zoom:zoom}">{{curWord}} 相关文章Top10</span>
-        <table-s
-          :data="articleData"
-          :zoom="zoom"
-        />
+        <table-s :data="articleData" :zoom="zoom" />
       </div>
-      <div
-        class="right-box"
-        :style="{height: boxHeight+'px'}"
-      >
+      <div class="right-box" :style="{height: boxHeight+'px'}">
         <span :style="{zoom:zoom}">相关度</span>
-        <bar-r
-          :zoom="zoom"
-          ref="bar"
-        />
+        <bar-r :zoom="zoom" ref="bar" />
       </div>
     </div>
-    <config-s
-      :isShow="showConf"
-      :zoom="zoom"
-    />
+    <config-s :isShow="showConf" :zoom="zoom" />
   </div>
 </template>
 
@@ -193,7 +99,7 @@ insertCss(innerCss);
 
 
 export default {
-  components: { tableS, rankL, barR,configS },
+  components: { tableS, rankL, barR, configS },
   mixins: [commonMixins],
   data () {
     return {
@@ -263,7 +169,7 @@ export default {
       boxWidth: 0,
       boxHeight: 0,
       //已经存在的列表
-      hasShowList:'',
+      hasShowList: '',
     };
   },
   computed: {},
@@ -271,7 +177,7 @@ export default {
     this.zoom = getWinZoom()
     this.getParams();
   },
-  mounted(){
+  mounted () {
     this.form.keyWord = this.__CONFIG.yyw_defword
   },
   methods: {
@@ -315,7 +221,7 @@ export default {
           this.articleData.push(obj)
         })
       }
-      // console.log('文章:', this.articleData)
+      console.log('文章:', this.articleData)
     },
     // 获取初始树节点
     async getTreeNode () {
@@ -323,7 +229,7 @@ export default {
         const params = {
           layer: this.form.level,
           type: this.form.keyWord,
-          hasShowList:this.hasShowList,
+          hasShowList: this.hasShowList,
         };
         this.curWord = this.form.keyWord
         console.log("获取初始树节点-搜索节点", params);
@@ -341,7 +247,7 @@ export default {
         const params = {
           layer: this.form.level,
           type: this.selectNode.getModel().name,
-          hasShowList:this.hasShowList,
+          hasShowList: this.hasShowList,
         };
         this.curWord = this.selectNode.getModel().name
         console.log("获取初始树节点-点击节点", params);
@@ -603,7 +509,7 @@ export default {
           }
         },
         layout: {
-          type: ((this.__CONFIG.yyw_pos==="hor")?"mindmap":"compactBox"),//mindmap,compactBox
+          type: ((this.__CONFIG.yyw_pos === "hor") ? "mindmap" : "compactBox"),//mindmap,compactBox
           direction: "TB",//（H\V）
           getHeight: () => {
             return 90;
@@ -830,6 +736,13 @@ export default {
               "/#/grapheme?keyWord=" +
               encodeURIComponent(item.getModel().name);
             window.open(url);
+          }
+          if (target.innerHTML === "搜索") {
+            const keyword = item.getModel().name
+            console.log('搜索关键词【' + keyword + '】')
+            const searchURL = 'asp-modal://searchfileall?keyword=' + keyword
+            console.log('搜索关键词URL:' + searchURL)
+            window.openURL(searchURL)
           }
         },
         // 需要加上父级容器的 padding-left 16 与自身偏移量 10
