@@ -205,8 +205,9 @@ export default {
         layout: currentLayout,
         //默认节点设置
         defaultNode: {
-          size: [280, 335],
+          size: [200, 60],
           color: "#000",
+          // anchorPoints: [0.3, 0.3],
           style: {
             cursor: "pointer",
             lineWidth: 3
@@ -223,7 +224,7 @@ export default {
             cursor: "pointer",
             lineWidth: this.lineThick,
             color: this.lineColor,
-            endArrow: true
+            endArrow: true,
           }
         },
         //默认分组设置
@@ -245,7 +246,7 @@ export default {
             refY: -35,
             style: {
               fontSize: 25,
-              fontWeight: "bold"
+              fontWeight: "900"
             }
           }
         },
@@ -273,9 +274,7 @@ export default {
       });
       //-------测试数据start-------
       // this.sourceData.nodes.forEach(node => {
-      //   if (node.type === "image") {
-      //     node.size = 50
-      //   }
+      //   node.size = 10
       // });
       //--------测试数据end--------
       this.graph.data(this.sourceData);
@@ -649,7 +648,8 @@ export default {
             element.size = isNewUI ? [280, 125] : [250, 310];
             break;
           case "simple":
-            element.size = isNewUI ? [200, 60] : [250, 50];
+            // element.size = isNewUI ? [200, 60] : [250, 50];
+            element.size = [200, 60]
             break;
           default:
             break;
@@ -666,16 +666,16 @@ export default {
             break;
           case "chat":
           case "im"://即时通讯
-            element.type = "custNode_chat_style5"
+            element.type = (Number(element.prominent)) ? ("custNode_lg_chat_style5") : ("custNode_chat_style5")
             break;
           case "task"://任务
-            element.type = "custNode_task_style5"
+            element.type = (Number(element.prominent)) ? ("custNode_lg_task_style5") : ("custNode_task_style5")
             break;
           case "MeetingInfo"://会议
-            element.type = "custNode_meet_style5"
+            element.type = (Number(element.prominent)) ? ("custNode_lg_meet_style5") : ("custNode_meet_style5")
             break;
           case "App"://工具
-            element.type = "custNode_tool_style5"
+            element.type = (Number(element.prominent)) ? ("custNode_lg_tool_style5") : ("custNode_tool_style5")
             break;
           default:
             element.type = "custNode_data_style2"
@@ -772,14 +772,26 @@ export default {
       G6.registerNode("custNode_task_style5", {
         jsx: nodeSt5.task_node_style5
       });
+      G6.registerNode("custNode_lg_task_style5", {
+        jsx: nodeSt5.task_lg_node_style5
+      });
       G6.registerNode("custNode_chat_style5", {
         jsx: nodeSt5.chat_node_style5
+      });
+      G6.registerNode("custNode_lg_chat_style5", {
+        jsx: nodeSt5.chat_lg_node_style5
       });
       G6.registerNode("custNode_meet_style5", {
         jsx: nodeSt5.meet_node_style5
       });
+      G6.registerNode("custNode_lg_meet_style5", {
+        jsx: nodeSt5.meet_lg_node_style5
+      });
       G6.registerNode("custNode_tool_style5", {
         jsx: nodeSt5.tool_node_style5
+      });
+      G6.registerNode("custNode_lg_tool_style5", {
+        jsx: nodeSt5.tool_lg_node_style5
       });
       G6.registerNode("custNode_data_style2", {
         jsx: nodeDataSt2.data_node_style2

@@ -740,7 +740,7 @@ export default {
           if (target.innerHTML === "搜索") {
             const keyword = item.getModel().name
             console.log('搜索关键词【' + keyword + '】')
-            const searchURL = 'asp-modal://searchfileall?keyword=' + keyword
+            const searchURL = 'asp://shellapp/ModalCenter/searchfileall?keyword=' + keyword
             console.log('搜索关键词URL:' + searchURL)
             window.openURL(searchURL)
           }
